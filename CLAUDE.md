@@ -26,6 +26,16 @@ from the subset renders as its own name in plain text.
 rest renders as text and is parsed as tags. It has leaked onto a page twice. Use
 `{% comment %}`; `apps/core/tests/test_template_comments.py` enforces it.
 
+**Palette: "Matcha Latte"** - `#F4F1E8` background, `#C9D6A3` surface, `#6B8F47` secondary,
+`#E8B87A` accent, `#2F3B24` primary/text. Two deliberate departures, both for contrast:
+button fills use `#5A7A3C` (white on `#6B8F47` is only 3.7:1), and muted text is `#6E6D58`.
+Red, amber and emerald are untouched - an abnormal result must not read as off-brand green.
+The ramps live in **two** places, because the DEBUG CDN build cannot read
+`tailwind.config.js`: that file, and an inline `tailwind.config` in `_assets.html`.
+`apps/core/tests/test_theme.py` fails if they drift. Tailwind's `teal` and `slate` ramps are
+redefined there rather than rewriting the utilities in forty templates, so every existing
+`bg-teal-700` / `text-slate-500` follows the palette.
+
 **Design tokens live in `:root` at the top of `templates/_components.css`** - colours, radius,
 shadow, sidebar widths, font stack. Change the theme there, not in the templates. The component
 classes (`.card`, `.btn`, `.tbl`, `.filter-panel`, `.pill-filter`, `.rcard`, `.stat-band`) are
@@ -138,7 +148,7 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   (cp1252 default otherwise).
 - Local runs use SQLite and CDN assets when `DEBUG=True` (`.env` here is dev-only).
 - `python manage.py create_demo_data` for fake data; refused when `DEBUG=False`.
-- Tests: `python -m pytest` (93 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
+- Tests: `python -m pytest` (96 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
 - Docker Desktop on this laptop has been unreliable (engine stuck stopped); the full
   `docker compose up` stack has not yet been verified here.
 

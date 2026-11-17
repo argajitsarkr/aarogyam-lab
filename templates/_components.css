@@ -6,38 +6,54 @@
    is in one place instead of spread across forty templates.
    ------------------------------------------------------------ */
 :root {
-  /* Brand - teal. --brand is the clickable/active colour. */
-  --brand: #0f766e;          /* teal-700 */
-  --brand-dark: #115e59;     /* teal-800, hover */
-  --brand-darker: #134e4a;   /* teal-900, sidebar */
-  --brand-tint: #f0fdfa;     /* teal-50, selected rows */
-  --brand-ink: #134e4a;      /* text on a tint */
+  /* ----------------------------------------------------------------
+     "Matcha Latte" palette (chosen 2026-11-18):
+       #F4F1E8 background   #C9D6A3 surface   #6B8F47 secondary
+       #E8B87A accent       #2F3B24 primary / text
+     Two deliberate adjustments, both for legibility:
+       - button fills use #5A7A3C, a shade darker than the palette's #6B8F47.
+         White on #6B8F47 is 3.7:1, under the 4.5:1 needed for button text;
+         #5A7A3C is 4.9:1. #6B8F47 still appears as the lighter accent.
+       - muted text is #6E6D58 (4.7:1 on the cream) rather than a lighter grey.
+     ---------------------------------------------------------------- */
+  --brand: #5A7A3C;          /* interactive fills, white text on top */
+  --brand-dark: #4E6B34;     /* hover */
+  --brand-darker: #2F3B24;   /* sidebar, table header - palette primary */
+  --brand-light: #6B8F47;    /* palette secondary, for accents on dark */
+  --brand-tint: #EEF2E2;     /* selected rows, soft fills */
+  --brand-ink: #2F3B24;      /* text on a tint */
 
-  /* Neutrals */
-  --surface: #ffffff;        /* cards, tables, header */
-  --canvas: #f8fafc;         /* page background */
-  --panel: #f1f5f9;          /* filter block, table head */
-  --line: #e2e8f0;           /* borders */
-  --line-strong: #cbd5e1;
-  --ink: #1e293b;            /* body text */
-  --ink-soft: #475569;       /* secondary text */
-  --ink-muted: #94a3b8;      /* labels, placeholders */
+  /* Neutrals - warm, so they sit with the cream rather than fighting it */
+  --surface: #ffffff;        /* cards and tables lift off the canvas */
+  --canvas: #F4F1E8;         /* palette background */
+  --panel: #E7EDD6;          /* filter block, table hover - a sage tint */
+  --line: #E0DED0;
+  --line-strong: #C9D6A3;    /* palette surface works as a border */
+  --ink: #2F3B24;            /* palette primary */
+  --ink-soft: #5B6A48;
+  --ink-muted: #6E6D58;
   --ink-invert: #ffffff;
 
-  /* Status - also used by the pill tag */
-  --ok: #047857;        --ok-bg: #ecfdf5;
-  --warn: #b45309;      --warn-bg: #fffbeb;
-  --danger: #b91c1c;    --danger-bg: #fef2f2;
-  --info: #1d4ed8;      --info-bg: #eff6ff;
+  /* Accent - the palette's #E8B87A. Used for attention that is not an error. */
+  --accent: #E8B87A;
+  --accent-bg: #FBF0DF;
+  --accent-ink: #8A5A1E;
+
+  /* Status. Red and amber keep their meaning: an abnormal result must not read
+     as "slightly off-brand green". */
+  --ok: #3F6B2E;        --ok-bg: #EEF2E2;
+  --warn: #8A5A1E;      --warn-bg: #FBF0DF;
+  --danger: #A33A2A;    --danger-bg: #FBEDEA;
+  --info: #3C5A7A;      --info-bg: #ECF1F6;
 
   --radius-sm: 4px;
   --radius: 6px;
   --radius-lg: 10px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
-  --shadow-md: 0 4px 12px rgb(15 23 42 / 0.08);
-  --shadow-lg: 0 10px 26px rgb(15 23 42 / 0.10);
+  --shadow-sm: 0 1px 2px rgb(47 59 36 / 0.07);
+  --shadow-md: 0 4px 12px rgb(47 59 36 / 0.10);
+  --shadow-lg: 0 10px 26px rgb(47 59 36 / 0.12);
 
   --sidebar-w: 16rem;
   --sidebar-w-rail: 4.25rem;
@@ -48,6 +64,7 @@
 }
 
 html { font-family: var(--font-sans); }
+body { background-color: var(--canvas); }
 
 /* Sidebar width, both states, from the tokens. The element carries no Tailwind
    width utility: `w-64` sits in Tailwind's utilities layer and would outrank

@@ -13,6 +13,16 @@
 {% if USE_CDN_ASSETS %}
   {# Dev fallback when the Tailwind bundle has not been built (DEBUG only). #}
   <script src="https://cdn.tailwindcss.com/3.4.17?plugins=forms"></script>
+  <script>
+    /* The CDN build does not read tailwind.config.js, so the two colour ramps are
+       repeated here for DEBUG. apps/core/tests/test_theme.py fails if they drift. */
+    tailwind.config = { theme: { extend: { colors: {
+      teal: {"50": "#F4F1E8", "100": "#EEF2E2", "200": "#D3DFB6", "300": "#C9D6A3", "400": "#A5BE7B", "500": "#83A357", "600": "#6B8F47", "700": "#5A7A3C", "800": "#4E6B34", "900": "#2F3B24", "950": "#1E2617"},
+      slate: {"50": "#F7F5EE", "100": "#EFEDE2", "200": "#E0DED0", "300": "#CBC9B8", "400": "#A8A693", "500": "#6E6D58", "600": "#5C5B49", "700": "#53533F", "800": "#3C3D2C", "900": "#2F3B24", "950": "#191A10"},
+      canvas: "#F4F1E8",
+      accent: { DEFAULT: "#E8B87A", bg: "#FBF0DF", ink: "#8A5A1E" }
+    }, fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"] } } } };
+  </script>
   <style type="text/tailwindcss">{% include "_components.css" %}</style>
   <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
   <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
