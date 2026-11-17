@@ -41,6 +41,7 @@ server {
         add_header X-Content-Type-Options nosniff always;
     }
     location /protected/ { return 404; }
+    location = /healthz { return 404; }   # container healthcheck only
 
     location / {
         proxy_pass http://django;

@@ -45,7 +45,7 @@ services:
       USE_X_ACCEL_REDIRECT: "True"
       RUN_MIGRATIONS: "1"
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/robots.txt')\""]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')\""]
       interval: 15s
       timeout: 5s
       retries: 20

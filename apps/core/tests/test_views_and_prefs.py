@@ -152,3 +152,15 @@ def test_noindex_and_login_only(client):
     assert resp.status_code == 200 and resp["X-Robots-Tag"].startswith("noindex")
     assert 'name="robots" content="noindex' in resp.content.decode()
     assert client.get(reverse("dashboard:home")).status_code == 302
+
+
+def test_healthz_bypasses_host_check_and_https_redirect(client, settings):
+    settings.ALLOWED_HOSTS = ["lab.example.in"]
+    settings.SECURE_SSL_REDIRECT = True
+    resp = client.get("/healthz", HTTP_HOST="localhost:8000")
+    assert resp.status_code == 200 and resp.content == b"ok"
+
+
+def test_kombu_redis_transport_importable():
+    # The server's celery containers crashed on `import packaging` from kombu's redis transport.
+    import kombu.transport.redis  # noqa: F401

@@ -9,6 +9,22 @@ from .threadlocal import set_current_request
 PUBLIC_PATH_PREFIXES = ("/accounts/login/", "/robots.txt", "/static/")
 
 
+class HealthCheckMiddleware:
+    """Answers GET /healthz with a plain 200 before host validation and the HTTPS
+    redirect, so the container healthcheck works whatever ALLOWED_HOSTS holds.
+    Must be first in MIDDLEWARE. Reveals nothing; nginx does not expose it."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.path == "/healthz":
+            from django.http import HttpResponse
+
+            return HttpResponse("ok", content_type="text/plain")
+        return self.get_response(request)
+
+
 class RequestContextMiddleware:
     """Stores the request in a thread-local (for audit signals) and attaches
     a lazily-resolved `request.scope`."""
