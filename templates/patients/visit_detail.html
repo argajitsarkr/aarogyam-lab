@@ -4,7 +4,7 @@
 <div class="mb-4 flex flex-wrap items-center gap-3">
   <a href="{% url 'patients:detail' visit.patient.pk %}" class="text-sm text-teal-700 hover:underline">{% icon "arrow_back" %} {{ visit.patient.full_name }} ({{ visit.patient.patient_id }})</a>
   <span class="ml-auto text-sm">{% centre_badge visit.centre %} {{ visit.centre.name }} · by {{ visit.registered_by|default:"—" }}</span>
-  <button onclick="window.print()" class="btn btn-sm print:hidden">{% icon "print" %} Print receipt</button>
+  
 </div>
 
 <form method="post" enctype="multipart/form-data" class="space-y-4">

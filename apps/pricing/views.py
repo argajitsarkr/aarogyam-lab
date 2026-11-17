@@ -53,8 +53,7 @@ def package(request):
            "selected": set(int(i) for i in ids)}
     if ids:
         competitors, rows = build_matrix(test_ids=ids)
-        ours, totals = package_totals(competitors, rows)
-        ctx.update(rows=rows, competitors=competitors, ours=ours, totals=totals)
+        ctx.update(rows=rows, competitors=competitors, totals=package_totals(competitors, rows))
     return render(request, "pricing/package.html", ctx)
 
 
@@ -189,18 +188,6 @@ def template_download(request):
             ds.append([t.code, c.name, "", "price list", timezone.localdate().strftime("%d-%m-%Y")])
     resp = HttpResponse(ds.export("xlsx"), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     resp["Content-Disposition"] = 'attachment; filename="competitor_prices_template.xlsx"'
-    return resp
-
-
-@admin_required
-def export_prices(request):
-    competitors, rows = build_matrix()
-    ds = tablib.Dataset(headers=["Code", "Test", "Aarogyam"] + [c.name for c in competitors])
-    for r in rows:
-        ds.append([r["test"].code, r["test"].name, r["test"].price] + [c["price"] if c else "" for c in r["cells"]])
-    log_event(AuditLog.Action.EXPORT, user=request.user, note=f"Price comparison export: {len(ds)} tests")
-    resp = HttpResponse(ds.export("xlsx"), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    resp["Content-Disposition"] = f'attachment; filename="price_comparison_{timezone.localdate():%d-%m-%Y}.xlsx"'
     return resp
 
 

@@ -5,7 +5,7 @@ from .models import CallLog, RetestCandidate
 
 @admin.register(RetestCandidate)
 class RetestCandidateAdmin(admin.ModelAdmin):
-    list_display = ("patient", "test", "centre", "due_date", "priority_score", "status", "assigned_to")
+    list_display = ("patient", "test", "centre", "due_date", "priority_score", "status")
     list_filter = ("centre", "status")
     raw_id_fields = ("patient", "source_test", "converted_visit", "converted_test")
 

@@ -16,7 +16,6 @@ env = environ.Env(
     CSRF_TRUSTED_ORIGINS=(list, ["https://localhost"]),
     SECURE_SSL_REDIRECT=(bool, True),
     USE_CDN_ASSETS=(bool, False),
-    USE_X_ACCEL_REDIRECT=(bool, False),
 )
 environ.Env.read_env(BASE_DIR / ".env", overwrite=False)
 
@@ -151,12 +150,8 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 _build_dir = Path(env("STATIC_BUILD_DIR", default=str(BASE_DIR / "static_build")))
 if _build_dir.exists():
     STATICFILES_DIRS.append(_build_dir)
-# Patient reports and import uploads live OUTSIDE the web root and are only
-# served through authenticated, centre-scoped views.
+# Import uploads live OUTSIDE the web root; nothing here is served by Nginx.
 PRIVATE_MEDIA_ROOT = Path(env("PRIVATE_MEDIA_ROOT", default=str(BASE_DIR / "private_media")))
-MEDIA_ROOT = PRIVATE_MEDIA_ROOT
-MEDIA_URL = "/protected/"  # never served directly by Nginx
-USE_X_ACCEL_REDIRECT = env("USE_X_ACCEL_REDIRECT")
 USE_CDN_ASSETS = env("USE_CDN_ASSETS")
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
@@ -185,23 +180,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.retest.tasks.generate_retest_candidates_task",
         "schedule": crontab(hour=6, minute=0),
     },
-    "daily-reminders": {
-        "task": "apps.followups.tasks.send_daily_reminders",
-        "schedule": crontab(hour=8, minute=30),
-    },
 }
 
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 if env("REDIS_URL", default=None):
     CACHES = {"default": {"BACKEND": "django.core.cache.backends.redis.RedisCache", "LOCATION": REDIS_URL}}
-
-EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
-EMAIL_HOST = env("EMAIL_HOST", default="")
-EMAIL_PORT = env.int("EMAIL_PORT", default=587)
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@localhost")
 
 # --- Business rules (defaults; Admins can override most in Site Settings) ---
 MAX_ACTIVE_ADMINS = 3

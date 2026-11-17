@@ -30,7 +30,6 @@ class RetestCandidate(TimeStampedModel):
     due_date = models.DateField(db_index=True)
     priority_score = models.IntegerField(default=0, db_index=True)
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.PENDING, db_index=True)
-    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="retest_candidates")
     callback_date = models.DateField(null=True, blank=True)
     booked_date = models.DateField(null=True, blank=True)
     attempts = models.PositiveSmallIntegerField(default=0)

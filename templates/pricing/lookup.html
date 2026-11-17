@@ -14,11 +14,7 @@
   <div class="text-center">
     <div class="text-sm uppercase tracking-widest text-slate-500">{{ site_settings.lab_display_name }}</div>
     <h1 class="mt-1 text-3xl font-bold leading-tight sm:text-4xl">{{ row.test.name }}</h1>
-    <div class="mt-4 text-sm text-slate-500">Our price</div>
-    <div class="text-6xl font-extrabold text-teal-800">{{ row.test.price|inr }}</div>
-    {% if row.save_vs_avg.positive %}
-      <div class="mx-auto mt-3 inline-block rounded-full bg-emerald-100 px-4 py-1.5 text-xl font-semibold text-emerald-800">You save {{ row.save_vs_avg.amount|inr }} ({{ row.save_vs_avg.pct }}%) vs average</div>
-    {% endif %}
+    <div class="mt-3 text-sm text-slate-500">Prices from {{ pairs|length }} lab{{ pairs|length|pluralize }}{% if row.quoted_count %} · {{ row.lowest|inr }}{% if row.highest != row.lowest %} to {{ row.highest|inr }}{% endif %}{% endif %}</div>
   </div>
   <table class="mt-6 w-full text-xl">
     <tbody class="divide-y">
@@ -30,10 +26,10 @@
       {% endfor %}
     </tbody>
   </table>
-  <p class="mt-4 text-center text-xs text-slate-400">Other labs' prices from public price lists / enquiries, last verified on the dates held by the lab. Subject to change.</p>
+  <p class="mt-4 text-center text-xs text-slate-400">Prices come from each lab's published list or a phone enquiry and are subject to change. Choose the lab you prefer.</p>
   <div class="mt-4 flex justify-center print:hidden"><button onclick="window.print()" class="btn">{% icon "print" %} Print</button></div>
 </div>
 {% else %}
-<p class="text-center text-slate-500">Choose a test to show the patient a comparison card.</p>
+<p class="text-center text-slate-500">Choose a test to show the patient the price card.</p>
 {% endif %}
 {% endblock %}

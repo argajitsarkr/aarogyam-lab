@@ -10,5 +10,4 @@ urlpatterns = [
     path("analytics/", views.analytics, name="analytics"),
     path("<int:pk>/log/", views.log_outcome, name="log"),
     path("<int:pk>/move/", views.candidate_move, name="move"),
-    path("<int:pk>/reassign/", views.candidate_reassign, name="reassign"),
 ]

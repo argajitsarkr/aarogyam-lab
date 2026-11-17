@@ -10,7 +10,7 @@
         Due {{ c.due_date|date:"d-m-Y" }}{% if c.days_overdue > 0 %} ({{ c.days_overdue }} day{{ c.days_overdue|pluralize }} overdue){% endif %}
         {% if c.callback_date %} · Callback {{ c.callback_date|date:"d-m-Y" }}{% endif %}
         {% if c.attempts %} · {{ c.attempts }} attempt{{ c.attempts|pluralize }}{% endif %}
-        {% if show_all %} · {% centre_badge c.centre %} {{ c.assigned_to|default:"unassigned" }}{% endif %}
+        · {% centre_badge c.centre %}
       </div>
     </div>
     <a href="tel:{{ c.patient.phone }}" class="btn-primary whitespace-nowrap px-4 py-2.5 text-base">{% icon "call" %} {{ c.patient.phone }}</a>

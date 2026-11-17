@@ -18,7 +18,6 @@
     {% if 'due' not in hidden_cols %}<th>{% sort_link 'due' 'Due' %}</th>{% endif %}
     {% if 'priority' not in hidden_cols %}<th>{% sort_link 'priority' 'Score' %}</th>{% endif %}
     {% if 'centre' not in hidden_cols %}<th>Centre</th>{% endif %}
-    {% if 'assigned' not in hidden_cols %}<th>Assigned</th>{% endif %}
     {% if 'status' not in hidden_cols %}<th>Status</th>{% endif %}
     {% if 'attempts' not in hidden_cols %}<th>{% sort_link 'attempts' 'Attempts' %}</th>{% endif %}
   </tr></thead>
@@ -31,16 +30,6 @@
       {% if 'due' not in hidden_cols %}<td class="{% if c.days_overdue > 0 %}text-red-700{% endif %}">{{ c.due_date|date:"d-m-Y" }}</td>{% endif %}
       {% if 'priority' not in hidden_cols %}<td>{{ c.priority_score }}</td>{% endif %}
       {% if 'centre' not in hidden_cols %}<td>{% centre_badge c.centre %}</td>{% endif %}
-      {% if 'assigned' not in hidden_cols %}<td>
-        {% if is_admin_user %}
-          <form method="post" action="{% url 'retest:reassign' c.pk %}" class="flex gap-1">{% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <select name="assigned_to" class="rounded border-slate-300 py-0.5 text-xs" onchange="this.form.submit()" aria-label="Assign">
-              <option value="">—</option>
-              {% for u in c.centre.employees.all %}{% if u.is_active %}<option value="{{ u.pk }}" {% if u.pk == c.assigned_to_id %}selected{% endif %}>{{ u }}</option>{% endif %}{% endfor %}
-            </select></form>
-        {% else %}{{ c.assigned_to|default:"—" }}{% endif %}
-      </td>{% endif %}
       {% if 'status' not in hidden_cols %}<td>{% pill c.status c.get_status_display %}</td>{% endif %}
       {% if 'attempts' not in hidden_cols %}<td>{{ c.attempts }}</td>{% endif %}
     </tr>

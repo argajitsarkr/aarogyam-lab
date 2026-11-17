@@ -134,9 +134,6 @@ def test_every_page_renders_for_admin(client, populated):
     for url in _pages(populated) + [reverse(n) for n in ADMIN_ONLY]:
         resp = client.get(url)
         assert resp.status_code == 200, f"{url} -> {resp.status_code}"
-    assert client.get(reverse("patients:export")).status_code == 200
-    assert client.get(reverse("pricing:export")).status_code == 200
-    assert client.get(reverse("patients:data_export", args=[populated["patient"].pk])).status_code == 200
 
 
 def test_htmx_partial_results(client, populated):

@@ -143,10 +143,10 @@ class Command(BaseCommand):
     def _simulate_calls(self):
         outcomes = [CallLog.Outcome.NO_ANSWER, CallLog.Outcome.CALL_BACK, CallLog.Outcome.BOOKED,
                     CallLog.Outcome.BOOKED, CallLog.Outcome.NOT_INTERESTED]
-        cands = list(RetestCandidate.objects.open().select_related("assigned_to", "centre", "patient", "test", "source_test"))
+        cands = list(RetestCandidate.objects.open().select_related("centre", "patient", "test", "source_test"))
         random.shuffle(cands)
         for c in cands[: len(cands) // 3]:
-            user = c.assigned_to or User.objects.active_employees().filter(home_centre=c.centre).first()
+            user = User.objects.active_employees().filter(home_centre=c.centre).first()
             if user:
                 call = log_call(c, user, random.choice(outcomes), booked_date=timezone.localdate() + dt.timedelta(days=random.randint(1, 5)))
                 CallLog.objects.filter(pk=call.pk).update(called_at=timezone.now() - dt.timedelta(days=random.randint(0, 40)))

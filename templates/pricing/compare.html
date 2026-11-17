@@ -6,8 +6,8 @@
   <input type="search" name="q" value="{{ q }}" placeholder="Search test name or code…" class="input max-w-sm" aria-label="Search tests" autofocus>
   <select name="category" class="input max-w-xs" aria-label="Category"><option value="">All categories</option>
     {% for v, l in categories %}<option value="{{ v }}" {% if category == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
-  {% if is_admin_user %}<a href="{% url 'pricing:export' %}" class="btn ml-auto">{% icon "download" %} Export</a>{% endif %}
+  
 </form>
-<p class="mb-2 text-xs text-slate-500">Competitor prices are entered manually by Admins. <span class="rounded bg-slate-100 px-1 text-slate-400 line-through">Greyed</span> prices were last verified over {{ site_settings.price_stale_days }} days ago and need re-checking.</p>
+<p class="mb-2 text-xs text-slate-500">Lab prices are entered manually by Admins. The customer chooses the lab. <span class="rounded bg-slate-100 px-1 text-slate-400 line-through">Greyed</span> prices were last verified over {{ site_settings.price_stale_days }} days ago and need re-checking.</p>
 <div id="matrix">{% include "pricing/_matrix.html" %}</div>
 {% endblock %}

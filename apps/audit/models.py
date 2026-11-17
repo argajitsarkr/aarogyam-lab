@@ -18,7 +18,6 @@ class AuditLog(models.Model):
         LOGIN_FAILED = "LOGIN_FAILED", "Login failed"
         LOGIN_BLOCKED = "LOGIN_BLOCKED", "Login blocked (locked)"
         PASSWORD_CHANGED = "PASSWORD_CHANGED", "Password changed"
-        DATA_REQUEST = "DATA_REQUEST", "Data subject request"
 
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")

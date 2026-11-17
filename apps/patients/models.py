@@ -8,7 +8,6 @@ from django.utils import timezone
 
 from apps.centres.models import DISTRICT_CHOICES
 from apps.core.models import ActiveQuerySet, SoftDeleteModel, TimeStampedModel
-from apps.core.storage import private_storage
 from apps.core.validators import normalize_phone, validate_indian_phone, validate_pin_code
 
 
@@ -41,7 +40,7 @@ class PatientQuerySet(ActiveQuerySet):
         return self.filter(Q(registered_at_centre_id__in=centre_ids) | Exists(visited))
 
     def contactable(self):
-        return self.filter(consent_to_contact=True, do_not_call=False, deleted_at__isnull=True, erased_at__isnull=True)
+        return self.filter(consent_to_contact=True, do_not_call=False, deleted_at__isnull=True)
 
 
 class Patient(TimeStampedModel, SoftDeleteModel):
@@ -77,7 +76,6 @@ class Patient(TimeStampedModel, SoftDeleteModel):
     do_not_call = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
-    erased_at = models.DateTimeField(null=True, blank=True, help_text="Set when personal data was erased on request (DPDP).")
 
     objects = PatientQuerySet.as_manager()
 
@@ -111,7 +109,7 @@ class Patient(TimeStampedModel, SoftDeleteModel):
 
     @property
     def is_contactable(self):
-        return self.consent_to_contact and not self.do_not_call and not self.erased_at
+        return self.consent_to_contact and not self.do_not_call
 
 
 # --------------------------------------------------------------------------
@@ -183,6 +181,12 @@ class PinCodeLocation(models.Model):
 # --------------------------------------------------------------------------
 # Visits
 # --------------------------------------------------------------------------
+def report_upload_to(instance, filename):
+    """Kept only so the historical migration 0001_initial still imports. Report PDF
+    upload/download was removed; nothing calls this."""
+    return f"reports/{instance.pk}/{filename}"
+
+
 class VisitQuerySet(ActiveQuerySet):
     pass
 
@@ -234,11 +238,6 @@ class Visit(TimeStampedModel, SoftDeleteModel):
             self.save(update_fields=["total_amount", "updated_at"])
 
 
-def report_upload_to(instance, filename):
-    today = timezone.localdate()
-    return f"reports/{today:%Y/%m}/{instance.visit.patient.patient_id}_{instance.pk or 'new'}_{filename}"
-
-
 class VisitTest(TimeStampedModel):
     class ResultStatus(models.TextChoices):
         PENDING = "PENDING", "Pending"
@@ -257,7 +256,6 @@ class VisitTest(TimeStampedModel):
     result_summary = models.CharField(max_length=255, blank=True)
     flag = models.CharField(max_length=10, choices=Flag.choices, blank=True)
     report_date = models.DateField(null=True, blank=True, db_index=True)
-    report_pdf = models.FileField(upload_to=report_upload_to, storage=private_storage, blank=True)
 
     class Meta:
         ordering = ["visit", "test__name"]

@@ -9,6 +9,6 @@
     <span class="{% if item.days_overdue > 0 and item.status != 'CONVERTED' %}text-red-700{% endif %}">Due {{ item.due_date|date:"d-m-Y" }}{% if item.booked_date and item.status == 'SCHEDULED' %} · Booked {{ item.booked_date|date:"d-m" }}{% endif %}</span>
     {% centre_badge item.centre %}
   </div>
-  <div class="mt-1 flex justify-between text-xs text-slate-500"><span>{{ item.assigned_to|default:"Unassigned" }}</span><a href="tel:{{ item.patient.phone }}" class="text-teal-700">{% icon "call" %}</a></div>
+  <div class="mt-1 flex justify-between text-xs text-slate-500"><span>{% centre_badge item.centre %}</span><a href="tel:{{ item.patient.phone }}" class="text-teal-700">{% icon "call" %}</a></div>
   {% if view_mode == 'card' %}<div class="mt-1">{% pill item.status item.get_status_display %}</div>{% endif %}
 </div>

@@ -1,14 +1,13 @@
 {% extends "base.html" %}{% load ui %}
-{% block title %}My Call List{% endblock %}{% block page_title %}{% if show_all %}Call list — {{ scope.label }}{% else %}My Call List{% endif %}{% endblock %}
+{% block title %}Call List{% endblock %}{% block page_title %}Call list — {{ scope.label }}{% endblock %}
 {% block content %}
 <div class="mb-4 flex flex-wrap items-center gap-2 text-sm">
   <span class="rounded-md bg-white px-3 py-1.5 shadow-sm">Calls made today: <b>{{ calls_today }}</b></span>
   <span class="rounded-md bg-white px-3 py-1.5 shadow-sm">Callbacks due: <b>{{ callbacks_due|length }}</b></span>
   <span class="rounded-md bg-white px-3 py-1.5 shadow-sm">To call: <b>{{ fresh|length }}</b></span>
-  {% if not is_admin_user %}<a href="?{% if show_all %}{% else %}all=1{% endif %}" class="ml-auto text-teal-700">{% if show_all %}Show only mine{% else %}Show whole centre{% endif %}</a>{% endif %}
   <a href="{% url 'retest:list' %}" class="btn btn-sm {% if is_admin_user %}ml-auto{% endif %}">Queue views {% icon "arrow_forward" %}</a>
 </div>
-<p class="mb-3 text-xs text-slate-500">Only patients who consented to be contacted and are not marked Do Not Call appear here. Highest priority first: Abnormal {% icon "arrow_forward" %} Borderline {% icon "arrow_forward" %} chronic monitoring {% icon "arrow_forward" %} others, then most overdue.</p>
+<p class="mb-3 text-xs text-slate-500">Only patients who consented to be contacted and are not marked Do Not Call appear here. Highest priority first: Abnormal → Borderline → chronic monitoring → others, then most overdue.</p>
 
 {% if callbacks_due %}
 <h2 class="mb-2 font-semibold text-amber-800">{% icon "autorenew" %} Callbacks due</h2>

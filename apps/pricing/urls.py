@@ -12,7 +12,6 @@ urlpatterns = [
     path("manage/verify/<int:test_id>/", views.mark_verified, name="mark_verified"),
     path("manage/upload/", views.bulk_upload, name="bulk_upload"),
     path("manage/template/", views.template_download, name="template"),
-    path("export/", views.export_prices, name="export"),
     path("competitors/new/", views.CompetitorCreateView.as_view(), name="competitor_create"),
     path("competitors/<int:pk>/edit/", views.CompetitorUpdateView.as_view(), name="competitor_update"),
 ]

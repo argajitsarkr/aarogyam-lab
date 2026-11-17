@@ -4,7 +4,6 @@
 <div class="mb-3 flex flex-wrap gap-2">
   <a href="{% url 'patients:register' %}" class="btn-primary">{% icon "add" %} Register / New visit</a>
   {% if is_admin_user %}
-    <a href="{% url 'patients:export' %}?{{ filter_querystring }}" class="btn">{% icon "download" %} Export Excel</a>
     <a href="{% url 'patients:import' %}" class="btn">{% icon "upload" %} Import</a>
   {% endif %}
 </div>

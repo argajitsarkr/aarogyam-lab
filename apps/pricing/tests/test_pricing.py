@@ -52,16 +52,17 @@ def test_admin_grid_save(client, admin_user, competitors):
     assert cp.price == 450 and cp.entered_by == admin_user and cp.source_note == "website"
 
 
-def test_savings_and_staleness(competitors):
+def test_matrix_lists_company_prices_with_staleness(competitors):
+    """No 'our price' and no savings: the matrix is each company's own price."""
     t = TestCatalogFactory(price=Decimal("400"))
     old = timezone.localdate() - dt.timedelta(days=120)
     CompetitorPrice.objects.create(test=t, competitor=competitors[0], price=500)
     CompetitorPrice.objects.create(test=t, competitor=competitors[1], price=700, last_verified_on=old)
     _, rows = build_matrix()
-    r = rows[0]
-    assert r["cheapest"] == 500 and r["save_vs_cheapest"]["amount"] == 100 and r["save_vs_cheapest"]["pct"] == 20
-    assert r["save_vs_avg"]["amount"] == 200
-    assert r["cells"][1]["stale"] is True and r["cells"][0]["stale"] is False
+    row = rows[0]
+    assert row["lowest"] == 500 and row["highest"] == 700 and row["quoted_count"] == 2
+    assert row["cells"][1]["stale"] is True and row["cells"][0]["stale"] is False
+    assert "save_vs_cheapest" not in row and "cheapest" not in row
 
 
 def test_package_totals(client, employee, competitors):
@@ -70,9 +71,10 @@ def test_package_totals(client, employee, competitors):
         CompetitorPrice.objects.create(test=t, competitor=competitors[0], price=p)
     client.force_login(employee("ARP"))
     resp = client.get(reverse("pricing:package"), {"tests": [a.pk, b.pk]})
-    assert resp.context["ours"] == 300
+    assert "ours" not in resp.context
     first = resp.context["totals"][0]
-    assert first["total"] == 410 and first["saving"]["amount"] == 110
+    assert first["total"] == 410 and first["complete"] is True
+    assert "saving" not in first
 
 
 def test_comparison_page_fast_for_500_tests_x_6_labs(client, employee, competitors):

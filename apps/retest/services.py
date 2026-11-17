@@ -5,7 +5,6 @@ from django.db import IntegrityError, transaction
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
-from apps.core.assignment import pick_assignee
 from apps.core.models import SiteSettings
 from apps.followups.models import FollowUp
 from apps.patients.models import VisitTest
@@ -46,7 +45,6 @@ def eligible_source_tests(today=None, lookahead_days=None):
             patient__consent_to_contact=True,
             patient__do_not_call=False,
             patient__deleted_at__isnull=True,
-            patient__erased_at__isnull=True,
         )
         .exclude(Exists(repeated_since))
         .exclude(Exists(already_candidate))
@@ -71,7 +69,6 @@ def generate_candidates(today=None, lookahead_days=None):
                 RetestCandidate.objects.create(
                     patient=vt.patient, centre=centre, source_test=vt, test=vt.test, due_date=due,
                     priority_score=priority_score(vt.flag, vt.test.is_chronic_monitoring, due, today),
-                    assigned_to=pick_assignee(centre, "retest_candidates", RetestCandidate.OPEN_STATUSES),
                 )
             created += 1
         except IntegrityError:
@@ -104,7 +101,7 @@ def log_call(candidate, user, outcome, notes="", callback_date=None, booked_date
             patient=candidate.patient, centre=candidate.centre, reason=FollowUp.Reason.RE_TEST,
             source_visit=candidate.source_test.visit, source_test=candidate.source_test,
             due_date=candidate.booked_date, status=FollowUp.Status.SCHEDULED, scheduled_date=candidate.booked_date,
-            scheduled_centre=candidate.centre, assigned_to=user if not user.is_admin else candidate.assigned_to,
+            scheduled_centre=candidate.centre, assigned_to=None if user.is_admin else user,
             priority=FollowUp.Priority.MEDIUM, created_by=user,
             notes=f"Booked via re-test call for {candidate.test.name}",
         )

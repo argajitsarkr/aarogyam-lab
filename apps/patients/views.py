@@ -24,7 +24,7 @@ from .forms import (DoctorForm, ImportUploadForm, PatientForm, TestCatalogForm, 
                     VisitTestResultFormSet)
 from .models import Doctor, Patient, TestCatalog, Visit, VisitTest
 from .services import (active_tests, check_patient_access, check_visit_edit, create_visit, employee_centre,
-                       erase_patient, export_patient_data, lookup_patients, minimal_card)
+                       lookup_patients, minimal_card)
 
 
 # =============================================================================
@@ -189,29 +189,6 @@ def patient_soft_delete(request, pk):
     return redirect("patients:list")
 
 
-@admin_required
-def patient_data_export(request, pk):
-    """DPDP: give the data principal a copy of their data."""
-    patient = get_object_or_404(Patient, pk=pk)
-    data = export_patient_data(patient, request.user)
-    resp = HttpResponse(json.dumps(data, indent=2, ensure_ascii=False), content_type="application/json")
-    resp["Content-Disposition"] = f'attachment; filename="{patient.patient_id}_data.json"'
-    return resp
-
-
-@require_POST
-@admin_required
-def patient_erase(request, pk):
-    """DPDP: erase personal data on request (irreversible, logged)."""
-    patient = get_object_or_404(Patient, pk=pk)
-    if request.POST.get("confirm") != patient.patient_id:
-        messages.error(request, "Type the patient ID exactly to confirm erasure.")
-        return redirect("patients:detail", pk=pk)
-    erase_patient(patient, request.user)
-    messages.success(request, f"Personal data for {patient.patient_id} erased.")
-    return redirect("patients:detail", pk=pk)
-
-
 # =============================================================================
 # Visit detail / results
 # =============================================================================
@@ -238,45 +215,9 @@ def visit_detail(request, pk):
                   {"visit": visit, "formset": formset, "bform": bform, "can_edit": can_edit})
 
 
-@login_required
-def report_download(request, pk):
-    """Reports live outside the web root; stream only after a centre-scoped check."""
-    vt = get_object_or_404(VisitTest.objects.select_related("visit__patient"), pk=pk)
-    check_patient_access(request.user, vt.visit.patient, request)
-    if not vt.report_pdf:
-        raise Http404
-    filename = f"{vt.visit.patient.patient_id}_{vt.test.code}.pdf"
-    if settings.USE_X_ACCEL_REDIRECT:
-        resp = HttpResponse(content_type="application/pdf")
-        resp["X-Accel-Redirect"] = f"/_protected/{vt.report_pdf.name}"
-        resp["Content-Disposition"] = f'inline; filename="{filename}"'
-        return resp
-    return FileResponse(vt.report_pdf.open("rb"), content_type="application/pdf", filename=filename)
-
-
 # =============================================================================
-# Export / import (Admins only, logged)
+# Import (Admins only, logged)
 # =============================================================================
-@admin_required
-def export_patients(request):
-    qs = Patient.objects.active().visible_in_centres(request.scope.centre_ids).select_related("registered_at_centre")
-    f = PatientFilter(request.GET or None, queryset=qs, request=request)
-    qs = f.qs.annotate(last_visit_date=Max("visits__visit_date"), visit_count=Count("visits", distinct=True))
-    ds = tablib.Dataset(headers=["Patient ID", "Name", "Age", "Sex", "Phone", "Alt phone", "Email", "House/street",
-                                 "Locality", "Village/ward", "City", "District", "State", "PIN", "Registered at",
-                                 "Registered on", "Consent", "Do not call", "Last visit", "Visits"])
-    for p in qs.iterator(chunk_size=500):
-        ds.append([p.patient_id, p.full_name, p.age_display, p.get_sex_display(), p.phone, p.alt_phone, p.email,
-                   p.house_street, p.locality, p.village_ward, p.city, p.district, p.state, p.pin_code,
-                   p.registered_at_centre.short_code, timezone.localtime(p.created_at).strftime("%d-%m-%Y"),
-                   "Yes" if p.consent_to_contact else "No", "Yes" if p.do_not_call else "No",
-                   p.last_visit_date.strftime("%d-%m-%Y") if p.last_visit_date else "", p.visit_count])
-    log_event(AuditLog.Action.EXPORT, user=request.user, note=f"Patients export: {len(ds)} rows; filters={request.GET.urlencode()[:300]}")
-    resp = HttpResponse(ds.export("xlsx"), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    resp["Content-Disposition"] = f'attachment; filename="patients_{timezone.localdate():%d-%m-%Y}.xlsx"'
-    return resp
-
-
 @admin_required
 def import_upload(request):
     importer.cleanup_old_imports()

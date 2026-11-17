@@ -90,21 +90,9 @@ class VisitBillingForm(StyledFormMixin, forms.ModelForm):
 class VisitTestResultForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = VisitTest
-        fields = ["result_status", "flag", "result_summary", "report_date", "report_pdf"]
+        fields = ["result_status", "flag", "result_summary", "report_date"]
         widgets = {"report_date": forms.DateInput()}
 
-    def clean_report_pdf(self):
-        f = self.cleaned_data.get("report_pdf")
-        if f and hasattr(f, "content_type"):
-            if not f.name.lower().endswith(".pdf") or f.content_type not in ("application/pdf", "application/x-pdf"):
-                raise ValidationError("Upload a PDF file.")
-            if f.size > 10 * 1024 * 1024:
-                raise ValidationError("PDF must be under 10 MB.")
-            head = f.read(5)
-            f.seek(0)
-            if head != b"%PDF-":
-                raise ValidationError("File is not a valid PDF.")
-        return f
 
     def clean(self):
         data = super().clean()

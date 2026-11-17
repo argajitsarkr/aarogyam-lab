@@ -107,13 +107,26 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   (cp1252 default otherwise).
 - Local runs use SQLite and CDN assets when `DEBUG=True` (`.env` here is dev-only).
 - `python manage.py create_demo_data` for fake data; refused when `DEBUG=False`.
-- Tests: `python -m pytest` (91 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
+- Tests: `python -m pytest` (89 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
 - Docker Desktop on this laptop has been unreliable (engine stuck stopped); the full
   `docker compose up` stack has not yet been verified here.
+
+## Removed on purpose (2026-11-18) - do not re-add without asking
+
+Report PDF upload/download, the printed visit receipt, both Excel exports (patients and
+prices), round-robin call assignment and call reassignment, the DPDP data export and
+erasure, and the daily e-mail digest. `report_upload_to` and `apps/core/storage.py` stay
+only because migration `patients/0001_initial` imports them.
 
 ## Rules worth keeping
 
 - Centre scoping is enforced in querysets/permission checks (`apps/core/scoping.py`), never only in templates.
+- **The lab does not compete on price.** Partner companies pay a commission and the customer
+  chooses one, so the price screens list each company's price only - no "our price" column,
+  no cheapest-wins highlight, no "you save". `TestCatalog.price` stays for billing a visit.
+- **Re-test calls are a shared centre pool.** `RetestCandidate` has no `assigned_to`:
+  any employee of the candidate's centre may call, and `CallLog.employee` records who did.
+  Follow-ups are different - they still have an owner and still auto-assign round-robin.
 - Competitor prices are entered manually. No scrapers.
 - Seeded test intervals/prices are placeholders flagged `needs_clinical_review`.
 - No secrets in the repo: `.env` is gitignored; `.env.example` is the template.

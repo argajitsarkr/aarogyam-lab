@@ -30,7 +30,6 @@ def test_hba1c_85_days_ago_is_queued(centres, hba1c, staff):
     c = RetestCandidate.objects.get()
     assert c.patient == p and c.centre == centres["ARP"]
     assert c.due_date == timezone.localdate() + dt.timedelta(days=5)
-    assert c.assigned_to == staff
 
 
 def test_not_yet_due_is_not_queued(centres, hba1c):
@@ -76,14 +75,23 @@ def test_priority_order(centres, hba1c):
     assert order == [p4.pk, p3.pk, p2.pk, p1.pk]
 
 
-def test_round_robin_assignment(centres, hba1c):
+def test_calls_are_a_shared_centre_pool(client, centres, hba1c):
+    """Nobody owns a call: every employee of the centre sees all of its calls,
+    and an employee of another centre sees none of them."""
     a = UserFactory(home_centre=centres["ARP"])
     b = UserFactory(home_centre=centres["ARP"])
-    for _ in range(4):
-        reported_test(PatientFactory(registered_at_centre=centres["ARP"]), hba1c, days_ago=95)
+    outsider = UserFactory(home_centre=centres["BHY"])
+    for i in range(4):
+        reported_test(PatientFactory(registered_at_centre=centres["ARP"], full_name=f"Pooled {i}"),
+                      hba1c, days_ago=95)
     generate_candidates()
-    counts = {u: RetestCandidate.objects.filter(assigned_to=u).count() for u in (a, b)}
-    assert counts == {a: 2, b: 2}
+    assert RetestCandidate.objects.count() == 4
+    for user in (a, b):
+        client.force_login(user)
+        html = client.get(reverse("retest:my_calls")).content.decode()
+        assert all(f"Pooled {i}" in html for i in range(4)), user
+    client.force_login(outsider)
+    assert "Pooled 0" not in client.get(reverse("retest:my_calls")).content.decode()
 
 
 def test_do_not_call_suppresses_patient(centres, hba1c, staff):
@@ -120,17 +128,12 @@ def test_booked_then_return_visit_converts(centres, hba1c, staff):
     assert fu.status == "COMPLETED" and fu.completed_visit == visit
 
 
-def test_my_call_list_shows_only_own_and_logs_outcome(client, centres, hba1c, staff):
-    other = UserFactory(home_centre=centres["ARP"])
+def test_call_list_logs_an_outcome(client, centres, hba1c, staff):
     p = PatientFactory(registered_at_centre=centres["ARP"], full_name="Call Me", phone="9800000001")
     reported_test(p, hba1c, days_ago=95)
     generate_candidates()
     cand = RetestCandidate.objects.get()
-    owner = cand.assigned_to
-    not_owner = other if owner == staff else staff
-    client.force_login(not_owner)
-    assert "Call Me" not in client.get(reverse("retest:my_calls")).content.decode()
-    client.force_login(owner)
+    client.force_login(staff)
     html = client.get(reverse("retest:my_calls")).content.decode()
     assert "Call Me" in html and 'href="tel:9800000001"' in html
     resp = client.post(reverse("retest:log", args=[cand.pk]), {"outcome": "CALL_BACK",

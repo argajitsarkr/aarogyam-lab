@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% load ui %}
-{% block title %}Edit prices{% endblock %}{% block page_title %}Competitor prices <span class="text-sm font-normal text-slate-500">· Admin</span>{% endblock %}
+{% block title %}Edit prices{% endblock %}{% block page_title %}Lab prices <span class="text-sm font-normal text-slate-500">· Admin</span>{% endblock %}
 {% block content %}
 {% include "pricing/_nav.html" %}
 <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -22,7 +22,7 @@
   </div>
   <div class="card max-h-[70vh] overflow-auto p-0">
     <table class="tbl">
-      <thead class="sticky top-0 z-10"><tr><th>Test</th><th class="text-right">Ours</th>{% for c in competitors %}<th>{{ c.name }}</th>{% endfor %}<th></th></tr></thead>
+      <thead class="sticky top-0 z-10"><tr><th>Test</th><th class="text-right" title="Billed when the test is done at an Aarogyam centre">Our billing price</th>{% for c in competitors %}<th>{{ c.name }}</th>{% endfor %}<th></th></tr></thead>
       <tbody>
       {% for r in rows %}
         <tr>

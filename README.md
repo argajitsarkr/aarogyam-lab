@@ -1,8 +1,8 @@
 # Aarogyam Pathology — Internal Lab Management Dashboard
 
 Internal-only Django dashboard for the Aarogyam Pathology lab network (Agartala, Tripura).
-Covers centre-scoped patient registration, follow-ups, re-test calling, competitor price
-comparison and multi-centre analytics.
+Covers centre-scoped patient registration, follow-ups, re-test calling, partner-lab price
+lists and multi-centre analytics.
 
 **Stack:** Python 3.12 · Django 5.2 LTS · PostgreSQL 16 · Celery + Redis · Gunicorn + Nginx ·
 HTMX + Alpine.js + Tailwind · Chart.js · Leaflet/OpenStreetMap.
@@ -62,8 +62,7 @@ python -m pytest
 | `DATABASE_URL` | `postgres://user:pass@db:5432/name` |
 | `POSTGRES_DB/USER/PASSWORD` | Used by the `db` and `db_backup` containers. |
 | `REDIS_URL` | Celery broker + cache. |
-| `PRIVATE_MEDIA_ROOT` | Report PDFs & imports (outside web root). |
-| `USE_X_ACCEL_REDIRECT` | `True` behind Nginx — Nginx streams PDFs after Django authorises. |
+| `PRIVATE_MEDIA_ROOT` | Import uploads (outside web root). |
 | `MAX_ACTIVE_EMPLOYEES` | Initial employee cap (default 10; Admins can change it in Settings). |
 | `DEVELOPER_ACCOUNTS` | Usernames with full Admin/superuser rights that do not count against the 3-Admin cap. |
 | `NGROK_AUTHTOKEN`, `NGROK_URL` | Optional ngrok public link (server stack). |
@@ -71,14 +70,13 @@ python -m pytest
 | `SESSION_IDLE_SECONDS` | Idle timeout (default 1800 = 30 min). |
 | `AXES_COOLOFF_HOURS` | Lockout duration after 5 failed logins. |
 | `ADMIN_USERNAME`, `ADMIN_PASSWORD` | First Admin, created on boot if missing. |
-| `EMAIL_*` | Optional; daily reminder digests to staff (contain counts only, no patient data). |
 | `BACKUP_KEEP_DAYS`, `BACKUP_HOUR` | Backup retention (14) and hour (02:00 IST). |
 | `SERVER_NAME`, `LETSENCRYPT_EMAIL` | Production domain for Nginx / certificates. |
 
 ## 4. Users, roles and centres
 
 * **Admin** (max 3 active, enforced in the model and forms): all centres, users, prices,
-  settings, exports, imports, audit log, map, analytics, DPDP data requests.
+  settings, imports, audit log, map, analytics.
 * **Centre Employee** (cap configurable, default 10): bound to a home centre. Registers
   patients/visits only there; sees only patients linked to their centre. Admins can tick
   *Extra access* centres for read access to other centres' full records.
@@ -112,7 +110,7 @@ granted access writes `VIEW_CROSS_CENTRE`.
 
 * **Register / New visit** — phone first → duplicate check → new patient or "Add new visit".
   Visits are always tagged to the employee's centre; the patient keeps one master record.
-* **Results** — open a visit, set status/flag/summary, upload a PDF. *Abnormal* auto-creates a
+* **Results** — open a visit, set status/flag/summary. *Abnormal* auto-creates a
   high-priority follow-up for that centre.
 * **Follow-ups** — tabs Due today / Overdue / Upcoming / Completed; Table, Cards, Kanban
   (drag-and-drop) and Calendar (month/week/day). A return visit auto-completes open
@@ -121,35 +119,33 @@ granted access writes `VIEW_CROSS_CENTRE`.
   management command runs it on demand). Due = report date + test's re-test interval, within
   the look-ahead window (default 7 days) or overdue; patient must have consent and not be
   Do Not Call; skipped if the test was repeated at any centre. Ranked Abnormal > Borderline >
-  chronic monitoring > others, then days overdue; assigned round-robin (least-loaded) within
-  the centre. "My Call List" has `tel:` links and one-tap outcomes. *Booked* creates a
+  chronic monitoring > others, then days overdue. Calls are a **shared centre pool**: nobody
+  owns a call, every employee of the centre sees the centre's list and the call log records
+  who actually rang. "Call List" has `tel:` links and one-tap outcomes. *Booked* creates a
   scheduled follow-up; the return visit marks it converted. *Do Not Call* is permanent.
-* **Price comparison** — manual competitor prices (no scraping), "You save" vs cheapest and
-  average, stale (>90 days) prices greyed with *re-check*, front-desk card, package totals,
-  Admin grid editor and Excel upload.
+* **Partner-lab prices** — the lab earns a commission and the customer picks the company, so
+  there is no "us vs them": the matrix simply lists each company's price per test, with the
+  range, stale (>90 days) prices greyed with *re-check*, a front-desk card, package totals per
+  company, an Admin grid editor and Excel upload. Prices are entered manually (no scraping).
 * **Views** — Scope switcher (Admins: All centres / one centre; *Compare* page), Table/Card on
   every list, column chooser, 25/50/100 rows, saved & pinned filters. Preferences persist
   on the user profile.
 
-## 6. Security & privacy (DPDP Act 2023)
+## 6. Security & privacy
 
 * No public pages except login; `noindex` meta + `X-Robots-Tag` + `robots.txt`.
 * HTTPS only in production, HSTS, secure cookies, CSRF, strict `ALLOWED_HOSTS`.
 * Centre scoping enforced in querysets and permission checks, not templates.
-* Audit log for create/update/soft-delete/export/import, logins, cross-centre views and
+* Audit log for create/update/soft-delete/import, logins, cross-centre views and
   denials, with user, centre, IP and field-level diff (Admin → Audit Log).
 * Soft delete only from the UI. Contact consent is captured with a timestamp and required for
   any re-test calling.
-* Data-principal requests: patient page → *Admin & data requests* → export JSON or erase
-  personal data (irreversible; clinical/billing rows are kept de-identified). Both logged.
-* Report PDFs stored outside the web root; served only via an authorised view + Nginx
-  `internal` location.
 
 ## 7. Backups & restore
 
 `db_backup` runs `pg_dump` (custom format) daily at `BACKUP_HOUR` IST into `./backups/`,
 keeping `BACKUP_KEEP_DAYS` (14) days. Copy `./backups` off the server regularly
-(e.g. `rclone` / `rsync` to another machine). Also back up the `private_media` volume (PDFs).
+(e.g. `rclone` / `rsync` to another machine). Also back up the `private_media` volume (import uploads).
 
 Manual backup now:
 
@@ -322,7 +318,7 @@ apps/core          scoping (Scope, CentreScopedQuerySet), list/view-mode mixins,
                    saved filters, calendar builder, site settings, middleware
 apps/accounts      custom User (roles, caps, home centre), login by username/email
 apps/centres       Centre model + admin UI
-apps/patients      Patient, Doctor, TestCatalog, Visit, VisitTest, import/export, DPDP
+apps/patients      Patient, Doctor, TestCatalog, Visit, VisitTest, Excel import
 apps/followups     FollowUp + contact history, Kanban/Calendar
 apps/retest        RetestCandidate, CallLog, generator, analytics
 apps/pricing       Competitor, CompetitorPrice, comparison views

@@ -1,6 +1,9 @@
-"""Builds the price matrix with two queries total (fast for 500 tests x 6 labs)."""
-from decimal import Decimal
+"""Builds the price matrix with two queries total (fast for 500 tests x 6 labs).
 
+Aarogyam does not compete on these prices: the customer picks a company and the
+lab earns a commission, so the matrix lists each company's price and nothing else -
+no "our price" column, no cheapest-wins highlight, no savings.
+"""
 from django.utils import timezone
 
 from apps.core.models import SiteSettings
@@ -31,29 +34,21 @@ def build_matrix(test_ids=None, q=None, category=None):
     rows = []
     for t in tests:
         cells = [prices.get((t.pk, c.pk)) for c in competitors]
-        fresh = [c["price"] for c in cells if c]
-        cheapest = min(fresh) if fresh else None
-        avg = (sum(fresh) / len(fresh)) if fresh else None
+        quoted = [c["price"] for c in cells if c]
         rows.append({
-            "test": t, "cells": cells, "pairs": list(zip(competitors, cells)), "cheapest": cheapest, "average": avg,
-            "save_vs_cheapest": _saving(t.price, cheapest), "save_vs_avg": _saving(t.price, avg),
+            "test": t, "cells": cells, "pairs": list(zip(competitors, cells)),
+            "lowest": min(quoted) if quoted else None,
+            "highest": max(quoted) if quoted else None,
+            "quoted_count": len(quoted),
         })
     return competitors, rows
 
 
-def _saving(ours, theirs):
-    if theirs is None or theirs == 0:
-        return None
-    amount = Decimal(theirs) - Decimal(ours)
-    return {"amount": amount.quantize(Decimal("1")), "pct": round(float(amount / Decimal(theirs) * 100)), "positive": amount > 0}
-
-
 def package_totals(competitors, rows):
     """Total per lab for the selected tests; a lab missing any test is flagged incomplete."""
-    ours = sum(r["test"].price for r in rows)
     out = []
     for i, c in enumerate(competitors):
         vals = [r["cells"][i]["price"] for r in rows if r["cells"][i]]
         out.append({"competitor": c, "total": sum(vals) if vals else None, "missing": len(rows) - len(vals),
-                    "saving": _saving(ours, sum(vals)) if vals and len(vals) == len(rows) else None})
-    return ours, out
+                    "complete": bool(vals) and len(vals) == len(rows)})
+    return out

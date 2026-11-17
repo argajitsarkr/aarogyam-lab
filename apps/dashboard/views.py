@@ -36,7 +36,6 @@ def home(request):
                 .exclude(status=RetestCandidate.Status.SCHEDULED).select_related("patient", "test"))
     my_fu = FollowUp.objects.open().filter(centre_id__in=centre_ids, due_date__lte=timezone.localdate()).select_related("patient")
     if not user.is_admin:
-        my_calls = my_calls.filter(assigned_to=user)
         my_fu = my_fu.filter(Q(assigned_to=user) | Q(assigned_to__isnull=True))
     ctx["my_calls"] = my_calls.order_by("-priority_score", "due_date")[:8]
     ctx["my_followups"] = my_fu.order_by("due_date", "priority")[:8]

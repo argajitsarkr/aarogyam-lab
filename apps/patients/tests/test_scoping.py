@@ -123,29 +123,13 @@ def test_employee_cannot_edit_other_centres_visit(client, employee, centres):
     assert resp.status_code == 403
 
 
-def test_export_is_admin_only_and_logged(client, employee, admin_user, centres):
-    PatientFactory(registered_at_centre=centres["ARP"])
-    client.force_login(employee("ARP"))
-    assert client.get(reverse("patients:export")).status_code == 403
+def test_patients_excel_export_is_gone(client, admin_user):
+    from django.urls import NoReverseMatch
+
     client.force_login(admin_user)
-    resp = client.get(reverse("patients:export"))
-    assert resp.status_code == 200 and resp["Content-Type"].startswith("application/vnd.openxml")
-    assert AuditLog.objects.filter(action="EXPORT").exists()
-
-
-def test_report_pdf_is_access_controlled(client, employee, centres, settings):
-    from django.core.files.base import ContentFile
-
-    from apps.factories import VisitTestFactory
-
-    p = PatientFactory(registered_at_centre=centres["RRM"])
-    vt = VisitTestFactory(visit=VisitFactory(patient=p, centre=centres["RRM"]))
-    vt.report_pdf.save("r.pdf", ContentFile(b"%PDF-1.4 test"))
-    client.force_login(employee("BHY"))
-    assert client.get(reverse("patients:report", args=[vt.pk])).status_code == 403
-    client.force_login(employee("RRM"))
-    resp = client.get(reverse("patients:report", args=[vt.pk]))
-    assert resp.status_code == 200 and b"".join(resp.streaming_content).startswith(b"%PDF")
+    for name in ("patients:export", "patients:data_export", "patients:erase", "patients:report"):
+        with pytest.raises(NoReverseMatch):
+            reverse(name)
 
 
 def test_soft_delete_hides_patient(client, admin_user, centres):
@@ -154,15 +138,6 @@ def test_soft_delete_hides_patient(client, admin_user, centres):
     client.post(reverse("patients:delete", args=[p.pk]))
     assert Patient.objects.filter(pk=p.pk).exists()
     assert p not in client.get(reverse("patients:list")).context["object_list"]
-
-
-def test_dpdp_erasure(client, admin_user, centres):
-    p = PatientFactory(registered_at_centre=centres["ARP"], full_name="Erase Me")
-    client.force_login(admin_user)
-    client.post(reverse("patients:erase", args=[p.pk]), {"confirm": p.patient_id})
-    p.refresh_from_db()
-    assert p.full_name == "Erased patient" and p.phone == "" and p.erased_at and p.do_not_call
-    assert AuditLog.objects.filter(action="DATA_REQUEST", object_id=str(p.pk)).exists()
 
 
 def test_visit_soft_delete_excluded_from_scope(centres):

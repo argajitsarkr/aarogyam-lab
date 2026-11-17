@@ -20,7 +20,7 @@ from apps.core.mixins import ListPageMixin, admin_required
 from apps.core.preferences import get_pref, set_pref
 from apps.patients.models import TestCatalog, VisitTest
 
-from .forms import CallOutcomeForm, ReassignForm
+from .forms import CallOutcomeForm
 from .models import CallLog, RetestCandidate
 from .services import generate_candidates, log_call
 
@@ -37,12 +37,11 @@ def _check_access(user, cand):
 @login_required
 def my_calls(request):
     today = timezone.localdate()
+    # Calls are a shared pool: every employee of the centre sees the centre's calls,
+    # and request.scope already limits that to the centres they may work in.
     qs = (RetestCandidate.objects.open().for_scope(request.scope)
-          .select_related("patient", "test", "centre", "source_test", "assigned_to")
+          .select_related("patient", "test", "centre", "source_test")
           .filter(patient__do_not_call=False))
-    show_all = request.user.is_admin or request.GET.get("all")
-    if not show_all:
-        qs = qs.filter(assigned_to=request.user)
     # Scheduled ones are waiting for the patient to come in — show them separately.
     to_call = qs.exclude(status=RetestCandidate.Status.SCHEDULED).filter(
         Q(callback_date__isnull=True) | Q(callback_date__lte=today))
@@ -53,7 +52,7 @@ def my_calls(request):
     calls_today = CallLog.objects.filter(employee=request.user, called_at__date=today).count()
     return render(request, "retest/my_calls.html", {
         "callbacks_due": callbacks_due[:100], "fresh": fresh[:200], "later": later, "booked": booked,
-        "show_all": show_all, "calls_today": calls_today, "today": today,
+        "calls_today": calls_today, "today": today,
         "tomorrow": today + dt.timedelta(days=1), "in_two_days": today + dt.timedelta(days=2),
     })
 
@@ -84,14 +83,13 @@ class CandidateFilter(StyledFilterSet):
     q = django_filters.CharFilter(method="search", label="Patient",
                                   widget=forms.TextInput(attrs={"type": "search", "placeholder": "Name, phone, ID…"}))
     centre = django_filters.ModelChoiceFilter(queryset=Centre.objects.filter(is_active=True), empty_label="Any centre")
-    assigned_to = django_filters.ModelChoiceFilter(queryset=User.objects.none(), label="Employee", empty_label="Anyone")
     test = django_filters.ModelChoiceFilter(queryset=TestCatalog.objects.filter(retest_interval_days__isnull=False), empty_label="Any test")
     flag = django_filters.ChoiceFilter(field_name="source_test__flag", choices=VisitTest.Flag.choices, empty_label="Any flag")
     status = django_filters.ChoiceFilter(choices=RetestCandidate.Status.choices, empty_label="Open (default)", method="by_status")
 
     class Meta:
         model = RetestCandidate
-        fields = ["q", "centre", "assigned_to", "test", "flag", "status"]
+        fields = ["q", "centre", "test", "flag", "status"]
 
     def __init__(self, *args, request=None, **kwargs):
         super().__init__(*args, request=request, **kwargs)
@@ -100,8 +98,6 @@ class CandidateFilter(StyledFilterSet):
             self.filters.pop("centre")
             self.form.fields.pop("centre", None)
             staff = staff.filter(home_centre=request.user.home_centre)
-        self.form.fields["assigned_to"].queryset = staff
-        self.filters["assigned_to"].queryset = staff
 
     def search(self, qs, name, value):
         return qs.filter(Q(patient__full_name__icontains=value) | Q(patient__phone__startswith=value)
@@ -123,12 +119,12 @@ class CandidateListView(ListPageMixin):
                    "test": "test__name", "attempts": "attempts"}
     default_sort = "-priority"
     columns = [("patient", "Patient"), ("test", "Test"), ("flag", "Last flag"), ("due", "Due"),
-               ("priority", "Priority"), ("centre", "Centre"), ("assigned", "Assigned"), ("status", "Status"),
+               ("priority", "Priority"), ("centre", "Centre"), ("status", "Status"),
                ("attempts", "Attempts")]
 
     def get_base_queryset(self):
         qs = (RetestCandidate.objects.for_scope(self.request.scope)
-              .select_related("patient", "test", "centre", "assigned_to", "source_test"))
+              .select_related("patient", "test", "centre", "source_test"))
         mode = self.get_view_mode()
         if mode == "kanban":
             recent = timezone.now() - dt.timedelta(days=30)
@@ -169,20 +165,6 @@ def candidate_move(request, pk):
         cand.converted_at = timezone.now()
     cand.save()
     return HttpResponse(status=204)
-
-
-@require_POST
-@admin_required
-def candidate_reassign(request, pk):
-    cand = get_object_or_404(RetestCandidate, pk=pk)
-    form = ReassignForm(request.POST, centre=cand.centre)
-    if form.is_valid():
-        cand.assigned_to = form.cleaned_data["assigned_to"]
-        cand.save(update_fields=["assigned_to", "updated_at"])
-        messages.success(request, f"Reassigned to {cand.assigned_to}.")
-    else:
-        messages.error(request, "Choose an employee of the same centre.")
-    return redirect(request.POST.get("next") or "retest:list")
 
 
 @require_POST

@@ -4,27 +4,23 @@
   <thead class="sticky top-0 z-10">
     <tr>
       <th class="sticky left-0 z-10 bg-slate-50">Test</th>
-      <th class="bg-teal-50 text-right text-teal-900">Aarogyam</th>
       {% for c in competitors %}<th class="text-right">{{ c.name }}</th>{% endfor %}
-      <th class="text-right">vs cheapest</th>
-      <th class="text-right">vs average</th>
+      <th class="text-right">Range</th>
     </tr>
   </thead>
   <tbody>
   {% for r in rows %}
     <tr>
       <td class="sticky left-0 bg-white"><a href="{% url 'pricing:lookup' %}?test={{ r.test.pk }}" class="font-medium hover:underline">{{ r.test.name }}</a> <span class="text-xs text-slate-400">{{ r.test.code }}</span></td>
-      <td class="bg-teal-50 text-right font-bold text-teal-900">{{ r.test.price|inr }}</td>
       {% for cell in r.cells %}
         <td class="text-right {% if cell.stale %}text-slate-400{% endif %}" {% if cell %}title="{{ cell.source_note }} · verified {{ cell.last_verified_on|date:'d-m-Y' }}"{% endif %}>
-          {% if cell %}<span class="{% if cell.stale %}line-through{% endif %}">{{ cell.price|inr }}</span>{% if cell.stale %} <span class="rounded bg-amber-100 px-1 text-[10px] text-amber-800 no-underline">re-check</span>{% endif %}{% else %}<span class="text-slate-300">—</span>{% endif %}
+          {% if cell %}<span class="{% if cell.stale %}line-through{% endif %}">{{ cell.price|inr }}</span>{% if cell.stale %} <span class="rounded bg-amber-100 px-1 text-[10px] text-amber-800 no-underline">re-check</span>{% endif %}{% else %}<span class="text-slate-300">-</span>{% endif %}
         </td>
       {% endfor %}
-      <td class="text-right">{% if r.save_vs_cheapest %}<span class="{% if r.save_vs_cheapest.positive %}font-semibold text-emerald-700{% else %}text-red-700{% endif %}">{% if r.save_vs_cheapest.positive %}Save {{ r.save_vs_cheapest.amount|inr }} ({{ r.save_vs_cheapest.pct }}%){% else %}+{{ r.save_vs_cheapest.amount|inr|cut:"-" }}{% endif %}</span>{% endif %}</td>
-      <td class="text-right">{% if r.save_vs_avg %}<span class="{% if r.save_vs_avg.positive %}text-emerald-700{% else %}text-red-700{% endif %}">{% if r.save_vs_avg.positive %}Save {{ r.save_vs_avg.amount|inr }} ({{ r.save_vs_avg.pct }}%){% else %}+{{ r.save_vs_avg.amount|inr|cut:"-" }}{% endif %}</span>{% endif %}</td>
+      <td class="text-right text-slate-600">{% if r.quoted_count %}{{ r.lowest|inr }}{% if r.highest != r.lowest %} – {{ r.highest|inr }}{% endif %}{% endif %}</td>
     </tr>
   {% empty %}<tr><td colspan="20" class="py-8 text-center text-slate-500">No tests match.</td></tr>{% endfor %}
   </tbody>
 </table>
 </div>
-<p class="mt-2 text-xs text-slate-500">{{ rows|length }} test{{ rows|length|pluralize }}</p>
+<p class="mt-2 text-xs text-slate-500">{{ rows|length }} test{{ rows|length|pluralize }}. Prices are each company's own; the customer chooses.</p>
