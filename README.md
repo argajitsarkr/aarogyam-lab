@@ -83,10 +83,22 @@ python -m pytest
   patients/visits only there; sees only patients linked to their centre. Admins can tick
   *Extra access* centres for read access to other centres' full records.
 
-First admin by hand: `python manage.py create_first_admin`.
-Add employees: **Admin → Users → Add user** (set role, home centre, temporary password —
-they must change it at first login; min 12 characters, as on TGMA). Locked for 15 minutes after 5 failed attempts;
-Admins can **Unlock** from the Users page.
+**Accounts are managed on the server, not in the app** (the TGMA model). The list of
+accounts is `apps/accounts/seed_users.py` (username, name, role, home centre, extra
+centres, and the name of a `SEED_PW_*` variable). To add or change someone:
+
+1. Edit `SEED_USERS` on the laptop, push, `bash deploy.sh update`.
+2. For a new account, put `SEED_PW_<NAME>=<temporary password>` in the server `.env`.
+3. `bash deploy.sh seed-users` - creates the account with *must change password at first
+   login* (min 12 characters). Existing passwords are never touched unless you add
+   `--reset-passwords`. A deactivated account is never re-enabled. `web` also runs
+   `seed_users` at every start.
+4. To remove someone, move the username to `REMOVE_USERS` (soft delete, history kept).
+
+Login is by username (named accounts use the email address), case-insensitive. Locked for
+15 minutes after 5 failed attempts; `bash deploy.sh unlock <username>` clears it sooner,
+and `bash deploy.sh reset-password <username>` prints a one-time temporary password. The
+**Users** page in the app is read-only (roles, centres, locked / must-change status).
 Add/deactivate centres: **Admin → Centres**. The short code becomes the patient-ID prefix
 (e.g. `ARP-2026-000123`) and is frozen once patients exist. Set latitude/longitude to show
 the centre on the map; PIN-code map points live under *System admin → PIN code locations*.
@@ -287,6 +299,9 @@ Other commands: `bash deploy.sh status | logs | backup | admin | down`.
 | `seed_competitors` | Agilus, Redcliffe, Dr Lal PathLabs, Metropolis, PathCare. |
 | `seed_test_catalog` | ~54 common tests with re-test intervals (for clinical review). |
 | `create_first_admin` | Interactive or `--noinput` via env vars. |
+| `seed_users [--reset-passwords]` | Create/update accounts from `apps/accounts/seed_users.py`. |
+| `unlock_user <username>` | Clear an axes lockout. |
+| `reset_password <username>` | Set and print a temporary password (must change at login). |
 | `create_demo_data` | Fake patients/visits/calls across centres. **Blocked when `DEBUG=False`.** |
 | `generate_retest_candidates` | Run the re-test scan now. |
 
@@ -296,7 +311,7 @@ Other commands: `bash deploy.sh status | logs | backup | admin | down`.
 config/            settings, urls, celery
 apps/core          scoping (Scope, CentreScopedQuerySet), list/view-mode mixins, preferences,
                    saved filters, calendar builder, site settings, middleware
-apps/accounts      custom User (roles, caps, home centre), login by username/phone
+apps/accounts      custom User (roles, caps, home centre), login by username/email
 apps/centres       Centre model + admin UI
 apps/patients      Patient, Doctor, TestCatalog, Visit, VisitTest, import/export, DPDP
 apps/followups     FollowUp + contact history, Kanban/Calendar

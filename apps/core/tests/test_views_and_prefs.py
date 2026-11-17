@@ -116,7 +116,7 @@ def _pages(d):
 
 
 ADMIN_ONLY = ["dashboard:compare", "dashboard:map", "retest:analytics", "patients:import", "pricing:manage",
-              "pricing:bulk_upload", "accounts:user_list", "accounts:user_create", "centres:list", "centres:create",
+              "pricing:bulk_upload", "accounts:user_list", "centres:list", "centres:create",
               "audit:list", "core:settings", "patients:test_create", "pricing:competitor_create"]
 
 

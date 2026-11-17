@@ -1,14 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import views as auth_views
-from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.views.decorators.http import require_POST
-from django.views.generic import CreateView, ListView, UpdateView
+from django.views.generic import ListView
 
-from apps.core.mixins import AdminRequiredMixin, SimpleFormPageMixin, admin_required
+from apps.core.mixins import AdminRequiredMixin
 
-from .forms import ForcedPasswordChangeForm, LoginForm, UserForm
+from .forms import ForcedPasswordChangeForm, LoginForm
 from .models import User
 
 
@@ -55,6 +53,9 @@ class PasswordChangeView(auth_views.PasswordChangeView):
 
 
 class UserListView(AdminRequiredMixin, ListView):
+    """Read-only. Accounts are created, changed, unlocked and reset on the server
+    (seed_users / unlock_user / reset_password commands), as on TGMA."""
+
     template_name = "accounts/user_list.html"
 
     def get_queryset(self):
@@ -69,54 +70,21 @@ class UserListView(AdminRequiredMixin, ListView):
         ctx["employee_count"] = User.objects.active_employees().count()
         ctx["admin_cap"] = settings.MAX_ACTIVE_ADMINS
         ctx["employee_cap"] = SiteSettings.load().max_active_employees
+        ctx["locked_usernames"] = locked_usernames()
         return ctx
 
 
-class UserCreateView(AdminRequiredMixin, SimpleFormPageMixin, CreateView):
-    page_heading = "New user"
-    help_note = "Max 3 active Admins. Employees count towards the employee cap set in Settings."
-    model = User
-    form_class = UserForm
-    success_url = reverse_lazy("accounts:user_list")
+def locked_usernames():
+    """Usernames currently locked out by django-axes (failure limit reached within the cool-off)."""
+    from datetime import timedelta
 
-    def form_valid(self, form):
-        messages.success(self.request, "User created. Share the temporary password securely.")
-        return super().form_valid(form)
+    from axes.models import AccessAttempt
+    from django.conf import settings
+    from django.utils import timezone
 
-
-class UserUpdateView(AdminRequiredMixin, SimpleFormPageMixin, UpdateView):
-    model = User
-    form_class = UserForm
-    success_url = reverse_lazy("accounts:user_list")
-
-    def get_queryset(self):
-        return User.objects.filter(deleted_at__isnull=True)
-
-    def form_valid(self, form):
-        messages.success(self.request, "User updated.")
-        return super().form_valid(form)
-
-
-@require_POST
-@admin_required
-def user_soft_delete(request, pk):
-    user = get_object_or_404(User, pk=pk, deleted_at__isnull=True)
-    if user == request.user:
-        messages.error(request, "You cannot remove your own account.")
-    else:
-        user.soft_delete(by=request.user)
-        messages.success(request, f"{user} has been deactivated and removed.")
-    return redirect("accounts:user_list")
-
-
-@require_POST
-@admin_required
-def user_unlock(request, pk):
-    from axes.utils import reset
-
-    user = get_object_or_404(User, pk=pk)
-    reset(username=user.username)
-    if user.phone:
-        reset(username=user.phone)
-    messages.success(request, f"Login lock cleared for {user}.")
-    return redirect("accounts:user_list")
+    since = timezone.now() - timedelta(hours=float(settings.AXES_COOLOFF_TIME))
+    return {
+        name.lower() for name in AccessAttempt.objects.filter(
+            failures_since_start__gte=settings.AXES_FAILURE_LIMIT, attempt_time__gte=since,
+        ).values_list("username", flat=True) if name
+    }

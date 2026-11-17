@@ -55,15 +55,23 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   `DEVELOPER_ACCOUNTS` on the server, so it does **not** use one of the lab's 3 Admin slots.
   Its bootstrap password is `ADMIN_PASSWORD` in the server `.env`; it must be changed at
   first login, after which that line can be cleared.
-- Lab Admins (max 3) and Employees (cap in Settings) are created in the app's Users page.
+- **Managed on the server only, like TGMA's `scripts/init_db.py`.** The account list is
+  `apps/accounts/seed_users.py` (`SEED_USERS`, `REMOVE_USERS`); today it holds only the
+  developer - the user will define lab roles and access later. New accounts get their
+  bootstrap password from `SEED_PW_<NAME>` in the server `.env`.
+- Server: `bash deploy.sh seed-users [--reset-passwords]`, `bash deploy.sh unlock <user>`,
+  `bash deploy.sh reset-password <user>`. `web` runs `seed_users` at every start.
+- The app's Users page is read-only (no add/edit/unlock/remove). Caps still apply in the
+  model: max 3 Admins, Employees per Settings, Employees need a home centre.
 
 ## Login (aligned with TGMA, `D:\Sites\Tgmabase\app\auth.py`)
 
-- Username **or** 10-digit phone + password (`UsernameOrPhoneBackend`). One generic error for
+- Username (email for named accounts), case-insensitive, + password (`UsernameBackend`).
+  Phone numbers are not login names. One generic error for
   unknown user / bad password / inactive account - never reveal which.
 - django-axes: 5 failures -> account locked **15 min** (`AXES_COOLOFF_HOURS=0.25`), per
   username not per IP (front desks share an IP). Locked attempts are refused before the
-  password is checked; `accounts/locked.html` says how long. Admins can Unlock on Users.
+  password is checked; `accounts/locked.html` says how long. Unlock: `bash deploy.sh unlock <user>`.
 - Forced change: `must_change_password` lets the user reach only the change form + logout.
   New password min **12** chars and must differ from the current one.
 - Audit (`apps/audit/signals.py`, views): `LOGIN`, `LOGOUT`, `LOGIN_FAILED` (note gives the
@@ -83,7 +91,7 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   (cp1252 default otherwise).
 - Local runs use SQLite and CDN assets when `DEBUG=True` (`.env` here is dev-only).
 - `python manage.py create_demo_data` for fake data; refused when `DEBUG=False`.
-- Tests: `python -m pytest` (80 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
+- Tests: `python -m pytest` (91 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
 - Docker Desktop on this laptop has been unreliable (engine stuck stopped); the full
   `docker compose up` stack has not yet been verified here.
 

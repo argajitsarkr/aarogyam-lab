@@ -98,12 +98,33 @@ case "$ACTION" in
     "${COMPOSE[@]}" exec web python manage.py create_first_admin
     ;;
 
+  seed-users)
+    # Create/update accounts from apps/accounts/seed_users.py (TGMA model). Passwords for
+    # NEW users come from SEED_PW_* lines in .env, read fresh here so the web container
+    # does not need recreating after you add one. Add --reset-passwords to reset existing.
+    seed_env=()
+    while IFS= read -r line; do
+      seed_env+=(-e "$line")
+    done < <(grep -E '^SEED_PW_[A-Z0-9_]+=.+' .env || true)
+    "${COMPOSE[@]}" exec "${seed_env[@]}" web python manage.py seed_users "${@:2}"
+    ;;
+
+  unlock)
+    [ -n "${2:-}" ] || { echo "Usage: bash deploy.sh unlock <username>"; exit 1; }
+    "${COMPOSE[@]}" exec web python manage.py unlock_user "$2"
+    ;;
+
+  reset-password)
+    [ -n "${2:-}" ] || { echo "Usage: bash deploy.sh reset-password <username>"; exit 1; }
+    "${COMPOSE[@]}" exec web python manage.py reset_password "$2"
+    ;;
+
   down)
     "${COMPOSE[@]}" down
     ;;
 
   *)
-    echo "Usage: bash deploy.sh [up|update|logs|status|url|backup|admin|down]"
+    echo "Usage: bash deploy.sh [up|update|logs|status|url|backup|admin|seed-users [--reset-passwords]|unlock <user>|reset-password <user>|down]"
     exit 1
     ;;
 esac

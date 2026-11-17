@@ -27,6 +27,8 @@ if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
   if [ -n "${ADMIN_USERNAME}" ] && [ -n "${ADMIN_PASSWORD}" ]; then
     python manage.py create_first_admin --noinput
   fi
+  # Accounts from apps/accounts/seed_users.py; never fatal (a missing SEED_PW_* only skips that user).
+  python manage.py seed_users || echo "seed_users failed - run: bash deploy.sh seed-users"
   if [ "${LOAD_DEMO_DATA:-0}" = "1" ]; then
     python manage.py create_demo_data || true
   fi

@@ -71,13 +71,8 @@ def _failure_reason(username):
     """Why a login failed, for the audit log only (the user always sees the same
     generic message, so this never helps anyone enumerate accounts). As on TGMA."""
     from django.contrib.auth import get_user_model
-    from django.db.models import Q
 
-    from apps.core.validators import normalize_phone
-
-    phone = normalize_phone(username)
-    q = Q(username__iexact=username) | Q(phone=phone) if phone else Q(username__iexact=username)
-    user = get_user_model().objects.filter(q).first()
+    user = get_user_model().objects.filter(username__iexact=username.strip()).first()
     if user is None:
         return "unknown user"
     if not user.is_active or user.deleted_at:
