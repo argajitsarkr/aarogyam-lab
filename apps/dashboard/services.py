@@ -11,22 +11,16 @@ from apps.patients.models import Patient, Visit, VisitTest
 from apps.retest.models import CallLog, RetestCandidate
 
 
-def _net(qs):
-    agg = qs.aggregate(t=Sum("total_amount"), d=Sum("discount"), p=Sum("amount_paid"))
-    return (agg["t"] or Decimal(0)) - (agg["d"] or Decimal(0)), agg["p"] or Decimal(0)
 
 
 def kpis(centre_ids, user):
     today = timezone.localdate()
     month_start = today.replace(day=1)
     visits_today = Visit.objects.active().filter(centre_id__in=centre_ids, visit_date=today)
-    billed, collected = _net(visits_today)
     fu = FollowUp.objects.filter(centre_id__in=centre_ids)
     data = {
         "registrations_today": Patient.objects.filter(registered_at_centre_id__in=centre_ids, created_at__date=today).count(),
         "visits_today": visits_today.count(),
-        "revenue_today": billed,
-        "collected_today": collected,
         "followups_due": fu.due_today().count(),
         "followups_overdue": fu.overdue().count(),
         "retest_pending": RetestCandidate.objects.open().filter(centre_id__in=centre_ids).count(),
@@ -42,7 +36,6 @@ def centre_comparison(centre_ids, start, end):
     rows = []
     for c in Centre.objects.filter(pk__in=centre_ids).order_by("-is_head_centre", "name"):
         visits = Visit.objects.active().filter(centre=c, visit_date__gte=start, visit_date__lte=end)
-        billed, collected = _net(visits)
         calls = CallLog.objects.filter(centre=c, called_at__date__gte=start, called_at__date__lte=end)
         contacted = calls.filter(outcome__in=CallLog.CONTACTED_OUTCOMES).count()
         booked = calls.filter(outcome=CallLog.Outcome.BOOKED).count()
@@ -52,8 +45,6 @@ def centre_comparison(centre_ids, start, end):
         rows.append({
             "centre": c,
             "visits": visits.count(),
-            "revenue": billed,
-            "collected": collected,
             "new_patients": Patient.objects.filter(registered_at_centre=c, created_at__date__gte=start, created_at__date__lte=end).count(),
             "retest_rate": round(100 * booked / contacted, 1) if contacted else 0,
             "followup_rate": round(100 * fu_done / fu_total, 1) if fu_total else 0,

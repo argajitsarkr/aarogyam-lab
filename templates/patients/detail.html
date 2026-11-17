@@ -23,7 +23,6 @@
           {% if patient.consent_to_contact %}{% pill "COMPLETED" "Consent given" %} <span class="text-xs text-slate-500">{{ patient.consent_at|date:"d-m-Y" }}</span>{% else %}{% pill "CLOSED" "No consent" %}{% endif %}
           {% if patient.do_not_call %}{% pill "ABNORMAL" "Do not call" %}{% endif %}
         </dd>
-        <dt class="text-slate-500">Total billed</dt><dd class="col-span-2 font-semibold">{{ total_spent|inr }}</dd>
       </dl>
       {% if patient.notes %}<p class="mt-2 rounded bg-slate-50 p-2 text-sm">{{ patient.notes|linebreaksbr }}</p>{% endif %}
       <div class="mt-4 flex flex-wrap gap-2">
@@ -85,7 +84,7 @@
             <a href="{% url 'patients:visit_detail' v.pk %}" class="btn btn-sm">Open visit</a>
           </div>
           <div class="mt-1 text-xs text-slate-500">
-            {{ v.get_sample_collection_type_display }}{% if v.referring_doctor %} · Ref: {{ v.referring_doctor }}{% endif %} · {{ v.net_amount|inr }} ({{ v.get_payment_mode_display }}){% if v.balance_due > 0 %} · <span class="text-red-700">Due {{ v.balance_due|inr }}</span>{% endif %}
+            {{ v.get_sample_collection_type_display }}{% if v.referring_doctor %} · Ref: {{ v.referring_doctor }}{% endif %}
           </div>
           <ul class="mt-2 divide-y text-sm">
           {% for t in v.tests.all %}
@@ -93,7 +92,6 @@
               <span>{{ t.test.name }}{% if t.result_summary %} <span class="text-slate-500">— {{ t.result_summary }}</span>{% endif %}</span>
               <span class="flex items-center gap-2">
                 {% if t.flag %}{% pill t.flag t.get_flag_display %}{% else %}{% pill t.result_status t.get_result_status_display %}{% endif %}
-                {% if t.report_pdf %}<a href="{% url 'patients:report' t.pk %}" class="text-xs text-teal-700 underline" target="_blank" rel="noopener">PDF</a>{% endif %}
               </span>
             </li>
           {% endfor %}

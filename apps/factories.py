@@ -90,7 +90,6 @@ class VisitTestFactory(factory.django.DjangoModelFactory):
 
     visit = factory.SubFactory(VisitFactory)
     test = factory.SubFactory(TestCatalogFactory)
-    price_charged = Decimal("300")
 
 
 def reported_test(patient, test, days_ago, flag="", centre=None):

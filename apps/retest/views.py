@@ -207,16 +207,14 @@ def analytics(request):
                 .annotate(total=Count("id"), contacted=Count("id", filter=contacted_q), booked=Count("id", filter=booked_q))
                 .order_by("-booked")):
         emp_conv = conv.filter(calls__employee=row["employee"], calls__outcome=CallLog.Outcome.BOOKED)
-        revenue = emp_conv.aggregate(r=Sum("converted_test__price_charged"))["r"] or Decimal(0)
-        per_emp.append({**row, "rate": rate(row["booked"], row["contacted"]), "converted": emp_conv.count(), "revenue": revenue})
+        per_emp.append({**row, "rate": rate(row["booked"], row["contacted"]), "converted": emp_conv.count()})
 
     per_centre = []
     for c in Centre.objects.filter(pk__in=centre_ids):
         cc = calls.filter(centre=c)
         agg = cc.aggregate(total=Count("id"), contacted=Count("id", filter=contacted_q), booked=Count("id", filter=booked_q))
         cconv = conv.filter(centre=c)
-        per_centre.append({"centre": c, **agg, "rate": rate(agg["booked"], agg["contacted"]), "converted": cconv.count(),
-                           "revenue": cconv.aggregate(r=Sum("converted_test__price_charged"))["r"] or Decimal(0)})
+        per_centre.append({"centre": c, **agg, "rate": rate(agg["booked"], agg["contacted"]), "converted": cconv.count()})
 
     # Weekly trend (12 weeks)
     weeks, booked_series, conv_series, rate_series = [], [], [], []
@@ -235,7 +233,6 @@ def analytics(request):
     return render(request, "retest/analytics.html", {
         "start": start, "end": end, "per_emp": per_emp, "per_centre": per_centre, "totals": totals,
         "total_rate": rate(totals["booked"], totals["contacted"]), "total_converted": conv.count(),
-        "total_revenue": conv.aggregate(r=Sum("converted_test__price_charged"))["r"] or Decimal(0),
         "trend": {"labels": weeks, "booked": booked_series, "converted": conv_series, "rate": rate_series},
         "open_count": RetestCandidate.objects.open().filter(centre_id__in=centre_ids).count(),
     })

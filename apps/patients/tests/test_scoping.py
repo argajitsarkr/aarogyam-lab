@@ -37,7 +37,7 @@ def test_rrm_employee_registration_flow(client, employee, centres, hba1c):
     assert patient.registered_at_centre == centres["RRM"]
     assert patient.patient_id.startswith(f"RRM-{timezone.localdate().year}-")
     visit = patient.visits.get()
-    assert visit.centre == centres["RRM"] and visit.total_amount == 450
+    assert visit.centre == centres["RRM"]
     assert patient.consent_at is not None
 
 

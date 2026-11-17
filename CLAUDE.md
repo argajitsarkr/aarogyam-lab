@@ -26,15 +26,23 @@ from the subset renders as its own name in plain text.
 rest renders as text and is parsed as tags. It has leaked onto a page twice. Use
 `{% comment %}`; `apps/core/tests/test_template_comments.py` enforces it.
 
-**Palette: "Matcha Latte"** - `#F4F1E8` background, `#C9D6A3` surface, `#6B8F47` secondary,
-`#E8B87A` accent, `#2F3B24` primary/text. Two deliberate departures, both for contrast:
-button fills use `#5A7A3C` (white on `#6B8F47` is only 3.7:1), and muted text is `#6E6D58`.
-Red, amber and emerald are untouched - an abnormal result must not read as off-brand green.
+**Palette: Electric Blue on a neutral shell** - `#86FAF2 #30E7ED #00A6D7 #0058B3 #001B87`
+on a `#F0F0F2` canvas with white cards and a **white sidebar**. The shell stays quiet; the
+blues carry everything you can act on. Which blue is not taste: white text needs 4.5:1 and
+only the bottom two clear it (`#0058B3` 6.9:1 for buttons and links, `#001B87` 13.9:1 for
+table headers and the gradient end). `#00A6D7` is 2.8:1, so it is a non-text accent only,
+and the aqua pair are tints. Red, amber and green are untouched - an abnormal result must
+never read as neutral.
 The ramps live in **two** places, because the DEBUG CDN build cannot read
 `tailwind.config.js`: that file, and an inline `tailwind.config` in `_assets.html`.
-`apps/core/tests/test_theme.py` fails if they drift. Tailwind's `teal` and `slate` ramps are
-redefined there rather than rewriting the utilities in forty templates, so every existing
-`bg-teal-700` / `text-slate-500` follows the palette.
+`apps/core/tests/test_theme.py` fails if they drift. Tailwind's `teal` ramp is redefined as
+the blues and `slate` as neutral greys, rather than rewriting the utilities in forty
+templates, so every existing `bg-teal-700` / `text-slate-500` follows the palette.
+
+**No money anywhere.** The lab earns a commission from the partner labs, so the app records
+no billing: `Visit` has no `total_amount` / `discount` / `amount_paid` / `payment_mode`,
+`VisitTest` has no `price_charged`, and no screen shows revenue. `TestCatalog.price` stays -
+the price-comparison screens are the whole point of it.
 
 **Design tokens live in `:root` at the top of `templates/_components.css`** - colours, radius,
 shadow, sidebar widths, font stack. Change the theme there, not in the templates. The component

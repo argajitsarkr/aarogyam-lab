@@ -2,14 +2,12 @@
 <div class="tbl-wrap overflow-x-auto ">
   <div class="tbl-wrap">
     <table class="tbl">
-    <thead><tr><th>Centre</th><th class="text-right">Visits</th><th class="text-right">Revenue (net billed)</th><th class="text-right">Collected</th><th class="text-right">New patients</th><th class="text-right">Re-test conversion</th><th class="text-right">Follow-up completion</th></tr></thead>
+    <thead><tr><th>Centre</th><th class="text-right">Visits</th><th class="text-right">New patients</th><th class="text-right">Re-test conversion</th><th class="text-right">Follow-up completion</th></tr></thead>
     <tbody>
     {% for r in comparison %}
       <tr>
         <td class="font-medium">{% centre_badge r.centre %} {{ r.centre.name }}</td>
         <td class="text-right">{{ r.visits }}</td>
-        <td class="text-right font-semibold">{{ r.revenue|inr }}</td>
-        <td class="text-right">{{ r.collected|inr }}</td>
         <td class="text-right">{{ r.new_patients }}</td>
         <td class="text-right">{{ r.retest_rate }}%</td>
         <td class="text-right">{{ r.followup_rate }}% <span class="text-xs text-slate-400">of {{ r.fu_total }}</span></td>

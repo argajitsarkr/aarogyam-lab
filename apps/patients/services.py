@@ -88,10 +88,8 @@ def create_visit(*, patient, user, centre, tests, visit_fields):
     visit.save()
     total = Decimal(0)
     for test in tests:
-        VisitTest.objects.create(visit=visit, test=test, price_charged=test.price)
+        VisitTest.objects.create(visit=visit, test=test)
         total += test.price
-    visit.total_amount = total
-    visit.save(update_fields=["total_amount", "updated_at"])
     visit_registered.send(sender=Visit, visit=visit)
     return visit
 

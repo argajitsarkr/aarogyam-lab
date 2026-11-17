@@ -20,7 +20,7 @@ from apps.core.mixins import AdminRequiredMixin, ListPageMixin, SimpleFormPageMi
 
 from . import importer
 from .filters import PatientFilter
-from .forms import (DoctorForm, ImportUploadForm, PatientForm, TestCatalogForm, VisitBillingForm, VisitForm,
+from .forms import (DoctorForm, ImportUploadForm, PatientForm, TestCatalogForm, VisitDetailsForm, VisitForm,
                     VisitTestResultFormSet)
 from .models import Doctor, Patient, TestCatalog, Visit, VisitTest
 from .services import (active_tests, check_patient_access, check_visit_edit, create_visit, employee_centre,
@@ -163,7 +163,6 @@ def patient_detail(request, pk):
     candidates = patient.retest_candidates.select_related("test", "centre").prefetch_related("calls__employee")
     return render(request, "patients/detail.html", {
         "patient": patient, "visits": visits, "followups": followups, "candidates": candidates,
-        "total_spent": sum(v.net_amount for v in visits),
     })
 
 
@@ -202,7 +201,7 @@ def visit_detail(request, pk):
     if request.method == "POST":
         check_visit_edit(request.user, visit)
         formset = VisitTestResultFormSet(request.POST, request.FILES, queryset=qs, prefix="t")
-        bform = VisitBillingForm(request.POST, instance=visit, prefix="b")
+        bform = VisitDetailsForm(request.POST, instance=visit, prefix="b")
         if formset.is_valid() and bform.is_valid():
             with transaction.atomic():
                 formset.save()
@@ -211,7 +210,7 @@ def visit_detail(request, pk):
             return redirect("patients:visit_detail", pk=pk)
     else:
         formset = VisitTestResultFormSet(queryset=qs, prefix="t")
-        bform = VisitBillingForm(instance=visit, prefix="b")
+        bform = VisitDetailsForm(instance=visit, prefix="b")
     return render(request, "patients/visit_detail.html",
                   {"visit": visit, "formset": formset, "bform": bform, "can_edit": can_edit})
 

@@ -196,13 +196,6 @@ class Visit(TimeStampedModel, SoftDeleteModel):
         CENTRE = "CENTRE", "At Centre"
         HOME = "HOME", "Home Collection"
 
-    class PaymentMode(models.TextChoices):
-        CASH = "CASH", "Cash"
-        UPI = "UPI", "UPI"
-        CARD = "CARD", "Card"
-        CREDIT = "CREDIT", "Credit / Due"
-        OTHER = "OTHER", "Other"
-
     patient = models.ForeignKey(Patient, on_delete=models.PROTECT, related_name="visits")
     centre = models.ForeignKey("centres.Centre", on_delete=models.PROTECT, related_name="visits")
     visit_date = models.DateField(default=timezone.localdate, db_index=True)
@@ -210,10 +203,6 @@ class Visit(TimeStampedModel, SoftDeleteModel):
     referring_doctor = models.ForeignKey(Doctor, null=True, blank=True, on_delete=models.SET_NULL, related_name="visits")
     sample_collection_type = models.CharField(max_length=6, choices=CollectionType.choices, default=CollectionType.CENTRE)
     collection_address = models.TextField(blank=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)])
-    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)])
-    payment_mode = models.CharField(max_length=6, choices=PaymentMode.choices, default=PaymentMode.CASH)
     notes = models.TextField(blank=True)
 
     objects = VisitQuerySet.as_manager()
@@ -223,19 +212,6 @@ class Visit(TimeStampedModel, SoftDeleteModel):
 
     def __str__(self):
         return f"Visit {self.visit_date:%d-%m-%Y} — {self.patient.full_name} @ {self.centre.short_code}"
-
-    @property
-    def net_amount(self):
-        return max(Decimal(self.total_amount or 0) - Decimal(self.discount or 0), Decimal(0))
-
-    @property
-    def balance_due(self):
-        return self.net_amount - Decimal(self.amount_paid or 0)
-
-    def recalculate_total(self, save=True):
-        self.total_amount = sum((t.price_charged for t in self.tests.all()), Decimal(0))
-        if save:
-            self.save(update_fields=["total_amount", "updated_at"])
 
 
 class VisitTest(TimeStampedModel):
@@ -251,7 +227,6 @@ class VisitTest(TimeStampedModel):
     visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="tests")
     patient = models.ForeignKey(Patient, on_delete=models.PROTECT, related_name="visit_tests", editable=False)
     test = models.ForeignKey(TestCatalog, on_delete=models.PROTECT, related_name="visit_tests")
-    price_charged = models.DecimalField(max_digits=9, decimal_places=2, validators=[MinValueValidator(0)])
     result_status = models.CharField(max_length=8, choices=ResultStatus.choices, default=ResultStatus.PENDING)
     result_summary = models.CharField(max_length=255, blank=True)
     flag = models.CharField(max_length=10, choices=Flag.choices, blank=True)

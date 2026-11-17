@@ -122,18 +122,14 @@ class Command(BaseCommand):
                 visit = Visit.objects.create(patient=p, centre=centres[c], visit_date=vdate, registered_by=random.choice(staff[c]),
                                              referring_doctor=random.choice(doctors + [None, None]),
                                              sample_collection_type=random.choice(["CENTRE"] * 4 + ["HOME"]),
-                                             payment_mode=random.choice(["CASH", "UPI", "UPI", "CARD"]))
+                                             )
                 for t in random.sample(common, random.randint(1, 3)):
                     reported = vdate < today - dt.timedelta(days=1) or random.random() < 0.5
                     VisitTest.objects.create(
-                        visit=visit, test=t, price_charged=t.price,
+                        visit=visit, test=t,
                         result_status="REPORTED" if reported else "PENDING",
                         report_date=vdate + dt.timedelta(days=1) if reported else None,
                         flag=random.choices(["NORMAL", "BORDERLINE", "ABNORMAL"], weights=[7, 2, 1])[0] if reported else "")
-                visit.recalculate_total()
-                visit.discount = random.choice([0, 0, 0, 50, 100])
-                visit.amount_paid = max(visit.total_amount - visit.discount, 0)
-                visit.save()
             if random.random() < 0.08:
                 FollowUp.objects.create(patient=p, centre=centres[home], reason="DOCTOR_REFERRAL",
                                         referring_doctor=random.choice(doctors), assigned_to=random.choice(staff[home]),

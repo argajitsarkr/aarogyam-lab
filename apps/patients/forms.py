@@ -55,7 +55,7 @@ class VisitForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Visit
         fields = ["visit_date", "referring_doctor", "sample_collection_type", "collection_address",
-                  "discount", "amount_paid", "payment_mode", "notes"]
+                  "notes"]
         widgets = {"visit_date": forms.DateInput(), "collection_address": forms.Textarea(attrs={"rows": 2}),
                    "notes": forms.Textarea(attrs={"rows": 2})}
 
@@ -73,17 +73,16 @@ class VisitForm(StyledFormMixin, forms.ModelForm):
         data = super().clean()
         if data.get("sample_collection_type") == Visit.CollectionType.HOME and not data.get("collection_address"):
             self.add_error("collection_address", "Collection address is required for home collection.")
-        tests = data.get("tests") or []
-        total = sum(t.price for t in tests)
-        if data.get("discount") and data["discount"] > total:
-            self.add_error("discount", "Discount cannot exceed the total.")
         return data
 
 
-class VisitBillingForm(StyledFormMixin, forms.ModelForm):
+class VisitDetailsForm(StyledFormMixin, forms.ModelForm):
+    """The editable bits of a visit once it exists. Money was removed, so this is
+    the referring doctor and the notes."""
+
     class Meta:
         model = Visit
-        fields = ["referring_doctor", "discount", "amount_paid", "payment_mode", "notes"]
+        fields = ["referring_doctor", "notes"]
         widgets = {"notes": forms.Textarea(attrs={"rows": 2})}
 
 

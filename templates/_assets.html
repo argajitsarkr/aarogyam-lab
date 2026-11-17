@@ -17,10 +17,10 @@
     /* The CDN build does not read tailwind.config.js, so the two colour ramps are
        repeated here for DEBUG. apps/core/tests/test_theme.py fails if they drift. */
     tailwind.config = { theme: { extend: { colors: {
-      teal: {"50": "#F4F1E8", "100": "#EEF2E2", "200": "#D3DFB6", "300": "#C9D6A3", "400": "#A5BE7B", "500": "#83A357", "600": "#6B8F47", "700": "#5A7A3C", "800": "#4E6B34", "900": "#2F3B24", "950": "#1E2617"},
-      slate: {"50": "#F7F5EE", "100": "#EFEDE2", "200": "#E0DED0", "300": "#CBC9B8", "400": "#A8A693", "500": "#6E6D58", "600": "#5C5B49", "700": "#53533F", "800": "#3C3D2C", "900": "#2F3B24", "950": "#191A10"},
-      canvas: "#F4F1E8",
-      accent: { DEFAULT: "#E8B87A", bg: "#FBF0DF", ink: "#8A5A1E" }
+      teal: {"50": "#EAFDFC", "100": "#D2F9F6", "200": "#86FAF2", "300": "#30E7ED", "400": "#00C8E6", "500": "#00A6D7", "600": "#0077C4", "700": "#0058B3", "800": "#003E95", "900": "#001B87", "950": "#001160"},
+      slate: {"50": "#FAFAFA", "100": "#F4F4F5", "200": "#E7E7EA", "300": "#D4D4D8", "400": "#A1A1AA", "500": "#66666E", "600": "#52525B", "700": "#3F3F46", "800": "#27272A", "900": "#18181B", "950": "#09090B"},
+      canvas: "#F0F0F2",
+      accent: { DEFAULT: "#00A6D7", dark: "#0058B3", bg: "#EAFDFC", ink: "#001B87" }
     }, fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"] } } } };
   </script>
   <style type="text/tailwindcss">{% include "_components.css" %}</style>

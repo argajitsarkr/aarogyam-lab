@@ -8,7 +8,7 @@
   {% include "_assets.html" %}
   {% block head %}{% endblock %}
 </head>
-<body class="h-full bg-slate-50 text-slate-800 antialiased" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<body class="h-full bg-canvas text-slate-800 antialiased" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 {% comment %}
   `rail` collapses the sidebar to icons on large screens and is remembered per
   user (ui:sidebar_rail); `nav` is the separate slide-over for phones.
@@ -23,19 +23,19 @@
      class="min-h-screen lg:flex">
   {# ---------------- Sidebar ---------------- #}
   <aside :class="{ 'translate-x-0': nav, '-translate-x-full': !nav, 'rail': rail }"
-         id="sidebar" class="fixed inset-y-0 left-0 z-40 transform overflow-y-auto bg-teal-900 text-teal-50 transition-all lg:static lg:translate-x-0 print:hidden">
+         id="sidebar" class="fixed inset-y-0 left-0 z-40 transform overflow-y-auto border-r border-slate-200 bg-white text-slate-700 transition-all lg:static lg:translate-x-0 print:hidden">
     <div class="flex items-center gap-2 px-4 py-4" :class="{ 'lg:justify-center lg:px-0': rail }">
-      <div class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/15 font-bold">A</div>
+      <div class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-teal-700 font-bold text-white">A</div>
       <div class="leading-tight navlink-label">
         <div class="font-semibold">{{ site_settings.lab_display_name|default:"Aarogyam" }}</div>
-        <div class="text-xs text-teal-200">Lab Management</div>
+        <div class="text-xs text-slate-500">Lab Management</div>
       </div>
     </div>
     {% with u=request.resolver_match.namespace %}
     <nav class="space-y-0.5 px-2 pb-6 text-sm">
       {% url 'dashboard:home' as h %}
       <a href="{{ h }}" class="navlink {% if u == 'dashboard' and request.resolver_match.url_name == 'home' %}navlink-active{% endif %}" title="Dashboard">{% icon "home" %} <span class="navlink-label">Dashboard</span></a>
-      <a href="{% url 'patients:register' %}" class="navlink bg-white/10 font-semibold" title="Register / New Visit">{% icon "add" %} <span class="navlink-label">Register / New Visit</span></a>
+      <a href="{% url 'patients:register' %}" class="navlink bg-teal-50 font-semibold text-teal-800" title="Register / New Visit">{% icon "add" %} <span class="navlink-label">Register / New Visit</span></a>
       <a href="{% url 'patients:list' %}" class="navlink {% if u == 'patients' and request.resolver_match.url_name == 'list' %}navlink-active{% endif %}" title="Patients">{% icon "groups" %} <span class="navlink-label">Patients</span></a>
       <a href="{% url 'followups:list' %}" class="navlink {% if u == 'followups' %}navlink-active{% endif %}" title="Follow-ups">{% icon "assignment" %} <span class="navlink-label">Follow-ups</span></a>
       <a href="{% url 'retest:my_calls' %}" class="navlink {% if u == 'retest' and request.resolver_match.url_name == 'my_calls' %}navlink-active{% endif %}" title="Call List">{% icon "call" %} <span class="navlink-label">Call List</span></a>
@@ -45,14 +45,14 @@
       <a href="{% url 'patients:doctors' %}" class="navlink" title="Doctors">{% icon "stethoscope" %} <span class="navlink-label">Doctors</span></a>
 
       {% if pinned_filters %}
-      <div class="nav-section mt-4 px-3 pb-1 text-xs uppercase tracking-wide text-teal-300">Saved views</div>
+      <div class="nav-section mt-5 px-3 pb-1 text-[0.65rem] font-bold uppercase tracking-wider text-slate-400">Saved views</div>
       {% for sf in pinned_filters %}
         <a href="{{ sf.get_absolute_url }}" class="navlink truncate" title="{{ sf.name }}">{% icon "star" "mi-fill" %} <span class="navlink-label truncate">{{ sf.name }}</span></a>
       {% endfor %}
       {% endif %}
 
       {% if is_admin_user %}
-      <div class="nav-section mt-4 px-3 pb-1 text-xs uppercase tracking-wide text-teal-300">Admin</div>
+      <div class="nav-section mt-5 px-3 pb-1 text-[0.65rem] font-bold uppercase tracking-wider text-slate-400">Admin</div>
       <a href="{% url 'dashboard:compare' %}" class="navlink" title="Compare Centres">{% icon "bar_chart" %} <span class="navlink-label">Compare Centres</span></a>
       <a href="{% url 'retest:analytics' %}" class="navlink" title="Calling Analytics">{% icon "trending_up" %} <span class="navlink-label">Calling Analytics</span></a>
       <a href="{% url 'dashboard:map' %}" class="navlink" title="Map">{% icon "map" %} <span class="navlink-label">Map</span></a>
@@ -99,7 +99,7 @@
 
       <div x-data="{ open:false }" class="relative">
         <button @click="open=!open" class="flex items-center gap-1 rounded-md px-2 py-1 text-sm hover:bg-slate-100">
-          <span class="grid h-7 w-7 place-items-center rounded-full bg-teal-600 text-xs font-bold text-white">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</span>
+          <span class="grid h-7 w-7 place-items-center rounded-full bg-teal-700 text-xs font-bold text-white">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</span>
           <span class="hidden sm:inline">{{ request.user }}</span>
         </button>
         <div x-show="open" x-cloak @click.outside="open=false" class="absolute right-0 mt-1 w-48 rounded-md border bg-white py-1 text-sm shadow-lg">

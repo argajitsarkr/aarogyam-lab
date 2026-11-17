@@ -19,7 +19,6 @@
   <div class="stat-band">
     <div><div class="stat-value">{{ kpi.registrations_today }}</div><span class="stat-label">Registrations today</span></div>
     <div><div class="stat-value">{{ kpi.visits_today }}</div><span class="stat-label">Visits today</span></div>
-    <div><div class="stat-value">{{ kpi.revenue_today|inr }}</div><span class="stat-label">Revenue today · {{ kpi.collected_today|inr }} collected</span></div>
     <a href="{% url 'followups:list' %}?tab=due_today" class="stat-link"><div class="stat-value">{{ kpi.followups_due }}</div><span class="stat-label">Follow-ups due</span></a>
     <a href="{% url 'followups:list' %}?tab=overdue" class="stat-link"><div class="stat-value {% if kpi.followups_overdue %}!text-red-700{% endif %}">{{ kpi.followups_overdue }}</div><span class="stat-label">Overdue</span></a>
     <a href="{% url 'retest:list' %}" class="stat-link"><div class="stat-value">{{ kpi.retest_pending }}</div><span class="stat-label">Re-test calls pending</span></a>

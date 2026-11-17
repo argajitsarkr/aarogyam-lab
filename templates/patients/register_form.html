@@ -88,13 +88,6 @@
           {% for val, lab in form.fields.sample_collection_type.choices %}<option value="{{ val }}" {% if form.sample_collection_type.value == val %}selected{% endif %}>{{ lab }}</option>{% endfor %}
         </select></div>
       <div class="sm:col-span-6" x-show="home" x-cloak><label class="label" for="{{ form.collection_address.id_for_label }}">Collection address</label>{{ form.collection_address }}{{ form.collection_address.errors }}</div>
-      <div class="sm:col-span-2"><label class="label">Total</label><div class="input bg-slate-50 py-2 font-semibold" x-text="'₹' + total()"></div></div>
-      <div class="sm:col-span-2"><label class="label" for="{{ form.discount.id_for_label }}">Discount (₹)</label>
-        <input type="number" step="0.01" min="0" name="{{ form.discount.html_name }}" id="{{ form.discount.id_for_label }}" class="input" x-model.number="discount" value="{{ form.discount.value|default:0 }}">{{ form.discount.errors }}</div>
-      <div class="sm:col-span-2"><label class="label">Net payable</label><div class="input bg-slate-50 py-2 font-bold text-teal-800" x-text="'₹' + Math.max(total() - (discount||0), 0)"></div></div>
-      <div class="sm:col-span-3"><label class="label" for="{{ form.amount_paid.id_for_label }}">Amount paid (₹)</label>
-        <div class="flex gap-2">{{ form.amount_paid }}<button type="button" class="btn btn-sm whitespace-nowrap" @click="document.getElementById('{{ form.amount_paid.id_for_label }}').value = Math.max(total() - (discount||0), 0)">Paid in full</button></div>{{ form.amount_paid.errors }}</div>
-      <div class="sm:col-span-3"><label class="label" for="{{ form.payment_mode.id_for_label }}">Payment mode</label>{{ form.payment_mode }}</div>
       <div class="sm:col-span-6"><label class="label" for="{{ form.notes.id_for_label }}">Visit notes</label>{{ form.notes }}</div>
     </div>
     {% endwith %}
@@ -112,7 +105,7 @@ function testPicker() {
   const all = JSON.parse(JSON.parse(document.getElementById('tests-data').textContent));
   const pre = {{ vform.tests.value|default:"[]"|safe }};
   return {
-    q: '', all, selected: [], discount: Number('{{ vform.discount.value|default:0 }}') || 0,
+    q: '', all, selected: [],
     init() { const ids = (Array.isArray(pre) ? pre : []).map(String); this.selected = all.filter(t => ids.includes(String(t.id))); },
     matches() { const q = this.q.toLowerCase().trim(); if (!q) return [];
       return this.all.filter(t => !this.selected.some(s => s.id === t.id) && (t.name.toLowerCase().includes(q) || t.code.toLowerCase().includes(q))).slice(0, 12); },

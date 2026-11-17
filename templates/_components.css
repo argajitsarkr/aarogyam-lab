@@ -7,56 +7,54 @@
    ------------------------------------------------------------ */
 :root {
   /* ----------------------------------------------------------------
-     "Matcha Latte" palette (chosen 2026-11-18):
-       #F4F1E8 background   #C9D6A3 surface   #6B8F47 secondary
-       #E8B87A accent       #2F3B24 primary / text
-     Two deliberate adjustments, both for legibility:
-       - button fills use #5A7A3C, a shade darker than the palette's #6B8F47.
-         White on #6B8F47 is 3.7:1, under the 4.5:1 needed for button text;
-         #5A7A3C is 4.9:1. #6B8F47 still appears as the lighter accent.
-       - muted text is #6E6D58 (4.7:1 on the cream) rather than a lighter grey.
+     Electric Blue on a neutral shell (2026-11-18).
+       #86FAF2  #30E7ED  #00A6D7  #0058B3  #001B87
+     The shell stays quiet - light grey canvas, white cards, white sidebar -
+     and the blues carry everything you can act on. Which blue is not a taste
+     decision: white text needs 4.5:1, and only the bottom two clear it
+     (#0058B3 is 6.9:1, #001B87 is 13.9:1). #00A6D7 is 2.8:1, so it is used as
+     a non-text accent only, and the aqua pair are tints and gradient ends.
      ---------------------------------------------------------------- */
-  --brand: #5A7A3C;          /* interactive fills, white text on top */
-  --brand-dark: #4E6B34;     /* hover */
-  --brand-darker: #2F3B24;   /* sidebar, table header - palette primary */
-  --brand-light: #6B8F47;    /* palette secondary, for accents on dark */
-  --brand-tint: #EEF2E2;     /* selected rows, soft fills */
-  --brand-ink: #2F3B24;      /* text on a tint */
+  --brand: #0058B3;          /* buttons, active nav, links */
+  --brand-dark: #004A96;     /* hover */
+  --brand-darker: #001B87;   /* table header, gradient end */
+  --brand-light: #00A6D7;    /* non-text accent: rules, bar fills, icons on dark */
+  --brand-tint: #EAFDFC;     /* selected rows - from #86FAF2 */
+  --brand-ink: #001B87;      /* text on a tint */
 
-  /* Neutrals - warm, so they sit with the cream rather than fighting it */
-  --surface: #ffffff;        /* cards and tables lift off the canvas */
-  --canvas: #F4F1E8;         /* palette background */
-  --panel: #E7EDD6;          /* filter block, table hover - a sage tint */
-  --line: #E0DED0;
-  --line-strong: #C9D6A3;    /* palette surface works as a border */
-  --ink: #2F3B24;            /* palette primary */
-  --ink-soft: #5B6A48;
-  --ink-muted: #6E6D58;
+  --surface: #ffffff;        /* cards, sidebar, header */
+  --canvas: #F0F0F2;         /* page background */
+  --panel: #F6F6F7;          /* filter block, table hover */
+  --line: #E7E7EA;
+  --line-strong: #D4D4D8;
+  --ink: #0A0A0B;
+  --ink-soft: #52525B;
+  --ink-muted: #66666E;      /* 4.5:1 on the canvas */
   --ink-invert: #ffffff;
 
-  /* Accent - the palette's #E8B87A. Used for attention that is not an error. */
-  --accent: #E8B87A;
-  --accent-bg: #FBF0DF;
-  --accent-ink: #8A5A1E;
+  /* The one accent, used for a single highlight at a time - never decoration. */
+  --accent: #00A6D7;
+  --accent-dark: #0058B3;
+  --accent-bg: #EAFDFC;
+  --accent-ink: #001B87;
 
-  /* Status. Red and amber keep their meaning: an abnormal result must not read
-     as "slightly off-brand green". */
-  --ok: #3F6B2E;        --ok-bg: #EEF2E2;
-  --warn: #8A5A1E;      --warn-bg: #FBF0DF;
-  --danger: #A33A2A;    --danger-bg: #FBEDEA;
-  --info: #3C5A7A;      --info-bg: #ECF1F6;
+  /* Status keeps its meaning: an abnormal result must never read as neutral. */
+  --ok: #15803D;        --ok-bg: #F0FDF4;
+  --warn: #B45309;      --warn-bg: #FFFBEB;
+  --danger: #B91C1C;    --danger-bg: #FEF2F2;
+  --info: #1D4ED8;      --info-bg: #EFF4FF;
 
-  --radius-sm: 4px;
-  --radius: 6px;
-  --radius-lg: 10px;
-  --radius-full: 9999px;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;         /* cards, as in the reference */
+  --radius-full: 9999px;     /* buttons are pills */
 
-  --shadow-sm: 0 1px 2px rgb(47 59 36 / 0.07);
-  --shadow-md: 0 4px 12px rgb(47 59 36 / 0.10);
-  --shadow-lg: 0 10px 26px rgb(47 59 36 / 0.12);
+  --shadow-sm: 0 1px 2px rgb(9 9 11 / 0.05);
+  --shadow-md: 0 4px 14px rgb(9 9 11 / 0.07);
+  --shadow-lg: 0 12px 30px rgb(9 9 11 / 0.09);
 
   --sidebar-w: 16rem;
-  --sidebar-w-rail: 4.25rem;
+  --sidebar-w-rail: 4.75rem;
 
   /* Inter (Google Fonts, see templates/_assets.html). Repeated here so the CDN
      fallback used when DEBUG=True picks it up as well. */
@@ -86,8 +84,14 @@ body { background-color: var(--canvas); }
   [x-cloak] { display: none !important; }
 
   /* ---- sidebar ------------------------------------------------------- */
-  .navlink { @apply flex items-center gap-2.5 rounded-md px-3 py-2 text-teal-50 hover:bg-white/10; }
-  .navlink-active { @apply bg-white/20 font-semibold; }
+  .navlink {
+    color: var(--ink-soft);
+    border-radius: var(--radius);
+    @apply flex items-center gap-3 px-3 py-2 font-medium transition;
+  }
+  .navlink:hover { background: var(--panel); color: var(--ink); }
+  .navlink-active { background: var(--brand); color: var(--ink-invert); }
+  .navlink-active:hover { background: var(--brand); color: var(--ink-invert); }
   /* Collapsed (icon rail): hide the labels, centre the icons. */
   .rail .navlink { @apply justify-center px-0; }
   .rail .navlink-label, .rail .nav-section { display: none; }
@@ -98,7 +102,7 @@ body { background-color: var(--canvas); }
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    @apply p-4;
+    @apply p-5;
   }
 
   /* Filter block: a tinted panel, not another white card, so the eye reads it
@@ -130,7 +134,7 @@ body { background-color: var(--canvas); }
   /* ---- buttons ------------------------------------------------------- */
   .btn {
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-full);
     background: var(--surface);
     color: var(--ink-soft);
     @apply inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium hover:bg-slate-50 disabled:opacity-50;
@@ -139,13 +143,13 @@ body { background-color: var(--canvas); }
     background: var(--brand);
     border: 1px solid var(--brand);
     color: var(--ink-invert);
-    border-radius: var(--radius);
+    border-radius: var(--radius-full);
     @apply inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold disabled:opacity-50;
   }
   .btn-primary:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
   .btn-danger {
     background: var(--danger); border: 1px solid var(--danger); color: var(--ink-invert);
-    border-radius: var(--radius);
+    border-radius: var(--radius-full);
     @apply inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold;
   }
   .btn-sm { @apply px-2 py-1 text-xs; }
@@ -205,6 +209,19 @@ body { background-color: var(--canvas); }
   .stat-value { color: var(--brand-darker); @apply text-3xl font-extrabold leading-none; }
   .stat-label { color: var(--ink-muted); @apply mt-1 block text-[0.68rem] font-semibold uppercase tracking-wider; }
   .stat-link:hover .stat-value { color: var(--brand); }
+
+  /* The one blue thing on a screen: a single call to action, never decoration. */
+  .highlight {
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-darker) 100%);
+    color: var(--ink-invert);
+    border-radius: var(--radius-lg);
+    @apply p-5;
+  }
+  .highlight .highlight-label {
+    background: rgb(255 255 255 / 0.18);
+    border-radius: var(--radius-full);
+    @apply inline-block px-2.5 py-0.5 text-[0.68rem] font-semibold uppercase tracking-wider;
+  }
 
   /* ---- result card (call list, follow-ups) --------------------------- */
   .rcard {

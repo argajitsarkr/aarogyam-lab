@@ -212,11 +212,8 @@ def commit_rows(rows, user):
             visit = Visit.objects.create(patient=patient, centre=centre, visit_date=visit_date, registered_by=user,
                                          notes="Imported historical visit")
             for t in tests:
-                VisitTest.objects.create(visit=visit, test=t, price_charged=t.price, result_status="REPORTED",
+                VisitTest.objects.create(visit=visit, test=t, result_status="REPORTED",
                                          report_date=visit_date, flag=flag)
-            visit.recalculate_total()
-            visit.amount_paid = visit.total_amount
-            visit.save(update_fields=["amount_paid"])
         created += 1
     return created
 

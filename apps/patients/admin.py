@@ -17,7 +17,7 @@ class VisitTestInline(admin.TabularInline):
 
 @admin.register(Visit)
 class VisitAdmin(admin.ModelAdmin):
-    list_display = ("patient", "centre", "visit_date", "total_amount")
+    list_display = ("patient", "centre", "visit_date")
     list_filter = ("centre",)
     inlines = [VisitTestInline]
     raw_id_fields = ("patient",)

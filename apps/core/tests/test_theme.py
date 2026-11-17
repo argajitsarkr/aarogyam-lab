@@ -23,16 +23,16 @@ def _assets_ramp(name):
 
 
 def test_teal_ramp_matches():
-    assert _assets_ramp("teal") == _config_ramp("matcha")
+    assert _assets_ramp("teal") == _config_ramp("electricBlue")
 
 
 def test_slate_ramp_matches():
-    assert _assets_ramp("slate") == _config_ramp("warmGrey")
+    assert _assets_ramp("slate") == _config_ramp("neutral")
 
 
 def test_tokens_use_the_palette():
-    """The five palette colours must all still appear in the :root block."""
+    """The five Electric Blue colours must all still appear in the token block."""
     css = (ROOT / "templates" / "_components.css").read_text(encoding="utf-8")
     root = css[css.index(":root {"): css.index("html {")]
-    for colour in ("#F4F1E8", "#C9D6A3", "#6B8F47", "#E8B87A", "#2F3B24"):
+    for colour in ("#86FAF2", "#30E7ED", "#00A6D7", "#0058B3", "#001B87"):
         assert colour in root, f"{colour} is no longer in the token block"
