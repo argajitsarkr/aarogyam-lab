@@ -2,6 +2,7 @@
 {% block content %}
 <form method="post" class="space-y-3">
   {% csrf_token %}
+  {% for m in messages %}<div class="rounded-md bg-teal-50 p-2 text-sm text-teal-800">{{ m }}</div>{% endfor %}
   {% if form.non_field_errors %}<div class="rounded-md bg-red-50 p-2 text-sm text-red-700">{{ form.non_field_errors|striptags }}</div>{% endif %}
   <div><label class="label" for="id_username">Username or phone</label>
     <input class="input" type="text" name="username" id="id_username" autofocus autocomplete="username" required value="{{ form.username.value|default:'' }}"></div>

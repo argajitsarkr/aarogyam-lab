@@ -17,6 +17,24 @@ class LoginView(auth_views.LoginView):
     authentication_form = LoginForm
     redirect_authenticated_user = True
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = form.get_user()
+        if user.must_change_password:
+            messages.warning(self.request, "Please set a new password before continuing.")
+        else:
+            messages.success(self.request, f"Welcome, {user.get_full_name() or user.username}.")
+        return response
+
+
+class LogoutView(auth_views.LogoutView):
+    """POST-only logout (Django default) that confirms on the login page, as TGMA does."""
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        messages.info(request, "You have been logged out.")
+        return response
+
 
 class PasswordChangeView(auth_views.PasswordChangeView):
     template_name = "accounts/password_change.html"
@@ -24,9 +42,15 @@ class PasswordChangeView(auth_views.PasswordChangeView):
     success_url = reverse_lazy("dashboard:home")
 
     def form_valid(self, form):
+        from apps.audit.models import AuditLog
+        from apps.audit.services import log_event
+
+        was_forced = self.request.user.must_change_password
         response = super().form_valid(form)
         update_session_auth_hash(self.request, form.user)
-        messages.success(self.request, "Password changed.")
+        log_event(AuditLog.Action.PASSWORD_CHANGED, user=form.user, request=self.request, obj=form.user,
+                  note="first-login change" if was_forced else "")
+        messages.success(self.request, "Password updated.")
         return response
 
 

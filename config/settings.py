@@ -22,6 +22,15 @@ environ.Env.read_env(BASE_DIR / ".env", overwrite=False)
 
 DEBUG = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY", default="insecure-dev-key-change-me" if DEBUG else environ.Env.NOTSET)
+# As TGMA's ProductionConfig.validate(): a guessable key lets anyone forge a session
+# cookie, and this app is reachable from the internet through the tunnel.
+if not DEBUG and (len(SECRET_KEY) < 32 or SECRET_KEY.startswith(("change-me", "insecure-", "dev-only"))):
+    from django.core.exceptions import ImproperlyConfigured
+
+    raise ImproperlyConfigured(
+        "SECRET_KEY is a placeholder or shorter than 32 characters. Generate one with: "
+        'python -c "import secrets;print(secrets.token_urlsafe(50))"'
+    )
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
 
@@ -93,7 +102,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 10}},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 12}},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
@@ -107,10 +116,15 @@ SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+# Own cookie names (TGMA uses tgma_session): several apps share the PowerEdge, and over an
+# SSH port-forward they all live on localhost, where cookies are shared across ports.
+SESSION_COOKIE_NAME = "aarogyam_session"
+CSRF_COOKIE_NAME = "aarogyam_csrftoken"
 
 # --- django-axes: lock after 5 failures ------------------------------------
 AXES_FAILURE_LIMIT = 5
-AXES_COOLOFF_TIME = env.float("AXES_COOLOFF_HOURS", default=1)
+# 15-minute lock, as on TGMA. Admins can unlock sooner from the Users page.
+AXES_COOLOFF_TIME = env.float("AXES_COOLOFF_HOURS", default=0.25)
 # Lock per account. IP-based lockout is deliberately off: front-desk PCs share one
 # office IP, so one typo-prone user would lock out the whole centre.
 AXES_LOCKOUT_PARAMETERS = ["username"]

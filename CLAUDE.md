@@ -57,13 +57,33 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   first login, after which that line can be cleared.
 - Lab Admins (max 3) and Employees (cap in Settings) are created in the app's Users page.
 
+## Login (aligned with TGMA, `D:\Sites\Tgmabase\app\auth.py`)
+
+- Username **or** 10-digit phone + password (`UsernameOrPhoneBackend`). One generic error for
+  unknown user / bad password / inactive account - never reveal which.
+- django-axes: 5 failures -> account locked **15 min** (`AXES_COOLOFF_HOURS=0.25`), per
+  username not per IP (front desks share an IP). Locked attempts are refused before the
+  password is checked; `accounts/locked.html` says how long. Admins can Unlock on Users.
+- Forced change: `must_change_password` lets the user reach only the change form + logout.
+  New password min **12** chars and must differ from the current one.
+- Audit (`apps/audit/signals.py`, views): `LOGIN`, `LOGOUT`, `LOGIN_FAILED` (note gives the
+  reason: unknown user / bad password / inactive account), `LOGIN_BLOCKED`,
+  `PASSWORD_CHANGED`, all with the client IP.
+- Session: 30-min idle, refreshed every request, HttpOnly + SameSite=Lax + Secure, cookies
+  `aarogyam_session` / `aarogyam_csrftoken`. Logout is POST-only (TGMA uses GET).
+- Production refuses to start with a placeholder or < 32-char `SECRET_KEY`.
+- Tests: `conftest.py` turns axes off suite-wide; `apps/accounts/tests/test_login_flow.py`
+  turns it back on to test the lockout.
+- Not copied from TGMA yet: its Content-Security-Policy header (Alpine.js here needs
+  `unsafe-eval`; every page would need re-checking).
+
 ## Local development
 
 - Python is the uv venv at `.venv` (3.12). Run Python scripts with `PYTHONUTF8=1` on this laptop
   (cp1252 default otherwise).
 - Local runs use SQLite and CDN assets when `DEBUG=True` (`.env` here is dev-only).
 - `python manage.py create_demo_data` for fake data; refused when `DEBUG=False`.
-- Tests: `python -m pytest` (69 tests; settings isolation in `conftest.py`).
+- Tests: `python -m pytest` (80 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
 - Docker Desktop on this laptop has been unreliable (engine stuck stopped); the full
   `docker compose up` stack has not yet been verified here.
 

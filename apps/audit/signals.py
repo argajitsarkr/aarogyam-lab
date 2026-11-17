@@ -67,6 +67,31 @@ def _logged_out(sender, request, user, **kwargs):
         log_event(AuditLog.Action.LOGOUT, user=user, request=request, obj=user)
 
 
+def _failure_reason(username):
+    """Why a login failed, for the audit log only (the user always sees the same
+    generic message, so this never helps anyone enumerate accounts). As on TGMA."""
+    from django.contrib.auth import get_user_model
+    from django.db.models import Q
+
+    from apps.core.validators import normalize_phone
+
+    phone = normalize_phone(username)
+    q = Q(username__iexact=username) | Q(phone=phone) if phone else Q(username__iexact=username)
+    user = get_user_model().objects.filter(q).first()
+    if user is None:
+        return "unknown user"
+    if not user.is_active or user.deleted_at:
+        return "inactive account"
+    return "bad password"
+
+
 @receiver(user_login_failed)
 def _login_failed(sender, credentials, request=None, **kwargs):
-    log_event(AuditLog.Action.LOGIN_FAILED, request=request, note=f"username={str(credentials.get('username', ''))[:50]}")
+    from axes.handlers.proxy import AxesProxyHandler
+
+    username = str(credentials.get("username", ""))[:50]
+    if request is not None and AxesProxyHandler.is_locked(request, credentials):
+        # Attempt against an account that is already locked: the password was not checked.
+        log_event(AuditLog.Action.LOGIN_BLOCKED, request=request, note=f"username={username}; account locked")
+        return
+    log_event(AuditLog.Action.LOGIN_FAILED, request=request, note=f"username={username}; {_failure_reason(username)}")

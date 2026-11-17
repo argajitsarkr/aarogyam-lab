@@ -86,9 +86,9 @@ class TestAuth:
         resp = client.get(reverse("patients:list"))
         assert resp.status_code == 302 and reverse("accounts:login") in resp.url
 
-    def test_password_min_length_is_10(self, centres):
+    def test_password_min_length_is_12(self, centres):
         form = UserForm(data={"username": "short", "role": "EMPLOYEE", "home_centre": centres["ARP"].pk,
-                              "password": "Abc12345!", "is_active": True})
+                              "password": "Abc-1234567", "is_active": True})  # 11 chars
         assert not form.is_valid() and "password" in form.errors
 
     def test_employee_cannot_manage_users(self, client, centres):

@@ -15,6 +15,12 @@ class LoginForm(AuthenticationForm):
 
 
 class ForcedPasswordChangeForm(PasswordChangeForm):
+    def clean_new_password1(self):
+        new = self.cleaned_data.get("new_password1")
+        if new and self.user.check_password(new):
+            raise ValidationError("New password must be different from the current one.")
+        return new
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.must_change_password = False
@@ -26,7 +32,7 @@ class ForcedPasswordChangeForm(PasswordChangeForm):
 class UserForm(StyledFormMixin, forms.ModelForm):
     password = forms.CharField(
         label="Temporary password", required=False, widget=forms.PasswordInput(render_value=False),
-        help_text="Min 10 characters. The user must change it on first login. Leave blank to keep the current password.",
+        help_text="Min 12 characters. The user must change it on first login. Leave blank to keep the current password.",
     )
 
     class Meta:

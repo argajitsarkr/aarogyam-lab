@@ -85,7 +85,7 @@ python -m pytest
 
 First admin by hand: `python manage.py create_first_admin`.
 Add employees: **Admin → Users → Add user** (set role, home centre, temporary password —
-they must change it at first login; min 10 characters). Locked out after 5 failed attempts;
+they must change it at first login; min 12 characters, as on TGMA). Locked for 15 minutes after 5 failed attempts;
 Admins can **Unlock** from the Users page.
 Add/deactivate centres: **Admin → Centres**. The short code becomes the patient-ID prefix
 (e.g. `ARP-2026-000123`) and is frozen once patients exist. Set latitude/longitude to show

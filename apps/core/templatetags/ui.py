@@ -93,3 +93,12 @@ FLAG_CLASSES = {
 def pill(code, label=None):
     cls = FLAG_CLASSES.get(str(code), "bg-slate-100 text-slate-700")
     return format_html('<span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium {}">{}</span>', cls, label or code)
+
+
+@register.filter
+def minutes(td):
+    """timedelta -> whole minutes (at least 1), e.g. for the account-locked page."""
+    try:
+        return max(1, int(td.total_seconds() // 60))
+    except AttributeError:
+        return td

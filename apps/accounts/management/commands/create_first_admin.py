@@ -20,11 +20,11 @@ class Command(BaseCommand):
         if not username and not opts["noinput"]:
             username = input("Admin username: ").strip()
         if not password and not opts["noinput"]:
-            password = getpass.getpass("Password (min 10 chars): ")
+            password = getpass.getpass("Password (min 12 chars): ")
         if not username or not password:
             raise CommandError("Username and password are required.")
-        if len(password) < 10:
-            raise CommandError("Password must be at least 10 characters.")
+        if len(password) < 12:
+            raise CommandError("Password must be at least 12 characters.")
         if User.objects.filter(username=username).exists():
             self.stdout.write(f"User '{username}' already exists — nothing to do.")
             return
