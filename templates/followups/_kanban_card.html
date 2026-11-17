@@ -11,7 +11,7 @@
   </div>
   <div class="mt-1 flex items-center justify-between text-xs text-slate-500">
     <span>{{ item.assigned_to|default:"Unassigned" }}</span>
-    {% if item.patient.phone and not item.patient.do_not_call %}<a href="tel:{{ item.patient.phone }}" class="text-teal-700">📞 Call</a>{% endif %}
+    {% if item.patient.phone and not item.patient.do_not_call %}<a href="tel:{{ item.patient.phone }}" class="text-teal-700">{% icon "call" %} Call</a>{% endif %}
   </div>
   {% if view_mode == 'card' %}<div class="mt-1">{% pill item.status item.get_status_display %}</div>{% endif %}
 </div>

@@ -1,4 +1,9 @@
-{% load static %}{% if USE_CDN_ASSETS %}
+{% load static %}
+{# Google Fonts: Inter for the UI, Material Symbols Rounded for every icon. #}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..700,0..1,0&display=swap">
+{% if USE_CDN_ASSETS %}
   {# Dev fallback when the Tailwind bundle has not been built (DEBUG only). #}
   <script src="https://cdn.tailwindcss.com/3.4.17?plugins=forms"></script>
   <style type="text/tailwindcss">{% include "_components.css" %}</style>

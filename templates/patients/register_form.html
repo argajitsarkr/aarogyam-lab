@@ -66,7 +66,7 @@
         <li class="flex items-center justify-between px-3 py-2 text-sm">
           <span x-text="t.name"></span>
           <span class="flex items-center gap-3"><span x-text="'₹' + t.price"></span>
-            <button type="button" @click="remove(t)" class="text-red-600" aria-label="Remove">✕</button></span>
+            <button type="button" @click="remove(t)" class="text-red-600" aria-label="Remove">{% icon "close" %}</button></span>
           <input type="hidden" name="v-tests" :value="t.id">
         </li>
       </template>

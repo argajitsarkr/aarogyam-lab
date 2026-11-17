@@ -15,7 +15,7 @@
     </div>
   {% endfor %}
   </div>
-  <div class="mt-4 flex justify-between"><a href="{% url 'patients:import' %}" class="btn">← Start over</a><button class="btn-primary">Validate & preview →</button></div>
+  <div class="mt-4 flex justify-between"><a href="{% url 'patients:import' %}" class="btn">{% icon "arrow_back" %} Start over</a><button class="btn-primary">Validate & preview {% icon "arrow_forward" %}</button></div>
 </form>
 {% if sample %}
 <div class="card mt-4 overflow-x-auto p-0">

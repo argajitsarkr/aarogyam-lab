@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load ui %}
 {% block title %}Test catalog{% endblock %}{% block page_title %}Test catalog{% endblock %}
 {% block content %}
 <div class="mb-3 flex flex-wrap gap-2">
@@ -9,7 +9,7 @@
   </form>
   {% if is_admin_user %}<a href="{% url 'patients:test_create' %}" class="btn-primary">+ Add test</a>{% endif %}
 </div>
-<p class="mb-3 rounded-md bg-amber-50 p-2 text-xs text-amber-800">Re-test intervals marked ⚕ are seeded defaults pending clinical review by the lab's pathologist.</p>
+<p class="mb-3 rounded-md bg-amber-50 p-2 text-xs text-amber-800">Re-test intervals marked {% icon "medical_services" %} are seeded defaults pending clinical review by the lab's pathologist.</p>
 {% include "core/_list_toolbar.html" %}
 <div id="list-results">{% include results_template %}</div>
 {% endblock %}

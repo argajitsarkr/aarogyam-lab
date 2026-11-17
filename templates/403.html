@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load ui %}
 {% block title %}Access denied{% endblock %}
 {% block content %}
 <div class="card mx-auto mt-10 max-w-lg text-center">
-  <div class="text-4xl">🔒</div>
+  <div class="text-slate-400">{% icon "lock" "mi-2xl" %}</div>
   <h1 class="mt-2 text-xl font-semibold">Access denied</h1>
   <p class="mt-2 text-sm text-slate-600">{{ reason|default:"You do not have permission to view this page." }}</p>
   <p class="mt-1 text-xs text-slate-500">This attempt has been recorded in the audit log.</p>

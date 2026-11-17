@@ -4,11 +4,11 @@
 <div class="mb-3 flex flex-wrap items-center gap-2 text-sm">
   <span>Default centre: <b>{{ centre.name }}</b></span>
   <a href="?show=all" class="btn btn-sm {% if show == 'all' %}ring-2 ring-teal-600{% endif %}">All {{ total }}</a>
-  <a href="?show=ok" class="btn btn-sm {% if show == 'ok' %}ring-2 ring-teal-600{% endif %}">✅ Ready {{ counts.ok }}</a>
-  <a href="?show=duplicate" class="btn btn-sm {% if show == 'duplicate' %}ring-2 ring-teal-600{% endif %}">♻ Duplicates {{ counts.duplicate }}</a>
-  <a href="?show=error" class="btn btn-sm {% if show == 'error' %}ring-2 ring-teal-600{% endif %}">⚠ Errors {{ counts.error }}</a>
+  <a href="?show=ok" class="btn btn-sm {% if show == 'ok' %}ring-2 ring-teal-600{% endif %}">{% icon "check_circle" %} Ready {{ counts.ok }}</a>
+  <a href="?show=duplicate" class="btn btn-sm {% if show == 'duplicate' %}ring-2 ring-teal-600{% endif %}">{% icon "content_copy" %} Duplicates {{ counts.duplicate }}</a>
+  <a href="?show=error" class="btn btn-sm {% if show == 'error' %}ring-2 ring-teal-600{% endif %}">{% icon "warning" %} Errors {{ counts.error }}</a>
   <form method="post" class="ml-auto flex gap-2">{% csrf_token %}
-    <a href="{% url 'patients:import_map' token %}" class="btn">← Change mapping</a>
+    <a href="{% url 'patients:import_map' token %}" class="btn">{% icon "arrow_back" %} Change mapping</a>
     <button class="btn-primary" {% if not counts.ok %}disabled{% endif %} onclick="return confirm('Import {{ counts.ok }} patients now?')">Import {{ counts.ok }} patients</button>
   </form>
 </div>
@@ -19,7 +19,7 @@
   {% for r in rows %}
     <tr class="{% if r.status == 'error' %}bg-red-50{% elif r.status == 'duplicate' %}bg-amber-50{% endif %}">
       <td>{{ r.line }}</td>
-      <td>{% if r.status == 'ok' %}✅{% elif r.status == 'duplicate' %}♻ dup{% else %}⚠{% endif %}</td>
+      <td>{% if r.status == 'ok' %}{% icon "check_circle" %}{% elif r.status == 'duplicate' %}{% icon "content_copy" %} dup{% else %}{% icon "warning" %}{% endif %}</td>
       <td>{{ r.data.full_name }}</td><td>{{ r.data.phone }}</td>
       <td>{{ r.data.sex }}/{{ r.data.age_years|default:r.data.dob|default:"?" }}</td>
       <td>{{ r.data.locality }}</td><td>{{ r.data.pin_code }}</td>

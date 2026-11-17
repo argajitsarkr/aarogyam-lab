@@ -28,17 +28,17 @@
       </dl>
       {% if patient.notes %}<p class="mt-2 rounded bg-slate-50 p-2 text-sm">{{ patient.notes|linebreaksbr }}</p>{% endif %}
       <div class="mt-4 flex flex-wrap gap-2">
-        <a href="{% url 'patients:new_visit' patient.pk %}" class="btn-primary">➕ New visit</a>
-        <a href="{% url 'followups:create' %}?patient={{ patient.pk }}" class="btn">📋 Add follow-up</a>
+        <a href="{% url 'patients:new_visit' patient.pk %}" class="btn-primary">{% icon "add" %} New visit</a>
+        <a href="{% url 'followups:create' %}?patient={{ patient.pk }}" class="btn">{% icon "assignment" %} Add follow-up</a>
         <a href="{% url 'patients:update' patient.pk %}" class="btn">Edit</a>
       </div>
     </div>
 
     {% if is_admin_user %}
     <div class="card text-sm" x-data="{ open:false }">
-      <button class="flex w-full justify-between font-semibold" @click="open=!open">Admin & data requests <span>▾</span></button>
+      <button class="flex w-full justify-between font-semibold" @click="open=!open">Admin & data requests <span>{% icon "expand_more" %}</span></button>
       <div x-show="open" x-cloak class="mt-3 space-y-3">
-        <a href="{% url 'patients:data_export' patient.pk %}" class="btn w-full">⬇ Export patient's data (DPDP)</a>
+        <a href="{% url 'patients:data_export' patient.pk %}" class="btn w-full">{% icon "download" %} Export patient's data (DPDP)</a>
         <form method="post" action="{% url 'patients:erase' patient.pk %}" class="space-y-1" onsubmit="return confirm('Erase personal data permanently? This cannot be undone.')">
           {% csrf_token %}
           <label class="text-xs text-slate-600" for="erase-confirm">Erase personal data — type <b>{{ patient.patient_id }}</b> to confirm</label>
@@ -72,7 +72,7 @@
       {% for c in candidates %}
         <li>
           <div class="flex justify-between gap-2"><span>{{ c.test.name }} · due {{ c.due_date|date:"d-m-Y" }}</span>{% pill c.status c.get_status_display %}</div>
-          {% for call in c.calls.all %}<div class="ml-2 text-xs text-slate-500">📞 {{ call.called_at|date:"d-m-Y H:i" }} — {{ call.get_outcome_display }} by {{ call.employee }}{% if call.notes %}: {{ call.notes }}{% endif %}</div>{% endfor %}
+          {% for call in c.calls.all %}<div class="ml-2 text-xs text-slate-500">{% icon "call" %} {{ call.called_at|date:"d-m-Y H:i" }} — {{ call.get_outcome_display }} by {{ call.employee }}{% if call.notes %}: {{ call.notes }}{% endif %}</div>{% endfor %}
         </li>
       {% endfor %}
       </ul>

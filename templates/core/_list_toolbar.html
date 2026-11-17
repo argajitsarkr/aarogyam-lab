@@ -3,14 +3,14 @@
   <div class="seg" role="group" aria-label="Layout">
     {% for m in view_modes %}
       <a href="?{% qs_replace view=m page=None %}" class="{% if view_mode == m %}on{% endif %}">
-        {% if m == 'table' %}▤ Table{% elif m == 'card' %}▦ Cards{% elif m == 'kanban' %}▥ Kanban{% elif m == 'calendar' %}📅 Calendar{% endif %}
+        {% if m == 'table' %}{% icon "table_rows" %} Table{% elif m == 'card' %}{% icon "grid_view" %} Cards{% elif m == 'kanban' %}{% icon "view_kanban" %} Kanban{% elif m == 'calendar' %}{% icon "calendar_month" %} Calendar{% endif %}
       </a>
     {% endfor %}
   </div>
 
   {% if view_mode == 'table' and columns %}
   <div x-data="{ open:false, hidden: {{ hidden_cols|default:'[]'|safe|default:'[]' }} }" class="relative">
-    <button type="button" class="btn btn-sm" @click="open=!open">Columns ▾</button>
+    <button type="button" class="btn btn-sm" @click="open=!open">Columns {% icon "expand_more" %}</button>
     <div x-show="open" x-cloak @click.outside="open=false" class="absolute z-20 mt-1 w-56 rounded-md border bg-white p-2 shadow-lg">
       {% for key, label, visible in columns %}
         <label class="flex items-center gap-2 px-1 py-1 text-sm">
@@ -38,7 +38,7 @@
   <div class="ml-auto flex items-center gap-2" x-data="{ open:false }">
     {% block toolbar_extra %}{% endblock %}
     {% if url_name %}
-    <button type="button" class="btn btn-sm" @click="open=!open">☆ Save view</button>
+    <button type="button" class="btn btn-sm" @click="open=!open">{% icon "star" %} Save view</button>
     <form x-show="open" x-cloak method="post" action="{% url 'core:saved_filter_create' %}" class="flex items-center gap-1">
       {% csrf_token %}
       <input type="hidden" name="page" value="{{ url_name }}">
@@ -54,9 +54,9 @@
 <div class="mb-3 flex flex-wrap gap-2 text-xs">
   {% for sf in saved_filters %}
     <span class="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-2 py-0.5">
-      <a href="{{ sf.get_absolute_url }}" class="hover:underline">{% if sf.pinned %}⭐{% endif %} {{ sf.name }}</a>
-      <form method="post" action="{% url 'core:saved_filter_pin' sf.pk %}" class="inline">{% csrf_token %}<button title="Pin/unpin" class="text-slate-400 hover:text-slate-700">📌</button></form>
-      <form method="post" action="{% url 'core:saved_filter_delete' sf.pk %}" class="inline">{% csrf_token %}<button title="Delete" class="text-slate-400 hover:text-red-600">✕</button></form>
+      <a href="{{ sf.get_absolute_url }}" class="hover:underline">{% if sf.pinned %}{% icon "star" "mi-fill" %}{% endif %} {{ sf.name }}</a>
+      <form method="post" action="{% url 'core:saved_filter_pin' sf.pk %}" class="inline">{% csrf_token %}<button title="Pin/unpin" class="text-slate-400 hover:text-slate-700">{% icon "push_pin" %}</button></form>
+      <form method="post" action="{% url 'core:saved_filter_delete' sf.pk %}" class="inline">{% csrf_token %}<button title="Delete" class="text-slate-400 hover:text-red-600">{% icon "close" %}</button></form>
     </span>
   {% endfor %}
 </div>

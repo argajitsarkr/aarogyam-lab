@@ -102,3 +102,13 @@ def minutes(td):
         return max(1, int(td.total_seconds() // 60))
     except AttributeError:
         return td
+
+
+# Google Material Symbols (Rounded). Loaded as a variable font in templates/_assets.html;
+# the ligature name is the glyph, e.g. {% icon "call" %} -> <span class="mi">call</span>.
+@register.simple_tag
+def icon(name, cls=""):
+    """Render a Material Symbols icon. Decorative by default: screen readers skip it and
+    read the adjacent label instead, so every icon needs visible text or a title/aria-label
+    on its control."""
+    return format_html('<span class="mi {}" aria-hidden="true" translate="no">{}</span>', cls, name)

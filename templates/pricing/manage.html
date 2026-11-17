@@ -4,11 +4,11 @@
 {% include "pricing/_nav.html" %}
 <div class="mb-3 flex flex-wrap items-center gap-2">
   <form method="get" class="flex-1"><input type="search" name="q" value="{{ q }}" placeholder="Find test to edit…" class="input max-w-sm" aria-label="Find test"></form>
-  <a href="{% url 'pricing:bulk_upload' %}" class="btn">⬆ Excel upload</a>
+  <a href="{% url 'pricing:bulk_upload' %}" class="btn">{% icon "upload" %} Excel upload</a>
   <a href="{% url 'pricing:competitor_create' %}" class="btn">+ Competitor</a>
 </div>
 <div class="mb-3 flex flex-wrap gap-2 text-xs">
-  {% for c in competitors %}<a href="{% url 'pricing:competitor_update' c.pk %}" class="rounded-full border bg-white px-2 py-0.5 hover:bg-slate-50">{{ c.name }} ✎</a>{% endfor %}
+  {% for c in competitors %}<a href="{% url 'pricing:competitor_update' c.pk %}" class="rounded-full border bg-white px-2 py-0.5 hover:bg-slate-50">{{ c.name }} {% icon "edit" %}</a>{% endfor %}
 </div>
 <form method="post" action="{% url 'pricing:save_grid' %}">
   {% csrf_token %}
@@ -36,7 +36,7 @@
                      title="{% if cell %}{{ cell.source_note }} · {{ cell.last_verified_on|date:'d-m-Y' }}{% endif %}">
             </td>
           {% endfor %}
-          <td><button form="verify-{{ r.test.pk }}" class="text-xs text-teal-700 hover:underline" title="Mark all prices for this test as verified today">✓ verified</button></td>
+          <td><button form="verify-{{ r.test.pk }}" class="text-xs text-teal-700 hover:underline" title="Mark all prices for this test as verified today">{% icon "check" %} verified</button></td>
         </tr>
       {% endfor %}
       </tbody>

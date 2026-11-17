@@ -10,6 +10,17 @@ Full feature, env and ops docs live in `README.md`; this file is the short worki
 Django 5.2 / Python 3.12, PostgreSQL 16, Celery + Redis, Gunicorn + Nginx, HTMX + Alpine +
 Tailwind, Chart.js, Leaflet. Docker Compose for every deployed environment.
 
+**Fonts and icons are Google's**, loaded from `fonts.googleapis.com` in `templates/_assets.html`:
+**Inter** for all UI text (set as Tailwind's `sans`, so `font-sans` and the default both use it)
+and **Material Symbols Rounded** for every icon. No emoji in templates - use
+`{% icon "call" %}` (`apps/core/templatetags/ui.py`), where the argument is the Material
+Symbols ligature name; `.mi`, `.mi-sm`, `.mi-lg`, `.mi-2xl` and `.mi-fill` are in
+`templates/_components.css`. Icons are `aria-hidden`, so each one needs visible text or an
+`aria-label` beside it. Arrows that are data rather than decoration (audit diffs, status
+changes) stay as text characters. The two webfonts are the only runtime CDN dependency:
+if the lab ever needs to run without reaching Google, self-host them and change that one
+`<link>`.
+
 ## Pipeline: laptop -> GitHub -> PowerEdge
 
 | Where | Path | Git auth |

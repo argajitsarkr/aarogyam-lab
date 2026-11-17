@@ -17,7 +17,7 @@
       {% if c.is_head_centre %}{% pill "SCHEDULED" "Head centre" %}{% endif %}
       {% if not c.is_active %}{% pill "CLOSED" "Inactive" %}{% endif %}
       <span class="text-slate-500">In-charge: {{ c.in_charge|default:"—" }}</span>
-      {% if c.contact_phone %}<a class="text-teal-700" href="tel:{{ c.contact_phone }}">📞 {{ c.contact_phone }}</a>{% endif %}
+      {% if c.contact_phone %}<a class="text-teal-700" href="tel:{{ c.contact_phone }}">{% icon "call" %} {{ c.contact_phone }}</a>{% endif %}
     </div>
   </div>
 {% endfor %}

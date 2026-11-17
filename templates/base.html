@@ -23,34 +23,34 @@
     {% with u=request.resolver_match.namespace %}
     <nav class="space-y-0.5 px-2 pb-6 text-sm">
       {% url 'dashboard:home' as h %}
-      <a href="{{ h }}" class="navlink {% if u == 'dashboard' and request.resolver_match.url_name == 'home' %}navlink-active{% endif %}">🏠 Dashboard</a>
-      <a href="{% url 'patients:register' %}" class="navlink bg-white/10 font-semibold">➕ Register / New Visit</a>
-      <a href="{% url 'patients:list' %}" class="navlink {% if u == 'patients' and request.resolver_match.url_name == 'list' %}navlink-active{% endif %}">👥 Patients</a>
-      <a href="{% url 'followups:list' %}" class="navlink {% if u == 'followups' %}navlink-active{% endif %}">📋 Follow-ups</a>
-      <a href="{% url 'retest:my_calls' %}" class="navlink {% if u == 'retest' and request.resolver_match.url_name == 'my_calls' %}navlink-active{% endif %}">📞 My Call List</a>
-      <a href="{% url 'retest:list' %}" class="navlink {% if u == 'retest' and request.resolver_match.url_name == 'list' %}navlink-active{% endif %}">🔁 Re-Test Queue</a>
-      <a href="{% url 'pricing:compare' %}" class="navlink {% if u == 'pricing' %}navlink-active{% endif %}">₹ Price Comparison</a>
-      <a href="{% url 'patients:tests' %}" class="navlink">🧪 Test Catalog</a>
-      <a href="{% url 'patients:doctors' %}" class="navlink">🩺 Doctors</a>
+      <a href="{{ h }}" class="navlink {% if u == 'dashboard' and request.resolver_match.url_name == 'home' %}navlink-active{% endif %}">{% icon "home" %} Dashboard</a>
+      <a href="{% url 'patients:register' %}" class="navlink bg-white/10 font-semibold">{% icon "add" %} Register / New Visit</a>
+      <a href="{% url 'patients:list' %}" class="navlink {% if u == 'patients' and request.resolver_match.url_name == 'list' %}navlink-active{% endif %}">{% icon "groups" %} Patients</a>
+      <a href="{% url 'followups:list' %}" class="navlink {% if u == 'followups' %}navlink-active{% endif %}">{% icon "assignment" %} Follow-ups</a>
+      <a href="{% url 'retest:my_calls' %}" class="navlink {% if u == 'retest' and request.resolver_match.url_name == 'my_calls' %}navlink-active{% endif %}">{% icon "call" %} My Call List</a>
+      <a href="{% url 'retest:list' %}" class="navlink {% if u == 'retest' and request.resolver_match.url_name == 'list' %}navlink-active{% endif %}">{% icon "autorenew" %} Re-Test Queue</a>
+      <a href="{% url 'pricing:compare' %}" class="navlink {% if u == 'pricing' %}navlink-active{% endif %}">{% icon "currency_rupee" %} Price Comparison</a>
+      <a href="{% url 'patients:tests' %}" class="navlink">{% icon "science" %} Test Catalog</a>
+      <a href="{% url 'patients:doctors' %}" class="navlink">{% icon "stethoscope" %} Doctors</a>
 
       {% if pinned_filters %}
       <div class="mt-4 px-3 pb-1 text-xs uppercase tracking-wide text-teal-300">Saved views</div>
       {% for sf in pinned_filters %}
-        <a href="{{ sf.get_absolute_url }}" class="navlink truncate">⭐ {{ sf.name }}</a>
+        <a href="{{ sf.get_absolute_url }}" class="navlink truncate">{% icon "star" "mi-fill" %} {{ sf.name }}</a>
       {% endfor %}
       {% endif %}
 
       {% if is_admin_user %}
       <div class="mt-4 px-3 pb-1 text-xs uppercase tracking-wide text-teal-300">Admin</div>
-      <a href="{% url 'dashboard:compare' %}" class="navlink">📊 Compare Centres</a>
-      <a href="{% url 'retest:analytics' %}" class="navlink">📈 Calling Analytics</a>
-      <a href="{% url 'dashboard:map' %}" class="navlink">🗺️ Map</a>
-      <a href="{% url 'patients:import' %}" class="navlink">⬆️ Import Patients</a>
-      <a href="{% url 'pricing:manage' %}" class="navlink">🏷️ Competitor Prices</a>
-      <a href="{% url 'accounts:user_list' %}" class="navlink">🔑 Users</a>
-      <a href="{% url 'centres:list' %}" class="navlink">🏥 Centres</a>
-      <a href="{% url 'audit:list' %}" class="navlink">🛡️ Audit Log</a>
-      <a href="{% url 'core:settings' %}" class="navlink">⚙️ Settings</a>
+      <a href="{% url 'dashboard:compare' %}" class="navlink">{% icon "bar_chart" %} Compare Centres</a>
+      <a href="{% url 'retest:analytics' %}" class="navlink">{% icon "trending_up" %} Calling Analytics</a>
+      <a href="{% url 'dashboard:map' %}" class="navlink">{% icon "map" %} Map</a>
+      <a href="{% url 'patients:import' %}" class="navlink">{% icon "upload" %} Import Patients</a>
+      <a href="{% url 'pricing:manage' %}" class="navlink">{% icon "sell" %} Competitor Prices</a>
+      <a href="{% url 'accounts:user_list' %}" class="navlink">{% icon "key" %} Users</a>
+      <a href="{% url 'centres:list' %}" class="navlink">{% icon "local_hospital" %} Centres</a>
+      <a href="{% url 'audit:list' %}" class="navlink">{% icon "shield" %} Audit Log</a>
+      <a href="{% url 'core:settings' %}" class="navlink">{% icon "settings" %} Settings</a>
       {% endif %}
     </nav>
     {% endwith %}
@@ -60,7 +60,7 @@
   {# ---------------- Main ---------------- #}
   <div class="flex min-w-0 flex-1 flex-col">
     <header class="sticky top-0 z-20 flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white/95 px-3 py-2 backdrop-blur print:hidden sm:px-4">
-      <button @click="nav=!nav" class="rounded-md p-2 hover:bg-slate-100 lg:hidden" aria-label="Menu">☰</button>
+      <button @click="nav=!nav" class="rounded-md p-2 hover:bg-slate-100 lg:hidden" aria-label="Menu">{% icon "menu" %}</button>
       <div class="flex-1 truncate text-base font-semibold sm:text-lg">{% block page_title %}{% endblock %}</div>
 
       {# Scope switcher #}

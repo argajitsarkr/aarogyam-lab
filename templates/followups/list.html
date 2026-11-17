@@ -8,7 +8,7 @@
       {{ label }}{% if key in tab_counts %} <span class="rounded-full {% if key == 'overdue' and tab_counts.overdue %}bg-red-100 text-red-700{% else %}bg-slate-100{% endif %} px-1.5 text-xs">{{ tab_counts|get_item:key }}</span>{% endif %}
     </a>
   {% endfor %}
-  <a href="?{% if request.GET.mine %}{% qs_replace mine=None %}{% else %}{% qs_replace mine=1 %}{% endif %}" class="ml-auto self-center text-sm {% if request.GET.mine %}font-semibold text-teal-800{% else %}text-slate-600{% endif %}">{% if request.GET.mine %}☑{% else %}☐{% endif %} Only mine</a>
+  <a href="?{% if request.GET.mine %}{% qs_replace mine=None %}{% else %}{% qs_replace mine=1 %}{% endif %}" class="ml-auto self-center text-sm {% if request.GET.mine %}font-semibold text-teal-800{% else %}text-slate-600{% endif %}">{% if request.GET.mine %}{% icon "check_box" %}{% else %}{% icon "check_box_outline_blank" %}{% endif %} Only mine</a>
 </div>
 {% endif %}
 {% include "core/_filter_form.html" %}

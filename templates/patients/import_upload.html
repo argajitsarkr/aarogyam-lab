@@ -1,11 +1,11 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load ui %}
 {% block title %}Import patients{% endblock %}{% block page_title %}Import historical patients — step 1 of 3{% endblock %}
 {% block content %}
 <div class="mx-auto grid max-w-5xl gap-4 lg:grid-cols-2">
   <form method="post" enctype="multipart/form-data" class="card">
     {% csrf_token %}
     {% include "core/_form_fields.html" %}
-    <div class="mt-4 flex justify-end"><button class="btn-primary">Upload & map columns →</button></div>
+    <div class="mt-4 flex justify-end"><button class="btn-primary">Upload & map columns {% icon "arrow_forward" %}</button></div>
   </form>
   <div class="card text-sm">
     <h2 class="mb-2 font-semibold">Columns you can map</h2>

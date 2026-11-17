@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load ui %}
 {% block title %}Price comparison{% endblock %}{% block page_title %}Price comparison{% endblock %}
 {% block content %}
 {% include "pricing/_nav.html" %}
@@ -6,7 +6,7 @@
   <input type="search" name="q" value="{{ q }}" placeholder="Search test name or code…" class="input max-w-sm" aria-label="Search tests" autofocus>
   <select name="category" class="input max-w-xs" aria-label="Category"><option value="">All categories</option>
     {% for v, l in categories %}<option value="{{ v }}" {% if category == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
-  {% if is_admin_user %}<a href="{% url 'pricing:export' %}" class="btn ml-auto">⬇ Export</a>{% endif %}
+  {% if is_admin_user %}<a href="{% url 'pricing:export' %}" class="btn ml-auto">{% icon "download" %} Export</a>{% endif %}
 </form>
 <p class="mb-2 text-xs text-slate-500">Competitor prices are entered manually by Admins. <span class="rounded bg-slate-100 px-1 text-slate-400 line-through">Greyed</span> prices were last verified over {{ site_settings.price_stale_days }} days ago and need re-checking.</p>
 <div id="matrix">{% include "pricing/_matrix.html" %}</div>

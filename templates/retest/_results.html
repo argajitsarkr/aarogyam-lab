@@ -25,7 +25,7 @@
   <tbody>
   {% for c in object_list %}
     <tr>
-      {% if 'patient' not in hidden_cols %}<td><a href="{% url 'patients:detail' c.patient_id %}" class="font-medium hover:underline">{{ c.patient.full_name }}</a><div class="text-xs"><a href="tel:{{ c.patient.phone }}" class="text-teal-700">📞 {{ c.patient.phone }}</a></div></td>{% endif %}
+      {% if 'patient' not in hidden_cols %}<td><a href="{% url 'patients:detail' c.patient_id %}" class="font-medium hover:underline">{{ c.patient.full_name }}</a><div class="text-xs"><a href="tel:{{ c.patient.phone }}" class="text-teal-700">{% icon "call" %} {{ c.patient.phone }}</a></div></td>{% endif %}
       {% if 'test' not in hidden_cols %}<td>{{ c.test.name }}</td>{% endif %}
       {% if 'flag' not in hidden_cols %}<td>{% if c.source_test.flag %}{% pill c.source_test.flag c.source_test.get_flag_display %}{% endif %}</td>{% endif %}
       {% if 'due' not in hidden_cols %}<td class="{% if c.days_overdue > 0 %}text-red-700{% endif %}">{{ c.due_date|date:"d-m-Y" }}</td>{% endif %}

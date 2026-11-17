@@ -10,11 +10,11 @@
         <div class="mt-1 text-xs text-slate-600">Last visit: {{ m.last_visit_date|date:"d-m-Y"|default:"none yet" }} at {% centre_badge m.last_visit_centre %} {{ m.last_visit_centre.name }}</div>
       </div>
       <div class="flex flex-wrap gap-2">
-        <a href="{% url 'patients:new_visit' m.patient.pk %}" class="btn-primary">➕ Add new visit</a>
+        <a href="{% url 'patients:new_visit' m.patient.pk %}" class="btn-primary">{% icon "add" %} Add new visit</a>
         {% if m.can_open %}
           <a href="{% url 'patients:detail' m.patient.pk %}" class="btn">Open record</a>
         {% else %}
-          <span class="self-center text-xs text-slate-500" title="Full record belongs to another centre">🔒 Other centre</span>
+          <span class="self-center text-xs text-slate-500" title="Full record belongs to another centre">{% icon "lock" %} Other centre</span>
         {% endif %}
       </div>
     </div>
@@ -28,7 +28,7 @@
   {% if valid_phone %}
     <div class="card border-emerald-300 bg-emerald-50/50">
       <div class="font-medium text-emerald-800">No patient found with {{ phone }} at any centre.</div>
-      <a href="{% url 'patients:register_new' %}?phone={{ phone }}" class="btn-primary mt-3">Continue — register new patient →</a>
+      <a href="{% url 'patients:register_new' %}?phone={{ phone }}" class="btn-primary mt-3">Continue — register new patient {% icon "arrow_forward" %}</a>
     </div>
   {% else %}
     <p class="text-sm text-slate-500">Keep typing — enter a full 10-digit mobile number or an exact patient ID.</p>

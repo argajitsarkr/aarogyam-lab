@@ -10,7 +10,7 @@
       </div>
       {% centre_badge p.registered_at_centre %}
     </div>
-    <div class="mt-2 text-sm">📞 {{ p.phone }}</div>
+    <div class="mt-2 text-sm">{% icon "call" %} {{ p.phone }}</div>
     <div class="text-xs text-slate-500">{{ p.locality|default:"—" }}{% if p.pin_code %} · {{ p.pin_code }}{% endif %}</div>
     <div class="mt-2 flex justify-between text-xs text-slate-500">
       <span>Last visit: {{ p.last_visit_date|date:"d-m-Y"|default:"—" }}</span><span>{{ p.visit_count }} visit{{ p.visit_count|pluralize }}</span>
@@ -39,7 +39,7 @@
   {% for p in object_list %}
     <tr class="cursor-pointer" onclick="location.href='{% url 'patients:detail' p.pk %}'">
       {% if 'patient_id' not in hidden_cols %}<td class="font-mono text-xs">{{ p.patient_id }}</td>{% endif %}
-      {% if 'name' not in hidden_cols %}<td class="font-medium"><a href="{% url 'patients:detail' p.pk %}">{{ p.full_name }}</a>{% if p.do_not_call %} <span title="Do not call">🚫</span>{% endif %}</td>{% endif %}
+      {% if 'name' not in hidden_cols %}<td class="font-medium"><a href="{% url 'patients:detail' p.pk %}">{{ p.full_name }}</a>{% if p.do_not_call %} <span title="Do not call">{% icon "block" %}</span>{% endif %}</td>{% endif %}
       {% if 'age_sex' not in hidden_cols %}<td>{{ p.age_display|default:"?" }} / {{ p.sex }}</td>{% endif %}
       {% if 'phone' not in hidden_cols %}<td>{{ p.phone }}</td>{% endif %}
       {% if 'locality' not in hidden_cols %}<td>{{ p.locality|default:"—" }}</td>{% endif %}

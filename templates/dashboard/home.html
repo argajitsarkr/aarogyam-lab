@@ -3,8 +3,8 @@
 {% block head %}{% include "_chart_assets.html" %}{% endblock %}
 {% block content %}
 <div class="mb-4 flex flex-wrap gap-2">
-  <a href="{% url 'patients:register' %}" class="btn-primary px-4 py-3 text-base">➕ Register patient / new visit</a>
-  <a href="{% url 'retest:my_calls' %}" class="btn px-4 py-3 text-base">📞 My Call List</a>
+  <a href="{% url 'patients:register' %}" class="btn-primary px-4 py-3 text-base">{% icon "add" %} Register patient / new visit</a>
+  <a href="{% url 'retest:my_calls' %}" class="btn px-4 py-3 text-base">{% icon "call" %} My Call List</a>
   <a href="{% url 'pricing:lookup' %}" class="btn px-4 py-3 text-base">₹ Price card</a>
 </div>
 
@@ -21,25 +21,25 @@
 
 <div class="mt-4 grid gap-4 lg:grid-cols-2">
   <div class="card">
-    <div class="mb-2 flex items-center justify-between"><h2 class="font-semibold">📞 {% if is_admin_user %}Top calls to make{% else %}My Call List{% endif %}</h2><a href="{% url 'retest:my_calls' %}" class="text-sm text-teal-700">All →</a></div>
+    <div class="mb-2 flex items-center justify-between"><h2 class="font-semibold">{% icon "call" %} {% if is_admin_user %}Top calls to make{% else %}My Call List{% endif %}</h2><a href="{% url 'retest:my_calls' %}" class="text-sm text-teal-700">All {% icon "arrow_forward" "mi-sm" %}</a></div>
     <ul class="divide-y text-sm">
       {% for c in my_calls %}
         <li class="flex items-center justify-between gap-2 py-2">
           <span class="min-w-0 truncate"><b>{{ c.patient.full_name }}</b> · {{ c.test.name }} <span class="text-xs {% if c.days_overdue > 0 %}text-red-700{% else %}text-slate-500{% endif %}">due {{ c.due_date|date:"d-m" }}</span></span>
-          <a href="tel:{{ c.patient.phone }}" class="btn btn-sm whitespace-nowrap">📞 Call</a>
+          <a href="tel:{{ c.patient.phone }}" class="btn btn-sm whitespace-nowrap">{% icon "call" %} Call</a>
         </li>
       {% empty %}<li class="py-3 text-slate-500">No calls pending.</li>{% endfor %}
     </ul>
   </div>
   <div class="card">
-    <div class="mb-2 flex items-center justify-between"><h2 class="font-semibold">📋 Follow-ups due</h2><a href="{% url 'followups:list' %}" class="text-sm text-teal-700">All →</a></div>
+    <div class="mb-2 flex items-center justify-between"><h2 class="font-semibold">{% icon "assignment" %} Follow-ups due</h2><a href="{% url 'followups:list' %}" class="text-sm text-teal-700">All {% icon "arrow_forward" "mi-sm" %}</a></div>
     <ul class="divide-y text-sm">
       {% for f in my_followups %}
         <li class="flex items-center justify-between gap-2 py-2">
           <a href="{% url 'followups:detail' f.pk %}" class="min-w-0 truncate hover:underline"><b>{{ f.patient.full_name }}</b> · {{ f.get_reason_display }}</a>
           <span class="whitespace-nowrap text-xs {% if f.is_overdue %}font-semibold text-red-700{% endif %}">{{ f.due_date|date:"d-m-Y" }}</span>
         </li>
-      {% empty %}<li class="py-3 text-slate-500">Nothing due. 🎉</li>{% endfor %}
+      {% empty %}<li class="py-3 text-slate-500">Nothing due. {% icon "celebration" %}</li>{% endfor %}
     </ul>
   </div>
 </div>
