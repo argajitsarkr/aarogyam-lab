@@ -2,8 +2,8 @@
 #   cp .env.example .env   # fill in real secrets
 #   docker compose -f docker-compose.prod.yml up -d --build
 # Requires a complete .env (see README). No source mounts, DEBUG off, HTTPS only.
+# Only `web` builds the image; the celery services reuse the same tag.
 x-app: &app
-  build: .
   image: aarogyam-web:prod
   env_file: .env
   environment:
@@ -39,6 +39,7 @@ services:
 
   web:
     <<: *app
+    build: .
     environment:
       DEBUG: "False"
       USE_X_ACCEL_REDIRECT: "True"

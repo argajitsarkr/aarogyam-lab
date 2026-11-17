@@ -13,11 +13,8 @@ x-app-env: &app-env
   CELERY_TASK_ALWAYS_EAGER: "False"
   MAX_ACTIVE_EMPLOYEES: ${MAX_ACTIVE_EMPLOYEES:-10}
 
+# Only `web` builds the image; the celery services reuse the same tag.
 x-app: &app
-  build:
-    context: .
-    args:
-      INSTALL_DEV: "true"
   image: aarogyam-web:dev
   environment: *app-env
   volumes:
@@ -49,6 +46,10 @@ services:
 
   web:
     <<: *app
+    build:
+      context: .
+      args:
+        INSTALL_DEV: "true"
     environment:
       <<: *app-env
       RUN_MIGRATIONS: "1"

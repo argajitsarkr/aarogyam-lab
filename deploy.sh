@@ -36,7 +36,8 @@ mkdir -p "${BACKUP_DIR:-/home/mmilab/aarogyam-backups}"
 
 case "$ACTION" in
   up)
-    "${COMPOSE[@]}" up -d --build
+    "${COMPOSE[@]}" build web nginx db_backup
+    "${COMPOSE[@]}" up -d
     "${COMPOSE[@]}" ps
     ;;
 
