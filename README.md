@@ -208,6 +208,9 @@ Test a restore on a spare machine every few months.
 
 ## 8b. Laptop push -> PowerEdge pull (current setup, behind Cloudflare Tunnel)
 
+**Live at https://aarogyam.argajitsrkar.in** (Cloudflare tunnel `aarogyam-lab`, route
+`aarogyam.argajitsrkar.in -> http://nginx:80`).
+
 The lab runs on the shared PowerEdge R730 (`mmilab@100.126.84.75` over Tailscale), next to
 GrantSetu, phytosynergy, tgma and mmilab. Like phytosynergy, it has **its own Cloudflare tunnel
 container** in front of **its own nginx**: Cloudflare terminates HTTPS, the `tunnel` service
@@ -276,12 +279,18 @@ Other commands: `bash deploy.sh status | logs | backup | admin | down`.
    `https://*.ngrok-free.app` to `CSRF_TRUSTED_ORIGINS`, run `bash deploy.sh up`, then
    `bash deploy.sh url`. A free ngrok account allows one online agent at a time.
 
-   **Cloudflare:** Cloudflare Zero Trust -> Networks -> Tunnels -> **Create a tunnel**
-   (Cloudflared), name `aarogyam-lab`. Copy the token from the install command into `.env`
-   as `CLOUDFLARE_TUNNEL_TOKEN=...`. Under **Public hostname** add the lab hostname with
-   service type `HTTP` and URL `nginx:80`. Make sure `ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS`
-   contain that hostname, then `bash deploy.sh up` again (it starts the tunnel container
-   once the token is present).
+   **Cloudflare (what this lab uses):** Cloudflare Zero Trust -> Networks -> Tunnels ->
+   **Create a tunnel** (Cloudflared), name `aarogyam-lab`. From the install command copy the
+   long **token** only - it starts with `eyJ`, not the 36-character tunnel ID - into `.env`
+   as `CLOUDFLARE_TUNNEL_TOKEN=...`, then `bash deploy.sh up` (it starts the tunnel container
+   once the token is present). The dashboard's **Continue** button only lights up after the
+   connector is actually running, so the token goes on the server first.
+
+   With the tunnel healthy, add the route (**Add route** / **Public hostname**): subdomain
+   `aarogyam`, domain `argajitsrkar.in`, path empty, **Service URL `http://nginx:80`** -
+   plain `http`, and the container name `nginx`, not `localhost`. Saving creates the DNS
+   record. A healthy tunnel with **Routes: 0** means this step is still missing. Keep that
+   hostname in `ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS`.
 6. **Strongly recommended:** put a Cloudflare Access (Zero Trust) policy on the lab hostname
    that allows only staff emails. Patient data should not sit behind a login page alone.
 7. Copy `.env` somewhere safe off the server; it is gitignored and not inside the DB backups.

@@ -36,6 +36,11 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
     (`D:\Sites\Tgmabase`). `bash deploy.sh url` prints the address. A free ngrok account
     allows one online agent, so the lab and TGMA cannot share one token at the same time.
   - **Cloudflare tunnel** (`CLOUDFLARE_TUNNEL_TOKEN`) -> `http://nginx:80`, as phytosynergy.
+    **In use since 2026-11-18: https://aarogyam.argajitsrkar.in**, tunnel `aarogyam-lab`
+    in the lab's own `tunnel` container. `.env` needs the long `eyJ...` token, not the
+    tunnel ID; the route is added separately in the dashboard (Service URL
+    `http://nginx:80`), and a healthy tunnel with 0 routes serves nothing.
+    No Cloudflare Access gate yet - the login page is the only barrier.
   The host-level cloudflared service belongs to GrantSetu - do not edit it.
 - No plain-HTTP LAN port (unlike TGMA's :8100): cookies are `Secure`, so login over
   `http://192.168.1.x` would fail (TGMA mistake #1). Use the tunnel, or an SSH port-forward.
