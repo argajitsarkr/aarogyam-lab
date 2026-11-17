@@ -1,4 +1,5 @@
 {% load ui %}
+{% include "core/_results_head.html" %}
 {% if view_mode == 'kanban' %}
   {% include "core/_kanban.html" with kanban_item_template="followups/_kanban_card.html" %}
 {% elif view_mode == 'calendar' %}
@@ -9,8 +10,8 @@
 </div>
 {% include "core/_pagination.html" %}
 {% else %}
-<div class="card overflow-x-auto p-0">
-<table class="tbl">
+<div class="tbl-wrap overflow-x-auto">
+  <table class="tbl">
   <thead><tr>
     {% if 'patient' not in hidden_cols %}<th>{% sort_link 'patient' 'Patient' %}</th>{% endif %}
     {% if 'centre' not in hidden_cols %}<th>Centre</th>{% endif %}

@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% load ui %}
 {% block title %}Test catalog{% endblock %}{% block page_title %}Test catalog{% endblock %}
+{% block page_subtitle %}<p class="truncate text-xs text-slate-500">The test catalogue: price, re-test interval and chronic-monitoring flag.</p>{% endblock %}
 {% block content %}
 <div class="mb-3 flex flex-wrap gap-2">
   <form method="get" class="flex flex-1 flex-wrap gap-2" hx-get="{{ request.path }}" hx-target="#list-results" hx-trigger="input changed delay:300ms from:input, change from:select" hx-push-url="true">

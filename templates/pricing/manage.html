@@ -20,8 +20,9 @@
     <span class="text-xs text-slate-500">Only cells you change are saved. Clear a cell to remove that price.</span>
     <button class="btn-primary ml-auto">Save changes</button>
   </div>
-  <div class="card max-h-[70vh] overflow-auto p-0">
-    <table class="tbl">
+  <div class="tbl-wrap max-h-[70vh] overflow-auto ">
+    <div class="tbl-wrap">
+      <table class="tbl">
       <thead class="sticky top-0 z-10"><tr><th>Test</th><th class="text-right" title="Billed when the test is done at an Aarogyam centre">Our billing price</th>{% for c in competitors %}<th>{{ c.name }}</th>{% endfor %}<th></th></tr></thead>
       <tbody>
       {% for r in rows %}
@@ -41,6 +42,7 @@
       {% endfor %}
       </tbody>
     </table>
+    </div>
   </div>
   {% if not q and rows|length >= 100 %}<p class="mt-2 text-xs text-slate-500">Showing first 100 tests — search to find others.</p>{% endif %}
 </form>

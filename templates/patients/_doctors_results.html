@@ -12,8 +12,8 @@
 {% empty %}<p class="text-sm text-slate-500">No doctors yet.</p>{% endfor %}
 </div>
 {% else %}
-<div class="card overflow-x-auto p-0">
-<table class="tbl">
+<div class="tbl-wrap overflow-x-auto">
+  <table class="tbl">
   <thead><tr>
     {% if 'name' not in hidden_cols %}<th>{% sort_link 'name' 'Name' %}</th>{% endif %}
     {% if 'clinic' not in hidden_cols %}<th>{% sort_link 'clinic' 'Clinic / hospital' %}</th>{% endif %}

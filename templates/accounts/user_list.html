@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% load ui %}
 {% block title %}Users{% endblock %}{% block page_title %}Users & Roles{% endblock %}
+{% block page_subtitle %}<p class="truncate text-xs text-slate-500">Read-only. Accounts are created and reset on the server.</p>{% endblock %}
 {% block content %}
 <div class="mb-3 flex flex-wrap items-center gap-3">
   <span class="rounded-md bg-white px-3 py-1.5 text-sm shadow-sm">Admins: <b>{{ admin_count }}</b> / {{ admin_cap }}</span>
@@ -11,8 +12,8 @@
   a locked or forgotten login is fixed with <code>bash deploy.sh unlock &lt;username&gt;</code>
   or <code>bash deploy.sh reset-password &lt;username&gt;</code>.
 </div>
-<div class="card overflow-x-auto p-0">
-<table class="tbl">
+<div class="tbl-wrap overflow-x-auto">
+  <table class="tbl">
   <thead><tr><th>User</th><th>Role</th><th>Home centre</th><th>Extra access</th><th>Status</th><th>Last login</th></tr></thead>
   <tbody>
   {% for u in object_list %}

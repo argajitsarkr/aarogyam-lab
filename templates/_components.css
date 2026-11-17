@@ -1,30 +1,227 @@
-/* Inter (Google Fonts, see templates/_assets.html). Repeated here so the CDN
-   fallback used when DEBUG=True picks it up as well. */
-html { font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+/* ============================================================
+   DESIGN TOKENS - change the look of the whole app from here
+   ============================================================
+   Every component class below is built from these. Tailwind utilities in the
+   templates still work as before; anything structural lives here so the theme
+   is in one place instead of spread across forty templates.
+   ------------------------------------------------------------ */
+:root {
+  /* Brand - teal. --brand is the clickable/active colour. */
+  --brand: #0f766e;          /* teal-700 */
+  --brand-dark: #115e59;     /* teal-800, hover */
+  --brand-darker: #134e4a;   /* teal-900, sidebar */
+  --brand-tint: #f0fdfa;     /* teal-50, selected rows */
+  --brand-ink: #134e4a;      /* text on a tint */
+
+  /* Neutrals */
+  --surface: #ffffff;        /* cards, tables, header */
+  --canvas: #f8fafc;         /* page background */
+  --panel: #f1f5f9;          /* filter block, table head */
+  --line: #e2e8f0;           /* borders */
+  --line-strong: #cbd5e1;
+  --ink: #1e293b;            /* body text */
+  --ink-soft: #475569;       /* secondary text */
+  --ink-muted: #94a3b8;      /* labels, placeholders */
+  --ink-invert: #ffffff;
+
+  /* Status - also used by the pill tag */
+  --ok: #047857;        --ok-bg: #ecfdf5;
+  --warn: #b45309;      --warn-bg: #fffbeb;
+  --danger: #b91c1c;    --danger-bg: #fef2f2;
+  --info: #1d4ed8;      --info-bg: #eff6ff;
+
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 10px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow-md: 0 4px 12px rgb(15 23 42 / 0.08);
+  --shadow-lg: 0 10px 26px rgb(15 23 42 / 0.10);
+
+  --sidebar-w: 16rem;
+  --sidebar-w-rail: 4.25rem;
+
+  /* Inter (Google Fonts, see templates/_assets.html). Repeated here so the CDN
+     fallback used when DEBUG=True picks it up as well. */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html { font-family: var(--font-sans); }
+
+/* Sidebar width, both states, from the tokens. The element carries no Tailwind
+   width utility: `w-64` sits in Tailwind's utilities layer and would outrank
+   anything set here.
+
+   `flex` and `min-width` are the part that actually matters. From `lg` up the
+   sidebar is a flex item, and a flex item defaults to `min-width: auto`, so it
+   refuses to shrink below the width of its own content - `width` alone is
+   ignored and the rail stays 256px wide. Railing is desktop-only: on a phone
+   the sidebar is a slide-over at full width. */
+#sidebar { width: var(--sidebar-w); }
+@media (min-width: 1024px) {
+  #sidebar { flex: 0 0 var(--sidebar-w); min-width: 0; }
+  #sidebar.rail { flex-basis: var(--sidebar-w-rail); width: var(--sidebar-w-rail); }
+}
+
 
 @layer components {
   [x-cloak] { display: none !important; }
+
+  /* ---- sidebar ------------------------------------------------------- */
   .navlink { @apply flex items-center gap-2.5 rounded-md px-3 py-2 text-teal-50 hover:bg-white/10; }
   .navlink-active { @apply bg-white/20 font-semibold; }
-  .card { @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm; }
-  .btn { @apply inline-flex items-center justify-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50; }
-  .btn-primary { @apply inline-flex items-center justify-center gap-1 rounded-md bg-teal-700 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50; }
-  .btn-danger { @apply inline-flex items-center justify-center gap-1 rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700; }
+  /* Collapsed (icon rail): hide the labels, centre the icons. */
+  .rail .navlink { @apply justify-center px-0; }
+  .rail .navlink-label, .rail .nav-section { display: none; }
+
+  /* ---- surfaces ------------------------------------------------------ */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    @apply p-4;
+  }
+
+  /* Filter block: a tinted panel, not another white card, so the eye reads it
+     as controls rather than content. */
+  .filter-panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    @apply p-3 sm:p-4;
+  }
+  .filter-label {
+    color: var(--ink-soft);
+    @apply mb-1 block text-[0.68rem] font-bold uppercase tracking-wider;
+  }
+
+  /* One-click toggles for the filters people use every day. */
+  .pill-filter {
+    border: 1.5px solid var(--line-strong);
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    color: var(--ink);
+    @apply inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold transition;
+  }
+  .pill-filter:hover { border-color: var(--brand); color: var(--brand); }
+  .pill-filter.on,
+  .pill-filter:has(input:checked) { border-color: var(--brand); background: var(--brand); color: var(--ink-invert); }
+  .pill-filter:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  /* ---- buttons ------------------------------------------------------- */
+  .btn {
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink-soft);
+    @apply inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium hover:bg-slate-50 disabled:opacity-50;
+  }
+  .btn-primary {
+    background: var(--brand);
+    border: 1px solid var(--brand);
+    color: var(--ink-invert);
+    border-radius: var(--radius);
+    @apply inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold disabled:opacity-50;
+  }
+  .btn-primary:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
+  .btn-danger {
+    background: var(--danger); border: 1px solid var(--danger); color: var(--ink-invert);
+    border-radius: var(--radius);
+    @apply inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold;
+  }
   .btn-sm { @apply px-2 py-1 text-xs; }
-  .input { @apply block w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-teal-600 focus:ring-teal-600; }
-  .label { @apply mb-1 block text-sm font-medium text-slate-700; }
-  .tbl { @apply min-w-full divide-y divide-slate-200 text-sm; }
-  .tbl th { @apply whitespace-nowrap bg-slate-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-600; }
-  .tbl td { @apply whitespace-nowrap px-3 py-2 align-top; }
-  .tbl tbody tr { @apply hover:bg-slate-50; }
+
+  /* Row of small outline actions at the foot of a card. */
+  .action-bar {
+    border-top: 1px solid var(--line);
+    @apply mt-3 flex flex-wrap items-center gap-1.5 pt-2.5;
+  }
+
+  /* ---- forms --------------------------------------------------------- */
+  .input {
+    border-color: var(--line-strong);
+    border-radius: var(--radius);
+    @apply block w-full text-sm shadow-sm focus:border-teal-600 focus:ring-teal-600;
+  }
+  .label { color: var(--ink-soft); @apply mb-1 block text-sm font-medium; }
+  .errorlist { color: var(--danger); @apply mt-1 text-xs; }
+
+  /* ---- tables -------------------------------------------------------- */
+  /* Wrap a .tbl in .tbl-wrap to get the rounded, clipped container. */
+  .tbl-wrap {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .tbl { @apply min-w-full text-sm; border-collapse: separate; border-spacing: 0; }
+  .tbl th {
+    background: var(--brand-darker);
+    color: var(--ink-invert);
+    @apply whitespace-nowrap px-3 py-2.5 text-left text-[0.7rem] font-semibold uppercase;
+    letter-spacing: 0.05em;
+    border: none;
+  }
+  .tbl th a { color: inherit; }
+  .tbl td {
+    border-bottom: 1px solid var(--line);
+    @apply whitespace-nowrap px-3 py-2.5 align-top;
+  }
+  .tbl tbody tr:last-child td { border-bottom: none; }
+  .tbl tbody tr:hover { background: var(--panel); }
+  .tbl td, .tbl th, .kpi-value, .stat-value { font-variant-numeric: tabular-nums; }
+
+  /* ---- list header --------------------------------------------------- */
+  .results-head {
+    border-bottom: 1px solid var(--line);
+    @apply mb-3 flex flex-wrap items-baseline justify-between gap-2 pb-2;
+  }
+  .results-title { color: var(--ink); @apply text-base font-bold; }
+  .results-count { color: var(--ink-soft); @apply text-sm; }
+
+  /* ---- dashboard stat band ------------------------------------------- */
+  /* Big figure over a small caps label, no box: reads faster than tiles. */
+  .stat-band { @apply grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-5; }
+  .stat-value { color: var(--brand-darker); @apply text-3xl font-extrabold leading-none; }
+  .stat-label { color: var(--ink-muted); @apply mt-1 block text-[0.68rem] font-semibold uppercase tracking-wider; }
+  .stat-link:hover .stat-value { color: var(--brand); }
+
+  /* ---- result card (call list, follow-ups) --------------------------- */
+  .rcard {
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-lg);
+    @apply p-4 transition;
+  }
+  .rcard:hover { border-color: var(--line-strong); box-shadow: var(--shadow-md); }
+  .rcard-head { @apply mb-1.5 flex flex-wrap items-center gap-2; }
+  .rcard-meta { color: var(--ink-muted); @apply ml-auto text-[0.68rem] font-semibold uppercase tracking-wider; }
+  .rcard-title { color: var(--ink); @apply text-lg font-bold leading-tight; }
+  .rcard-sub { color: var(--ink-soft); @apply text-sm; }
+  /* The one number that decides what the user does next. */
+  .rcard-figure { @apply flex items-baseline gap-2; }
+  .rcard-number { @apply text-3xl font-extrabold leading-none; }
+  .rcard-number-label { color: var(--ink-muted); @apply text-[0.65rem] font-semibold uppercase tracking-wider; }
+  .rcard-metrics { color: var(--ink-soft); @apply mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm; }
+  .rcard-note { color: var(--ink-muted); @apply mt-2 text-xs; }
+
+  /* ---- misc ---------------------------------------------------------- */
   .kpi { @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm; }
-  .kpi-label { @apply text-xs font-medium uppercase tracking-wide text-slate-500; }
-  .kpi-value { @apply mt-1 text-2xl font-bold text-slate-900; }
-  .seg { @apply inline-flex overflow-hidden rounded-md border border-slate-300 text-sm; }
+  .kpi-label { color: var(--ink-muted); @apply text-xs font-medium uppercase tracking-wide; }
+  .kpi-value { color: var(--ink); @apply mt-1 text-2xl font-bold; }
+  .seg {
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    @apply inline-flex overflow-hidden text-sm;
+  }
   .seg a, .seg button { @apply px-3 py-1.5 hover:bg-slate-50; }
-  .seg .on { @apply bg-teal-700 text-white hover:bg-teal-700; }
-  .errorlist { @apply mt-1 text-xs text-red-600; }
-  /* Google Material Symbols Rounded (variable font, loaded in _assets.html).
+  .seg .on { background: var(--brand); color: var(--ink-invert); }
+  .seg .on:hover { background: var(--brand); }
+
+  /* Google Material Symbols Rounded (variable font, subset in _assets.html).
      The element's text is the ligature name, so it must not be translated. */
   .mi {
     font-family: "Material Symbols Rounded";
@@ -48,10 +245,7 @@ html { font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI"
   .mi-sm { font-size: 1rem; vertical-align: -0.175em; }
   .mi-lg { font-size: 1.5rem; }
   .mi-2xl { font-size: 2.5rem; vertical-align: middle; }
-  /* Icons inside small buttons should not stretch the row. */
   .btn-sm .mi { font-size: 1rem; vertical-align: -0.175em; }
-  /* Figures line up in columns; Inter's default digits are proportional. */
-  .tbl td, .tbl th, .kpi-value { font-variant-numeric: tabular-nums; }
 
   .htmx-indicator { opacity: 0; transition: opacity 200ms; }
   .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }

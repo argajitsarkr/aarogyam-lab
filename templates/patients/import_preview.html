@@ -12,8 +12,8 @@
     <button class="btn-primary" {% if not counts.ok %}disabled{% endif %} onclick="return confirm('Import {{ counts.ok }} patients now?')">Import {{ counts.ok }} patients</button>
   </form>
 </div>
-<div class="card overflow-x-auto p-0">
-<table class="tbl">
+<div class="tbl-wrap overflow-x-auto">
+  <table class="tbl">
   <thead><tr><th>Row</th><th>Status</th><th>Name</th><th>Phone</th><th>Sex/Age</th><th>Locality</th><th>PIN</th><th>Centre</th><th>Visit / tests</th><th>Problems</th></tr></thead>
   <tbody>
   {% for r in rows %}

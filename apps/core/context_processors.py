@@ -4,6 +4,8 @@ from .models import SiteSettings
 
 
 def app_context(request):
+    from apps.core.preferences import get_pref
+
     user = getattr(request, "user", None)
     ctx = {"USE_CDN_ASSETS": settings.USE_CDN_ASSETS or settings.DEBUG and not _built_css_exists()}
     if not user or not user.is_authenticated:
@@ -16,6 +18,8 @@ def app_context(request):
             "site_settings": SiteSettings.load(),
             "is_admin_user": user.is_admin,
             "pinned_filters": user.saved_filters.filter(pinned=True)[:12],
+            # Sidebar collapsed to an icon rail? Remembered per user (B4).
+            "sidebar_rail": bool(get_pref(user, "ui:sidebar_rail", False)),
         }
     )
     if user.is_admin:

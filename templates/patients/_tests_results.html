@@ -11,8 +11,8 @@
 {% endfor %}
 </div>
 {% else %}
-<div class="card overflow-x-auto p-0">
-<table class="tbl">
+<div class="tbl-wrap overflow-x-auto">
+  <table class="tbl">
   <thead><tr>
     {% if 'code' not in hidden_cols %}<th>{% sort_link 'code' 'Code' %}</th>{% endif %}
     {% if 'name' not in hidden_cols %}<th>{% sort_link 'name' 'Name' %}</th>{% endif %}

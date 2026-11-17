@@ -10,6 +10,7 @@ from .models import Doctor, Patient, TestCatalog, Visit, VisitTest
 
 
 class PatientFilter(StyledFilterSet):
+    pill_field = "flag"  # last result flag: the filter the front desk uses most
     q = django_filters.CharFilter(method="search", label="Search name / phone / patient ID",
                                   widget=forms.TextInput(attrs={"type": "search", "placeholder": "Name, phone or ID…", "autofocus": True}))
     locality = django_filters.CharFilter(lookup_expr="icontains", label="Locality")

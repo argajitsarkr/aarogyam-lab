@@ -1,6 +1,7 @@
 {% load ui %}
-<div class="card overflow-x-auto p-0">
-  <table class="tbl">
+<div class="tbl-wrap overflow-x-auto ">
+  <div class="tbl-wrap">
+    <table class="tbl">
     <thead><tr><th>Centre</th><th class="text-right">Visits</th><th class="text-right">Revenue (net billed)</th><th class="text-right">Collected</th><th class="text-right">New patients</th><th class="text-right">Re-test conversion</th><th class="text-right">Follow-up completion</th></tr></thead>
     <tbody>
     {% for r in comparison %}
@@ -16,4 +17,5 @@
     {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>

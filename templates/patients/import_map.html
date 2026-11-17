@@ -20,8 +20,10 @@
 {% if sample %}
 <div class="card mt-4 overflow-x-auto p-0">
   <div class="px-3 pt-3 text-sm font-semibold">First rows of your file</div>
-  <table class="tbl"><thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+  <div class="tbl-wrap">
+    <table class="tbl"><thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
   <tbody>{% for r in sample %}<tr>{% for c in r %}<td>{{ c|default:"" }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
+  </div>
 </div>
 {% endif %}
 {% endblock %}

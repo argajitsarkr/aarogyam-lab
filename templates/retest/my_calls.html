@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% load ui %}
 {% block title %}Call List{% endblock %}{% block page_title %}Call list — {{ scope.label }}{% endblock %}
+{% block page_subtitle %}<p class="truncate text-xs text-slate-500">Calls waiting at {{ scope.label }}. Anyone at the centre can make them; the most overdue come first.</p>{% endblock %}
 {% block content %}
 <div class="mb-4 flex flex-wrap items-center gap-2 text-sm">
   <span class="rounded-md bg-white px-3 py-1.5 shadow-sm">Calls made today: <b>{{ calls_today }}</b></span>
@@ -21,17 +22,17 @@
 
 {% if booked %}
 <h2 class="mb-2 mt-6 font-semibold text-indigo-800">{% icon "calendar_month" %} Booked — waiting for patient</h2>
-<div class="card overflow-x-auto p-0"><table class="tbl">
+<div class="tbl-wrap overflow-x-auto "><div class="tbl-wrap">  <table class="tbl">
   <thead><tr><th>Patient</th><th>Test</th><th>Booked for</th><th>Phone</th></tr></thead>
   <tbody>{% for c in booked %}<tr><td><a href="{% url 'patients:detail' c.patient_id %}" class="hover:underline">{{ c.patient.full_name }}</a></td><td>{{ c.test.name }}</td><td>{{ c.booked_date|date:"d-m-Y" }}</td><td><a href="tel:{{ c.patient.phone }}" class="text-teal-700">{{ c.patient.phone }}</a></td></tr>{% endfor %}</tbody>
-</table></div>
+</table></div></div>
 {% endif %}
 
 {% if later %}
 <h2 class="mb-2 mt-6 font-semibold text-slate-600">{% icon "hourglass_empty" %} Call back later</h2>
-<div class="card overflow-x-auto p-0"><table class="tbl">
+<div class="tbl-wrap overflow-x-auto "><div class="tbl-wrap">  <table class="tbl">
   <thead><tr><th>Patient</th><th>Test</th><th>Call back on</th></tr></thead>
   <tbody>{% for c in later %}<tr><td>{{ c.patient.full_name }}</td><td>{{ c.test.name }}</td><td>{{ c.callback_date|date:"d-m-Y" }}</td></tr>{% endfor %}</tbody>
-</table></div>
+</table></div></div>
 {% endif %}
 {% endblock %}

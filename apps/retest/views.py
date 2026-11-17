@@ -80,6 +80,7 @@ def log_outcome(request, pk):
 # Queue (table / card / kanban / calendar)
 # =============================================================================
 class CandidateFilter(StyledFilterSet):
+    pill_field = "status"
     q = django_filters.CharFilter(method="search", label="Patient",
                                   widget=forms.TextInput(attrs={"type": "search", "placeholder": "Name, phone, ID…"}))
     centre = django_filters.ModelChoiceFilter(queryset=Centre.objects.filter(is_active=True), empty_label="Any centre")
@@ -114,6 +115,7 @@ class CandidateListView(ListPageMixin):
     template_name = "retest/list.html"
     results_template = "retest/_results.html"
     filterset_class = CandidateFilter
+    results_label = "call"
     view_modes = ("table", "card", "kanban", "calendar")
     sort_fields = {"priority": "priority_score", "due": "due_date", "patient": "patient__full_name",
                    "test": "test__name", "attempts": "attempts"}

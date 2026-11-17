@@ -37,6 +37,7 @@ class FollowUpListView(ListPageMixin):
     template_name = "followups/list.html"
     results_template = "followups/_results.html"
     filterset_class = FollowUpFilter
+    results_label = "follow-up"
     view_modes = ("table", "card", "kanban", "calendar")
     sort_fields = {"due": "due_date", "priority": "priority", "patient": "patient__full_name", "status": "status",
                    "created": "created_at"}

@@ -11,15 +11,46 @@ Django 5.2 / Python 3.12, PostgreSQL 16, Celery + Redis, Gunicorn + Nginx, HTMX 
 Tailwind, Chart.js, Leaflet. Docker Compose for every deployed environment.
 
 **Fonts and icons are Google's**, loaded from `fonts.googleapis.com` in `templates/_assets.html`:
-**Inter** for all UI text (set as Tailwind's `sans`, so `font-sans` and the default both use it)
-and **Material Symbols Rounded** for every icon. No emoji in templates - use
-`{% icon "call" %}` (`apps/core/templatetags/ui.py`), where the argument is the Material
-Symbols ligature name; `.mi`, `.mi-sm`, `.mi-lg`, `.mi-2xl` and `.mi-fill` are in
-`templates/_components.css`. Icons are `aria-hidden`, so each one needs visible text or an
-`aria-label` beside it. Arrows that are data rather than decoration (audit diffs, status
-changes) stay as text characters. The two webfonts are the only runtime CDN dependency:
-if the lab ever needs to run without reaching Google, self-host them and change that one
-`<link>`.
+**Inter** for all UI text (set as Tailwind's `sans`) and **Material Symbols Rounded** for
+every icon. No emoji in templates - use the `{% icon %}` tag (`apps/core/templatetags/ui.py`)
+with the Material Symbols ligature name. Icons are `aria-hidden`, so each needs visible text
+or an `aria-label`. Arrows that are data rather than decoration (audit diffs, status changes)
+stay as text characters.
+
+**The icon font is SUBSET** via `icon_names=` in that link: the whole font is 3 MB, our ~46
+icons are ~15 KB. `apps/core/tests/test_icons.py` fails if the list and the `{% icon %}` tags
+drift apart, in either direction, or if the list stops being alphabetical - an icon missing
+from the subset renders as its own name in plain text.
+
+**Multi-line `{# ... #}` is NOT a comment** in Django: only the first line is dropped and the
+rest renders as text and is parsed as tags. It has leaked onto a page twice. Use
+`{% comment %}`; `apps/core/tests/test_template_comments.py` enforces it.
+
+**Design tokens live in `:root` at the top of `templates/_components.css`** - colours, radius,
+shadow, sidebar widths, font stack. Change the theme there, not in the templates. The component
+classes (`.card`, `.btn`, `.tbl`, `.filter-panel`, `.pill-filter`, `.rcard`, `.stat-band`) are
+built from those tokens.
+
+**Layout patterns, taken from PhytoSynergyDB (`D:\Sites\Projects`) in 2026-11-18:**
+- Sidebar collapses to an icon rail (`#sidebar.rail`), remembered per user in the
+  `ui:sidebar_rail` preference. Its width must set `flex-basis` as well as `width`: it is a
+  flex item, and a flex item's default `min-width: auto` otherwise refuses to shrink below
+  its content, so `width` alone does nothing.
+- Each page has a one-line `{% block page_subtitle %}` under its title.
+- Lists use `core/_filter_form.html`: a tinted `.filter-panel`, uppercase micro-labels, the
+  most-used filter as one-click pills (the filterset names it in `pill_field`), then the rest
+  as selects, then Clear / Apply. The pills are hidden radios inside their labels so they work
+  by keyboard and without JS; `:has(input:checked)` paints the active one, because HTMX
+  swaps only the results and never re-renders the form.
+- `core/_results_head.html` sits above every result list ("Showing 1-25 of 2,088 patients").
+  The noun comes from the view's `results_label`.
+- Tables go in `.tbl-wrap` (rounded, clipped, dark header row).
+- The call list uses `.rcard`: badge, title, then the one number that decides the work (days
+  overdue) in `.rcard-number`, then an `.action-bar` of small outline buttons.
+- The dashboard uses `.stat-band` - big figure over a small caps label, no box per figure.
+
+The two webfonts are the only runtime CDN dependency: if the lab ever needs to run without
+reaching Google, self-host them and change that one `<link>`.
 
 ## Pipeline: laptop -> GitHub -> PowerEdge
 
@@ -107,7 +138,7 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   (cp1252 default otherwise).
 - Local runs use SQLite and CDN assets when `DEBUG=True` (`.env` here is dev-only).
 - `python manage.py create_demo_data` for fake data; refused when `DEBUG=False`.
-- Tests: `python -m pytest` (89 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
+- Tests: `python -m pytest` (93 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
 - Docker Desktop on this laptop has been unreliable (engine stuck stopped); the full
   `docker compose up` stack has not yet been verified here.
 

@@ -37,6 +37,7 @@ class PatientListView(ListPageMixin):
     template_name = "patients/list.html"
     results_template = "patients/_results.html"
     filterset_class = PatientFilter
+    results_label = "patient"
     view_modes = ("table", "card")
     sort_fields = {"name": "full_name", "patient_id": "patient_id", "last_visit": "last_visit_date",
                    "created": "created_at", "locality": "locality", "visits": "visit_count"}

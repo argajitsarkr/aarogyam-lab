@@ -1,4 +1,5 @@
 {% load ui %}
+{% include "core/_results_head.html" %}
 {% if view_mode == 'card' %}
 <div class="grid gap-2 sm:grid-cols-2">
 {% for log in object_list %}
@@ -10,8 +11,8 @@
 {% empty %}<p class="text-sm text-slate-500">No entries.</p>{% endfor %}
 </div>
 {% else %}
-<div class="card overflow-x-auto p-0">
-<table class="tbl">
+<div class="tbl-wrap overflow-x-auto">
+  <table class="tbl">
   <thead><tr>
     {% if 'timestamp' not in hidden_cols %}<th>{% sort_link 'timestamp' 'When' %}</th>{% endif %}
     {% if 'user' not in hidden_cols %}<th>{% sort_link 'user' 'User' %}</th>{% endif %}

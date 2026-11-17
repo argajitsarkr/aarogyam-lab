@@ -1,22 +1,51 @@
 {% load ui %}
-<div id="cand-{{ c.pk }}" class="card p-3" x-data="{ more:false, outcome:'' }">
-  <div class="flex flex-wrap items-start justify-between gap-2">
+{% comment %}
+  Tiered call card (D10/D11). It reads top to bottom in the order the caller
+  needs it: who and where, what to say, how late it is, then what to do.
+
+    badge + centre .............. is this urgent, and whose patient
+    name, age, ID .............. who am I calling
+    test and last report ....... what the call is about
+    DAYS OVERDUE (big) ......... the number that decides the order of work
+    due / callback / attempts .. the supporting detail
+    action bar ................. the outcome buttons
+
+  The big figure is days overdue because that is what ranks the list; when the
+  call is not yet due it shows the countdown instead, in a calm colour.
+{% endcomment %}
+<div id="cand-{{ c.pk }}" class="rcard" x-data="{ more:false, outcome:'' }">
+  <div class="rcard-head">
+    {% if c.source_test.flag %}{% pill c.source_test.flag c.source_test.get_flag_display %}{% endif %}
+    {% if c.status != 'PENDING' %}{% pill c.status c.get_status_display %}{% endif %}
+    <span class="rcard-meta">{% centre_badge c.centre %} {{ c.centre.short_code }}</span>
+  </div>
+
+  <div class="flex flex-wrap items-start justify-between gap-3">
     <div class="min-w-0">
-      <a href="{% url 'patients:detail' c.patient_id %}" class="font-semibold hover:underline">{{ c.patient.full_name }}</a>
-      <span class="text-xs text-slate-500">{{ c.patient.age_display|default:"" }}{{ c.patient.sex }} · {{ c.patient.patient_id }}</span>
-      <div class="mt-0.5 text-sm"><b>{{ c.test.name }}</b> — last reported {{ c.source_test.report_date|date:"d-m-Y" }}
-        {% if c.source_test.flag %}{% pill c.source_test.flag c.source_test.get_flag_display %}{% endif %}</div>
-      <div class="text-xs {% if c.days_overdue > 0 %}text-red-700{% else %}text-slate-500{% endif %}">
-        Due {{ c.due_date|date:"d-m-Y" }}{% if c.days_overdue > 0 %} ({{ c.days_overdue }} day{{ c.days_overdue|pluralize }} overdue){% endif %}
-        {% if c.callback_date %} · Callback {{ c.callback_date|date:"d-m-Y" }}{% endif %}
-        {% if c.attempts %} · {{ c.attempts }} attempt{{ c.attempts|pluralize }}{% endif %}
-        · {% centre_badge c.centre %}
-      </div>
+      <a href="{% url 'patients:detail' c.patient_id %}" class="rcard-title hover:underline">{{ c.patient.full_name }}</a>
+      <div class="rcard-sub">{{ c.patient.age_display|default:"" }}{{ c.patient.sex }} · {{ c.patient.patient_id }}</div>
+      <div class="rcard-sub mt-1"><b>{{ c.test.name }}</b> · last reported {{ c.source_test.report_date|date:"d-m-Y" }}</div>
     </div>
     <a href="tel:{{ c.patient.phone }}" class="btn-primary whitespace-nowrap px-4 py-2.5 text-base">{% icon "call" %} {{ c.patient.phone }}</a>
   </div>
-  <form class="mt-3" hx-post="{% url 'retest:log' c.pk %}" hx-target="#cand-{{ c.pk }}" hx-swap="outerHTML">
-    <div class="flex flex-wrap gap-1.5">
+
+  <div class="rcard-metrics">
+    <span class="rcard-figure">
+      {% if c.days_overdue > 0 %}
+        <b class="rcard-number text-red-700">{{ c.days_overdue }}</b>
+        <span class="rcard-number-label">day{{ c.days_overdue|pluralize }} overdue</span>
+      {% else %}
+        <b class="rcard-number text-slate-700">{{ c.due_date|timeuntil }}</b>
+        <span class="rcard-number-label">until due</span>
+      {% endif %}
+    </span>
+    <span>Due <b>{{ c.due_date|date:"d-m-Y" }}</b></span>
+    {% if c.callback_date %}<span>Callback <b>{{ c.callback_date|date:"d-m-Y" }}</b></span>{% endif %}
+    {% if c.attempts %}<span>{{ c.attempts }} attempt{{ c.attempts|pluralize }}</span>{% endif %}
+  </div>
+
+  <form hx-post="{% url 'retest:log' c.pk %}" hx-target="#cand-{{ c.pk }}" hx-swap="outerHTML">
+    <div class="action-bar">
       <button type="button" class="btn btn-sm border-emerald-400 text-emerald-800" @click="outcome='BOOKED'; more=true">{% icon "check_circle" %} Booked</button>
       <button type="button" class="btn btn-sm" @click="outcome='CALL_BACK'; more=true">{% icon "autorenew" %} Call back</button>
       <button type="submit" name="outcome" value="NO_ANSWER" class="btn btn-sm">{% icon "phone_disabled" %} No answer</button>

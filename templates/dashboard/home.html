@@ -1,22 +1,31 @@
 {% extends "base.html" %}{% load ui %}
 {% block title %}Dashboard{% endblock %}{% block page_title %}Dashboard <span class="text-sm font-normal text-slate-500">· {{ scope.label }}</span>{% endblock %}
+{% block page_subtitle %}<p class="truncate text-xs text-slate-500">Today at a glance. The figures below are for {{ scope.label }}.</p>{% endblock %}
 {% block head %}{% include "_chart_assets.html" %}{% endblock %}
 {% block content %}
 <div class="mb-4 flex flex-wrap gap-2">
   <a href="{% url 'patients:register' %}" class="btn-primary px-4 py-3 text-base">{% icon "add" %} Register patient / new visit</a>
-  <a href="{% url 'retest:my_calls' %}" class="btn px-4 py-3 text-base">{% icon "call" %} My Call List</a>
-  <a href="{% url 'pricing:lookup' %}" class="btn px-4 py-3 text-base">₹ Price card</a>
+  <a href="{% url 'retest:my_calls' %}" class="btn px-4 py-3 text-base">{% icon "call" %} Call list</a>
+  <a href="{% url 'pricing:lookup' %}" class="btn px-4 py-3 text-base">{% icon "currency_rupee" %} Price card</a>
 </div>
 
-<div class="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
-  <div class="kpi"><div class="kpi-label">Registrations today</div><div class="kpi-value">{{ kpi.registrations_today }}</div></div>
-  <div class="kpi"><div class="kpi-label">Visits today</div><div class="kpi-value">{{ kpi.visits_today }}</div></div>
-  <div class="kpi"><div class="kpi-label">Revenue today</div><div class="kpi-value">{{ kpi.revenue_today|inr }}</div><div class="text-xs text-slate-500">collected {{ kpi.collected_today|inr }}</div></div>
-  <a href="{% url 'followups:list' %}?tab=due_today" class="kpi hover:border-teal-400"><div class="kpi-label">Follow-ups due</div><div class="kpi-value">{{ kpi.followups_due }}</div></a>
-  <a href="{% url 'followups:list' %}?tab=overdue" class="kpi hover:border-teal-400 {% if kpi.followups_overdue %}border-red-200 bg-red-50{% endif %}"><div class="kpi-label">Overdue</div><div class="kpi-value {% if kpi.followups_overdue %}text-red-700{% endif %}">{{ kpi.followups_overdue }}</div></a>
-  <a href="{% url 'retest:list' %}" class="kpi hover:border-teal-400"><div class="kpi-label">Re-test calls pending</div><div class="kpi-value">{{ kpi.retest_pending }}</div></a>
-  <div class="kpi"><div class="kpi-label">My calls today</div><div class="kpi-value">{{ kpi.my_calls_today }}</div></div>
-  <div class="kpi"><div class="kpi-label">My conversions (month)</div><div class="kpi-value">{{ kpi.my_conversions_month }}</div></div>
+{% comment %}
+  Stat band (F13): a big figure over a small caps label, no box around each one.
+  Boxed tiles put eight borders on screen and the eye reads the boxes first;
+  without them the numbers themselves carry the layout. The ones that link
+  somewhere underline on hover.
+{% endcomment %}
+<div class="card">
+  <div class="stat-band">
+    <div><div class="stat-value">{{ kpi.registrations_today }}</div><span class="stat-label">Registrations today</span></div>
+    <div><div class="stat-value">{{ kpi.visits_today }}</div><span class="stat-label">Visits today</span></div>
+    <div><div class="stat-value">{{ kpi.revenue_today|inr }}</div><span class="stat-label">Revenue today · {{ kpi.collected_today|inr }} collected</span></div>
+    <a href="{% url 'followups:list' %}?tab=due_today" class="stat-link"><div class="stat-value">{{ kpi.followups_due }}</div><span class="stat-label">Follow-ups due</span></a>
+    <a href="{% url 'followups:list' %}?tab=overdue" class="stat-link"><div class="stat-value {% if kpi.followups_overdue %}!text-red-700{% endif %}">{{ kpi.followups_overdue }}</div><span class="stat-label">Overdue</span></a>
+    <a href="{% url 'retest:list' %}" class="stat-link"><div class="stat-value">{{ kpi.retest_pending }}</div><span class="stat-label">Re-test calls pending</span></a>
+    <div><div class="stat-value">{{ kpi.my_calls_today }}</div><span class="stat-label">My calls today</span></div>
+    <div><div class="stat-value">{{ kpi.my_conversions_month }}</div><span class="stat-label">My conversions this month</span></div>
+  </div>
 </div>
 
 <div class="mt-4 grid gap-4 lg:grid-cols-2">

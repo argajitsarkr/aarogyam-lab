@@ -7,6 +7,7 @@ from .models import AuditLog
 
 
 class AuditFilter(StyledFilterSet):
+    pill_field = "action"
     action = django_filters.ChoiceFilter(choices=AuditLog.Action.choices, empty_label="All actions")
     user = django_filters.CharFilter(field_name="user__username", lookup_expr="icontains", label="User")
     object_repr = django_filters.CharFilter(lookup_expr="icontains", label="Object")

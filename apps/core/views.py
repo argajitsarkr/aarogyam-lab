@@ -13,7 +13,7 @@ from .mixins import AdminRequiredMixin, SimpleFormPageMixin
 from .models import SavedFilter, SiteSettings
 from .preferences import PAGE_SIZES, set_pref
 
-ALLOWED_PREF_PREFIXES = ("view:", "cols:", "page_size:", "cal:", "dash:")
+ALLOWED_PREF_PREFIXES = ("view:", "cols:", "page_size:", "cal:", "dash:", "ui:")
 
 
 def permission_denied(request, exception=None):

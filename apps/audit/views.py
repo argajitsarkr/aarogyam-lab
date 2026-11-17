@@ -11,6 +11,7 @@ class AuditLogListView(AdminRequiredMixin, ListPageMixin):
     template_name = "audit/list.html"
     results_template = "audit/_results.html"
     filterset_class = AuditFilter
+    results_label = "entry"
     view_modes = ("table", "card")
     sort_fields = {"timestamp": "timestamp", "action": "action", "user": "user__username"}
     default_sort = "-timestamp"

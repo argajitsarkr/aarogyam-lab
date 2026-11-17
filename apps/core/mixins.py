@@ -47,6 +47,7 @@ class ListPageMixin(LoginRequiredMixin, ScopedQuerysetMixin, ListView):
     saved filters. Preferences persist on the user profile."""
 
     page_key = None  # e.g. "patients" — also the preference key
+    results_label = "result"  # noun for the results header: "128 patients"
     url_name = None  # e.g. "patients:list" — used for saved filters
     view_modes = ("table", "card")
     default_view = "table"
@@ -109,6 +110,18 @@ class ListPageMixin(LoginRequiredMixin, ScopedQuerysetMixin, ListView):
             qs = qs.order_by(f"-{field}" if desc else field, "-pk")
         return qs
 
+    # ---- one-click pill filter (C7) ----------------------------------------
+    def _pill_context(self):
+        """Render one filter as pills instead of a select: the one people change
+        every day. The filterset names it in `pill_field`."""
+        fs = getattr(self, "filterset", None)
+        name = getattr(fs, "pill_field", None) if fs else None
+        if not name or name not in fs.form.fields:
+            return {"pill_field": None, "pill_choices": []}
+        field = fs.form[name]
+        choices = [(v, label) for v, label in fs.form.fields[name].choices if v != ""]
+        return {"pill_field": field, "pill_choices": choices}
+
     # ---- templates & context ----------------------------------------------
     def get_template_names(self):
         if self.request.headers.get("HX-Request") and self.request.headers.get("HX-Target") == "list-results":
@@ -136,8 +149,10 @@ class ListPageMixin(LoginRequiredMixin, ScopedQuerysetMixin, ListView):
                 "filter_querystring": _filter_qs(params),
                 "results_template": self.results_template,
                 "saved_filters": self.request.user.saved_filters.filter(page=self.url_name),
+                "results_label": self.results_label,
             }
         )
+        ctx.update(self._pill_context())
         return ctx
 
 

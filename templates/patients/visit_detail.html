@@ -11,7 +11,8 @@
   {% csrf_token %}
   {{ formset.management_form }}
   <section class="card overflow-x-auto p-0">
-    <table class="tbl">
+    <div class="tbl-wrap">
+      <table class="tbl">
       <thead><tr><th>Test</th><th class="text-right">Price</th><th>Status</th><th>Flag</th><th>Result summary</th><th>Report date</th><th>Report PDF</th></tr></thead>
       <tbody>
       {% for form in formset %}
@@ -38,6 +39,7 @@
       {% endfor %}
       </tbody>
     </table>
+    </div>
     {% if can_edit %}<p class="px-3 py-2 text-xs text-slate-500">Flagging a result <b>Abnormal</b> automatically creates a follow-up for this centre.</p>{% endif %}
   </section>
 

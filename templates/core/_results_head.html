@@ -1,0 +1,16 @@
+{% comment %}
+  Results header (C9): says how much data is on screen and how much there is in
+  total, so a filtered list never looks like the whole database.
+{% endcomment %}
+<div class="results-head">
+  <h2 class="results-title">Results</h2>
+  <span class="results-count">
+    {% if page_obj and paginator.count %}
+      Showing <b>{{ page_obj.start_index }}-{{ page_obj.end_index }}</b> of
+      <b>{{ paginator.count }}</b> {{ results_label|default:"result" }}{{ paginator.count|pluralize }}
+      {% if paginator.num_pages > 1 %}(page {{ page_obj.number }} of {{ paginator.num_pages }}){% endif %}
+    {% elif paginator %}
+      No {{ results_label|default:"result" }}s match these filters
+    {% endif %}
+  </span>
+</div>

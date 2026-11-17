@@ -1,4 +1,5 @@
 {% load ui %}
+{% include "core/_results_head.html" %}
 {% if view_mode == 'card' %}
 <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 {% for p in object_list %}
@@ -22,8 +23,8 @@
 {% endfor %}
 </div>
 {% else %}
-<div class="card overflow-x-auto p-0">
-<table class="tbl">
+<div class="tbl-wrap overflow-x-auto">
+  <table class="tbl">
   <thead><tr>
     {% if 'patient_id' not in hidden_cols %}<th>{% sort_link 'patient_id' 'Patient ID' %}</th>{% endif %}
     {% if 'name' not in hidden_cols %}<th>{% sort_link 'name' 'Name' %}</th>{% endif %}

@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% load ui %}
 {% block title %}Patients{% endblock %}{% block page_title %}Patients <span class="text-sm font-normal text-slate-500">· {{ scope.label }}</span>{% endblock %}
+{% block page_subtitle %}<p class="truncate text-xs text-slate-500">Everyone registered at {{ scope.label }}. Search by name, phone or patient ID.</p>{% endblock %}
 {% block content %}
 <div class="mb-3 flex flex-wrap gap-2">
   <a href="{% url 'patients:register' %}" class="btn-primary">{% icon "add" %} Register / New visit</a>

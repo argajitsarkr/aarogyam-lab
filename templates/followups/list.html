@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% load ui %}
 {% block title %}Follow-ups{% endblock %}{% block page_title %}Follow-ups <span class="text-sm font-normal text-slate-500">· {{ scope.label }}</span>{% endblock %}
+{% block page_subtitle %}<p class="truncate text-xs text-slate-500">Patients to chase after a result. Pick a status to narrow the list.</p>{% endblock %}
 {% block content %}
 {% if view_mode == 'table' or view_mode == 'card' %}
 <div class="mb-3 flex flex-wrap gap-1 border-b">

@@ -10,6 +10,7 @@ from .models import FollowUp
 
 
 class FollowUpFilter(StyledFilterSet):
+    pill_field = "status"  # rendered as one-click pills, not a select
     q = django_filters.CharFilter(method="search", label="Patient",
                                   widget=forms.TextInput(attrs={"type": "search", "placeholder": "Name, phone, ID…"}))
     centre = django_filters.ModelChoiceFilter(queryset=Centre.objects.filter(is_active=True), empty_label="Any centre")

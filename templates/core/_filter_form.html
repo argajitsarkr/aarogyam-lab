@@ -1,16 +1,58 @@
-{# Generic filter bar: live-updates results via HTMX #}
-<form id="filters" method="get" class="card mb-3 grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 lg:grid-cols-6"
+{% load ui %}
+{% comment %}
+  Filter block (C6-C8). A tinted panel, not another white card, so it reads as
+  controls rather than content.
+
+  Order: the search box, then one-click pills for the filter people change most
+  (the filterset's `pill_field`), then the rest as selects, then Clear / Apply.
+
+  The pills are real radio inputs, visually hidden inside their label, so they
+  keep working with the keyboard and without JavaScript; `.pill-filter:has(...)`
+  paints the active one. HTMX replaces only the results, so the pill state has to
+  come from CSS rather than a re-render.
+{% endcomment %}
+<form id="filters" method="get" class="filter-panel mb-3"
       hx-get="{{ request.path }}" hx-target="#list-results" hx-push-url="true"
-      hx-trigger="input changed delay:400ms from:input, change from:select">
+      hx-trigger="input changed delay:400ms from:input, change from:select, change from:input[type=radio]">
   <input type="hidden" name="view" value="{{ view_mode }}">
-  {% for field in filter.form %}
-    <div class="{% if field.name == 'q' %}col-span-2{% endif %}">
-      <label class="mb-0.5 block text-xs text-slate-500" for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+  {% for field in filter.form %}{% if field.name == 'q' %}
+    <div class="mb-3">
+      <label class="filter-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
       {{ field }}
     </div>
-  {% endfor %}
-  <div class="col-span-2 flex items-end gap-2 sm:col-span-1">
-    <a href="{{ request.path }}" class="btn btn-sm">Reset</a>
+  {% endif %}{% endfor %}
+
+  {% if pill_field %}
+    <div class="mb-3">
+      <span class="filter-label">{{ pill_field.label }}</span>
+      <div class="flex flex-wrap gap-1.5">
+        <label class="pill-filter{% if not pill_field.value %} on{% endif %}">
+          <input type="radio" name="{{ pill_field.name }}" value="" class="sr-only"
+                 {% if not pill_field.value %}checked{% endif %}>All
+        </label>
+        {% for value, label in pill_choices %}
+          <label class="pill-filter{% if pill_field.value == value %} on{% endif %}">
+            <input type="radio" name="{{ pill_field.name }}" value="{{ value }}" class="sr-only"
+                   {% if pill_field.value == value %}checked{% endif %}>{{ label }}
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+    {% for field in filter.form %}{% if field.name != 'q' and field.name != pill_field.name %}
+      <div>
+        <label class="filter-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+      </div>
+    {% endif %}{% endfor %}
+  </div>
+
+  <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
     <span class="htmx-indicator text-xs text-slate-500">Loading…</span>
+    <a href="{{ request.path }}" class="btn btn-sm ml-auto">Clear</a>
+    <button type="submit" class="btn-primary btn-sm">Apply</button>
   </div>
 </form>

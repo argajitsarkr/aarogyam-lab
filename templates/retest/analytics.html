@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% load ui %}
 {% block title %}Calling analytics{% endblock %}{% block page_title %}Re-test calling analytics <span class="text-sm font-normal text-slate-500">· {{ scope.label }}</span>{% endblock %}
+{% block page_subtitle %}<p class="truncate text-xs text-slate-500">How the calling is going: outcomes, conversions and who is calling.</p>{% endblock %}
 {% block head %}{% include "_chart_assets.html" %}{% endblock %}
 {% block content %}
 <form method="get" class="card mb-4 flex flex-wrap items-end gap-3 p-3">
@@ -20,14 +21,18 @@
 <div class="grid gap-4 lg:grid-cols-2">
   <div class="card overflow-x-auto p-0">
     <h2 class="px-3 pt-3 font-semibold">By employee</h2>
-    <table class="tbl"><thead><tr><th>Employee</th><th>Centre</th><th class="text-right">Calls</th><th class="text-right">Contacted</th><th class="text-right">Booked</th><th class="text-right">Conv.</th><th class="text-right">Returned</th><th class="text-right">Revenue</th></tr></thead>
+    <div class="tbl-wrap">
+      <table class="tbl"><thead><tr><th>Employee</th><th>Centre</th><th class="text-right">Calls</th><th class="text-right">Contacted</th><th class="text-right">Booked</th><th class="text-right">Conv.</th><th class="text-right">Returned</th><th class="text-right">Revenue</th></tr></thead>
     <tbody>{% for r in per_emp %}<tr><td>{{ r.employee__first_name|default:r.employee__username }}</td><td>{{ r.centre__short_code }}</td><td class="text-right">{{ r.total }}</td><td class="text-right">{{ r.contacted }}</td><td class="text-right">{{ r.booked }}</td><td class="text-right">{{ r.rate }}%</td><td class="text-right">{{ r.converted }}</td><td class="text-right">{{ r.revenue|inr }}</td></tr>
     {% empty %}<tr><td colspan="8" class="py-6 text-center text-slate-500">No calls in this period.</td></tr>{% endfor %}</tbody></table>
+    </div>
   </div>
   <div class="card overflow-x-auto p-0">
     <h2 class="px-3 pt-3 font-semibold">By centre</h2>
-    <table class="tbl"><thead><tr><th>Centre</th><th class="text-right">Calls</th><th class="text-right">Contacted</th><th class="text-right">Booked</th><th class="text-right">Conv.</th><th class="text-right">Returned</th><th class="text-right">Revenue</th></tr></thead>
+    <div class="tbl-wrap">
+      <table class="tbl"><thead><tr><th>Centre</th><th class="text-right">Calls</th><th class="text-right">Contacted</th><th class="text-right">Booked</th><th class="text-right">Conv.</th><th class="text-right">Returned</th><th class="text-right">Revenue</th></tr></thead>
     <tbody>{% for r in per_centre %}<tr><td>{% centre_badge r.centre %} {{ r.centre.name }}</td><td class="text-right">{{ r.total }}</td><td class="text-right">{{ r.contacted }}</td><td class="text-right">{{ r.booked }}</td><td class="text-right">{{ r.rate }}%</td><td class="text-right">{{ r.converted }}</td><td class="text-right">{{ r.revenue|inr }}</td></tr>{% endfor %}</tbody></table>
+    </div>
   </div>
 </div>
 
