@@ -65,6 +65,9 @@ python -m pytest
 | `PRIVATE_MEDIA_ROOT` | Report PDFs & imports (outside web root). |
 | `USE_X_ACCEL_REDIRECT` | `True` behind Nginx — Nginx streams PDFs after Django authorises. |
 | `MAX_ACTIVE_EMPLOYEES` | Initial employee cap (default 10; Admins can change it in Settings). |
+| `DEVELOPER_ACCOUNTS` | Usernames with full Admin/superuser rights that do not count against the 3-Admin cap. |
+| `NGROK_AUTHTOKEN`, `NGROK_URL` | Optional ngrok public link (server stack). |
+| `CLOUDFLARE_TUNNEL_TOKEN` | Optional Cloudflare tunnel public link (server stack). |
 | `SESSION_IDLE_SECONDS` | Idle timeout (default 1800 = 30 min). |
 | `AXES_COOLOFF_HOURS` | Lockout duration after 5 failed logins. |
 | `ADMIN_USERNAME`, `ADMIN_PASSWORD` | First Admin, created on boot if missing. |
@@ -254,7 +257,14 @@ Other commands: `bash deploy.sh status | logs | backup | admin | down`.
    (`ss -ltnp | grep 8090`).
 4. `bash deploy.sh up`, then `curl -sI http://127.0.0.1:8090/accounts/login/` should answer
    (a 301 to https is expected - Django sees every request as HTTPS).
-5. Public link: Cloudflare Zero Trust -> Networks -> Tunnels -> **Create a tunnel**
+5. Public link - pick one (both are optional containers switched on by a token in `.env`):
+
+   **ngrok (as TGMA):** put `NGROK_AUTHTOKEN=...` in `.env` (optionally `NGROK_URL=` your
+   free static domain), add `.ngrok-free.app` to `ALLOWED_HOSTS` and
+   `https://*.ngrok-free.app` to `CSRF_TRUSTED_ORIGINS`, run `bash deploy.sh up`, then
+   `bash deploy.sh url`. A free ngrok account allows one online agent at a time.
+
+   **Cloudflare:** Cloudflare Zero Trust -> Networks -> Tunnels -> **Create a tunnel**
    (Cloudflared), name `aarogyam-lab`. Copy the token from the install command into `.env`
    as `CLOUDFLARE_TUNNEL_TOKEN=...`. Under **Public hostname** add the lab hostname with
    service type `HTTP` and URL `nginx:80`. Make sure `ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS`

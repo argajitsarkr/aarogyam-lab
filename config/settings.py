@@ -192,6 +192,9 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@localhost")
 # --- Business rules (defaults; Admins can override most in Site Settings) ---
 MAX_ACTIVE_ADMINS = 3
 DEFAULT_MAX_ACTIVE_EMPLOYEES = env.int("MAX_ACTIVE_EMPLOYEES", default=10)
+# Usernames of the site developer(s): full Admin + superuser rights, but not counted
+# against the 3-Admin cap, so the lab keeps all of its own Admin slots.
+DEVELOPER_ACCOUNTS = env.list("DEVELOPER_ACCOUNTS", default=[])
 DEFAULT_RETEST_LOOKAHEAD_DAYS = 7
 PRICE_STALE_DAYS = 90
 

@@ -17,6 +17,14 @@ class TestAdminCap:
         with pytest.raises(ValidationError, match="at most 3 active Admins"):
             AdminFactory()
 
+    def test_developer_account_does_not_use_an_admin_slot(self, settings):
+        settings.DEVELOPER_ACCOUNTS = ["dev@example.com"]
+        dev = AdminFactory(username="dev@example.com")
+        AdminFactory.create_batch(3)  # the lab still gets all three of its own Admins
+        assert dev.is_admin and User.objects.active_admins().count() == 3
+        with pytest.raises(ValidationError, match="at most 3 active Admins"):
+            AdminFactory()
+
     def test_fourth_admin_rejected_by_form(self):
         AdminFactory.create_batch(3)
         form = UserForm(data={"username": "fourth", "role": "ADMIN", "password": "Very-Long-Pass-123", "is_active": True})

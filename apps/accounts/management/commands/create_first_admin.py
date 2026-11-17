@@ -29,7 +29,8 @@ class Command(BaseCommand):
             self.stdout.write(f"User '{username}' already exists — nothing to do.")
             return
         user = User(username=username, role=User.Role.ADMIN, is_staff=True, is_superuser=True,
-                    phone=opts["phone"] or None, must_change_password=True)
+                    phone=opts["phone"] or None, must_change_password=True,
+                    email=username if "@" in username else "")
         user.set_password(password)
         user.save()
         self.stdout.write(self.style.SUCCESS(f"Admin '{username}' created. They must change password on first login."))

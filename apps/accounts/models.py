@@ -9,7 +9,11 @@ from apps.core.validators import normalize_phone, validate_indian_phone
 
 class UserQuerySet(models.QuerySet):
     def active_admins(self):
-        return self.filter(role=User.Role.ADMIN, is_active=True, deleted_at__isnull=True)
+        """Active lab Admins counted against the Admin cap. Developer accounts
+        (settings.DEVELOPER_ACCOUNTS) have full Admin rights but do not use a slot."""
+        return self.filter(role=User.Role.ADMIN, is_active=True, deleted_at__isnull=True).exclude(
+            username__in=settings.DEVELOPER_ACCOUNTS
+        )
 
     def active_employees(self):
         return self.filter(role=User.Role.EMPLOYEE, is_active=True, deleted_at__isnull=True)

@@ -6,6 +6,7 @@
 #   bash deploy.sh logs      tail all logs (Ctrl+C to stop)
 #   bash deploy.sh status    containers + memory
 #   bash deploy.sh backup    run a database backup now
+#   bash deploy.sh url       print the current public ngrok address
 #   bash deploy.sh admin     create the first Admin (interactive)
 #   bash deploy.sh down      stop everything (data volumes are kept)
 set -euo pipefail
@@ -20,6 +21,9 @@ cd "$PROJECT_DIR"
 # Public link: start the cloudflared container only once a tunnel token is in .env.
 if [ -f .env ] && grep -qE '^CLOUDFLARE_TUNNEL_TOKEN=.+' .env; then
   COMPOSE+=(--profile tunnel)
+fi
+if [ -f .env ] && grep -qE '^NGROK_AUTHTOKEN=.+' .env; then
+  COMPOSE+=(--profile ngrok)
 fi
 
 if [ ! -f .env ]; then
@@ -84,6 +88,12 @@ case "$ACTION" in
     ls -lh "${BACKUP_DIR:-/home/mmilab/aarogyam-backups}" | tail -5
     ;;
 
+  url)
+    # Current public ngrok address (changes on restart unless NGROK_URL is set).
+    "${COMPOSE[@]}" logs ngrok 2>/dev/null | grep -o 'url=https://[^ ]*' | tail -1 | cut -d= -f2 \
+      || echo "ngrok is not running (set NGROK_AUTHTOKEN in .env, then: bash deploy.sh up)"
+    ;;
+
   admin)
     "${COMPOSE[@]}" exec web python manage.py create_first_admin
     ;;
@@ -93,7 +103,7 @@ case "$ACTION" in
     ;;
 
   *)
-    echo "Usage: bash deploy.sh [up|update|logs|status|backup|admin|down]"
+    echo "Usage: bash deploy.sh [up|update|logs|status|url|backup|admin|down]"
     exit 1
     ;;
 esac

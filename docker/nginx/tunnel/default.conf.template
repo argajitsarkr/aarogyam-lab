@@ -3,8 +3,16 @@
 # The port is published on loopback only, so nothing on the LAN can reach this directly.
 upstream django { server web:8000; }
 
-# Cloudflare sets CF-Connecting-IP authoritatively; fall back to the socket address
-# (e.g. a curl from the server itself). Used for the audit log's IP column.
+# Real client IP for the audit log. Tunnel agents (ngrok / cloudflared) run inside the
+# compose network and append the visitor's IP to X-Forwarded-For; trust that header only
+# from private (container) addresses, so $remote_addr becomes the visitor's IP.
+set_real_ip_from 172.16.0.0/12;
+set_real_ip_from 10.0.0.0/8;
+set_real_ip_from 192.168.0.0/16;
+real_ip_header X-Forwarded-For;
+real_ip_recursive on;
+
+# Cloudflare also sets CF-Connecting-IP authoritatively; prefer it when present.
 map $http_cf_connecting_ip $client_ip {
     ""      $remote_addr;
     default $http_cf_connecting_ip;

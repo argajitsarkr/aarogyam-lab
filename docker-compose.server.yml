@@ -95,6 +95,23 @@ services:
     profiles: ["tunnel"]
     restart: unless-stopped
 
+  # Public link, TGMA-style: ngrok HTTPS tunnel to nginx. Enabled by deploy.sh when
+  # NGROK_AUTHTOKEN is set in .env. Without NGROK_URL the address changes on every
+  # restart (bash deploy.sh url prints it); set NGROK_URL to the account's free static
+  # domain for a fixed link. Free ngrok accounts allow ONE online agent - the same
+  # token cannot also run TGMA's ngrok container at the same time.
+  ngrok:
+    image: ngrok/ngrok:latest
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["exec ngrok http nginx:80 --log=stdout $${NGROK_URL:+--url=$$NGROK_URL}"]
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:-}
+      NGROK_URL: ${NGROK_URL:-}
+    depends_on:
+      - nginx
+    profiles: ["ngrok"]
+    restart: unless-stopped
+
   db_backup:
     build: ./docker/backup
     env_file: .env

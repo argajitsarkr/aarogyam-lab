@@ -31,9 +31,14 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   which is for a standalone VPS with its own public IP and Let's Encrypt.
 - SSH: `ssh mmilab@100.126.84.75` (Tailscale) works from this laptop with the default key;
   `mmilab` can run docker but `sudo` needs a password.
-- Public link: own `tunnel` (cloudflared) container -> `http://nginx:80`, token in `.env` as
-  `CLOUDFLARE_TUNNEL_TOKEN` (same pattern as phytosynergy). `deploy.sh` adds the `tunnel`
-  profile only when the token is set. The host-level cloudflared service belongs to GrantSetu.
+- Public link, two optional containers, each switched on by its token in `.env`:
+  - **ngrok** (`NGROK_AUTHTOKEN`, optional static `NGROK_URL`) - same approach as TGMA
+    (`D:\Sites\Tgmabase`). `bash deploy.sh url` prints the address. A free ngrok account
+    allows one online agent, so the lab and TGMA cannot share one token at the same time.
+  - **Cloudflare tunnel** (`CLOUDFLARE_TUNNEL_TOKEN`) -> `http://nginx:80`, as phytosynergy.
+  The host-level cloudflared service belongs to GrantSetu - do not edit it.
+- No plain-HTTP LAN port (unlike TGMA's :8100): cookies are `Secure`, so login over
+  `http://192.168.1.x` would fail (TGMA mistake #1). Use the tunnel, or an SSH port-forward.
 - nginx is also on **127.0.0.1:8090** (`LAB_HTTP_PORT`) for checks over SSH. Host ports
   80, 3000, 7070, 8000, 8080, 8082, 8100 are other apps' - never publish on them.
 - The server disk was 99% full (31 GB free) on 2026-11-17 - check `df -h /` before big builds.
@@ -42,6 +47,15 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   `/home/mmilab/aarogyam-backups` (outside the checkout). `.env` and the `private_media`
   volume (report PDFs) are not in those dumps - back them up separately.
 - Migrations, collectstatic and seed commands run automatically when `web` starts.
+
+## Accounts
+
+- **Site developer:** `argajit05@gmail.com` (username = email, like TGMA's named logins).
+  Admin role + Django superuser = complete access, including `/system-admin/`. Listed in
+  `DEVELOPER_ACCOUNTS` on the server, so it does **not** use one of the lab's 3 Admin slots.
+  Its bootstrap password is `ADMIN_PASSWORD` in the server `.env`; it must be changed at
+  first login, after which that line can be cleared.
+- Lab Admins (max 3) and Employees (cap in Settings) are created in the app's Users page.
 
 ## Local development
 
