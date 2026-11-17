@@ -88,20 +88,36 @@ def lookup(request):
 
 @login_required
 def register_new(request):
-    """New patient + first visit in one form."""
+    """New patient, plus a first visit unless this is a quick add.
+
+    Quick add is for someone treated before this app existed: we know the person,
+    not when they came in or what was run. Inventing a visit dated today would be a
+    worse record than none, so it creates the patient only - a visit gets added from
+    their page whenever the history turns up.
+    """
     user = request.user
     if request.method == "POST":
         pform = PatientForm(request.POST, prefix="p")
+        quick = pform.mode == PatientForm.QUICK
         vform = VisitForm(request.POST, prefix="v", user=user)
-        if pform.is_valid() and vform.is_valid():
-            centre = employee_centre(user, vform.cleaned_data.get("centre"))
+        if pform.is_valid() and (quick or vform.is_valid()):
+            # Quick add has no visit form, so an Admin's centre comes from the scope
+            # switcher instead. On "All Centres" there is nothing to choose from.
+            requested = request.scope.centre if quick else vform.cleaned_data.get("centre")
+            centre = employee_centre(user, requested)
+            if centre is None:
+                messages.error(request, "Pick a single centre in the scope switcher before adding a past patient.")
+                return render(request, "patients/register_form.html",
+                              {"pform": pform, "vform": vform, "tests_json": _tests_json(), "is_new": True})
             with transaction.atomic():
                 patient = pform.save(commit=False)
                 patient.registered_at_centre = centre
                 patient.registered_by = user
                 patient.save()
-                visit = _save_visit(vform, patient, user, centre)
-            messages.success(request, f"Registered {patient.full_name} — {patient.patient_id}.")
+                visit = None if quick else _save_visit(vform, patient, user, centre)
+            messages.success(request, f"Registered {patient.full_name} - {patient.patient_id}.")
+            if visit is None:
+                return redirect("patients:detail", pk=patient.pk)
             return redirect("patients:visit_detail", pk=visit.pk)
     else:
         pform = PatientForm(prefix="p", initial={"phone": request.GET.get("phone", "")})

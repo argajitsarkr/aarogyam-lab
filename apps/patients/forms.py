@@ -10,10 +10,26 @@ from .models import Doctor, Patient, PinCodeLocation, TestCatalog, Visit, VisitT
 
 
 class PatientForm(StyledFormMixin, forms.ModelForm):
+    """Two ways in. FULL is a patient standing at the desk, where the front desk can
+    ask for everything. QUICK is one of the hundreds of people already treated before
+    this app existed: a name and a number is all anyone has, and demanding more would
+    just mean inventing it.
+
+    Only the form differs. The model keeps every field, so the Excel importer can
+    still fill an address and city/district/state keep their Tripura defaults.
+    """
+
+    FULL, QUICK = "full", "quick"
+
+    reg_mode = forms.ChoiceField(
+        choices=[(FULL, "Full registration"), (QUICK, "Quick add - past patient")],
+        initial=FULL, required=False, widget=forms.HiddenInput,
+    )
+
     class Meta:
         model = Patient
         fields = ["phone", "full_name", "age_years", "dob", "sex", "alt_phone", "email",
-                  "house_street", "locality", "village_ward", "city", "district", "state", "pin_code",
+                  "locality", "pin_code",
                   "consent_to_contact", "do_not_call", "notes"]
         widgets = {
             "dob": forms.DateInput(),
@@ -30,6 +46,15 @@ class PatientForm(StyledFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["phone"].required = True
+        self.fields["sex"].required = self.mode == self.FULL
+
+    @property
+    def mode(self):
+        """Quick only when it was explicitly asked for, so a malformed post cannot
+        quietly relax the full form's rules."""
+        key = self.add_prefix("reg_mode")  # the form is used with prefix="p"
+        raw = (self.data.get(key) if self.is_bound else self.initial.get("reg_mode")) or self.FULL
+        return self.QUICK if raw == self.QUICK else self.FULL
 
     def clean_phone(self):
         return normalize_phone(self.cleaned_data["phone"])
@@ -39,7 +64,8 @@ class PatientForm(StyledFormMixin, forms.ModelForm):
 
     def clean(self):
         data = super().clean()
-        if not data.get("age_years") and not data.get("dob"):
+        # A past patient is allowed to arrive with nothing but a name and a number.
+        if self.mode == self.FULL and not data.get("age_years") and not data.get("dob"):
             self.add_error("age_years", "Enter age or date of birth.")
         return data
 

@@ -53,7 +53,7 @@ class Patient(TimeStampedModel, SoftDeleteModel):
     full_name = models.CharField(max_length=150, db_index=True)
     age_years = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="Age (years)")
     dob = models.DateField(null=True, blank=True, verbose_name="Date of birth")
-    sex = models.CharField(max_length=1, choices=Sex.choices)
+    sex = models.CharField(max_length=1, choices=Sex.choices, blank=True)
     phone = models.CharField(max_length=10, db_index=True, blank=True, validators=[validate_indian_phone])
     alt_phone = models.CharField(max_length=10, blank=True, validators=[validate_indian_phone], verbose_name="Alternate phone")
     email = models.EmailField(blank=True)

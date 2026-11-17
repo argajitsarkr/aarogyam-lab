@@ -82,3 +82,61 @@ class TestAddingTestsLater:
         assert resp.status_code == 302, resp.content[:400]
         vt.refresh_from_db()
         assert vt.result_status == "REPORTED" and vt.flag == "NORMAL"
+
+
+class TestQuickAdd:
+    """A patient treated before this app existed: name and mobile, nothing else."""
+
+    def _payload(self, **over):
+        data = {"p-reg_mode": "quick", "p-phone": "9876500022", "p-full_name": "Old Record",
+                "v-visit_date": "", "v-sample_collection_type": "CENTRE"}
+        data.update(over)
+        return data
+
+    def test_name_and_mobile_are_enough(self, client, employee, centres):
+        from apps.patients.models import Patient
+
+        client.force_login(employee("ARP"))
+        resp = client.post(reverse("patients:register_new"), self._payload())
+        assert resp.status_code == 302, resp.content[:500]
+        p = Patient.objects.get(phone="9876500022")
+        assert p.full_name == "Old Record" and p.sex == "" and p.age_years is None
+        assert p.registered_at_centre == centres["ARP"]
+
+    def test_full_mode_still_demands_age_and_sex(self, client, employee, centres):
+        client.force_login(employee("ARP"))
+        resp = client.post(reverse("patients:register_new"),
+                           self._payload(**{"p-reg_mode": "full"}))
+        assert resp.status_code == 200  # redisplayed with errors
+        form = resp.context["pform"]
+        assert "age_years" in form.errors and "sex" in form.errors
+
+    def test_a_missing_mode_is_treated_as_full(self, client, employee, centres):
+        """Hiding a field client-side must not be able to relax the rules."""
+        payload = self._payload()
+        payload.pop("p-reg_mode")
+        client.force_login(employee("ARP"))
+        resp = client.post(reverse("patients:register_new"), payload)
+        assert resp.status_code == 200
+        assert "sex" in resp.context["pform"].errors
+
+    def test_the_address_is_down_to_locality_and_pin(self, client, employee):
+        from apps.patients.forms import PatientForm
+
+        fields = set(PatientForm().fields)
+        assert {"locality", "pin_code"} <= fields
+        assert not fields & {"house_street", "village_ward", "city", "district", "state"}
+
+    def test_quick_add_creates_no_visit(self, client, employee, centres):
+        from apps.patients.models import Patient, Visit
+
+        client.force_login(employee("ARP"))
+        client.post(reverse("patients:register_new"), self._payload(**{"p-phone": "9876500033"}))
+        p = Patient.objects.get(phone="9876500033")
+        assert Visit.objects.filter(patient=p).count() == 0, "a past patient gets no invented visit"
+
+    def test_admin_on_all_centres_is_told_to_pick_one(self, client, admin_user):
+        client.force_login(admin_user)
+        resp = client.post(reverse("patients:register_new"), self._payload(**{"p-phone": "9876500044"}))
+        assert resp.status_code == 200
+        assert "scope switcher" in resp.content.decode()

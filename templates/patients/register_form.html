@@ -7,33 +7,50 @@
   {% csrf_token %}
 
   {% if is_new %}
+  {% comment %}
+    Two modes. Quick add exists because hundreds of patients were treated before this
+    app did, and all anyone has for them is a name and a number. `quick` only hides
+    fields; PatientForm.mode decides what is actually required, from the posted
+    reg_mode, so the rules cannot be relaxed by hiding something client-side.
+  {% endcomment %}
   <section class="card">
-    <h2 class="mb-3 text-base font-semibold">Patient details</h2>
+    <input type="hidden" name="{{ pform.reg_mode.html_name }}" :value="quick ? 'quick' : 'full'">
+
+    <div class="mb-4 flex flex-wrap items-center gap-2">
+      <h2 class="text-base font-semibold">Patient details</h2>
+      <div class="seg ml-auto" role="group" aria-label="How much detail">
+        <button type="button" @click="quick = false" :class="!quick && 'on'">Full registration</button>
+        <button type="button" @click="quick = true" :class="quick && 'on'">Quick add</button>
+      </div>
+    </div>
+    <p class="mb-3 text-sm text-slate-500" x-show="quick" x-cloak>
+      For someone treated before this system existed. Name and mobile are enough - add the rest whenever you learn it.
+    </p>
+
     {% with form=pform %}
       {% if form.non_field_errors %}<div class="mb-2 text-sm text-red-700">{{ form.non_field_errors }}</div>{% endif %}
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-6">
         <div class="sm:col-span-2"><label class="label" for="{{ form.phone.id_for_label }}">Mobile *</label>{{ form.phone }}{{ form.phone.errors }}</div>
         <div class="sm:col-span-4"><label class="label" for="{{ form.full_name.id_for_label }}">Full name *</label>{{ form.full_name }}{{ form.full_name.errors }}</div>
         <div class="sm:col-span-1"><label class="label" for="{{ form.age_years.id_for_label }}">Age</label>{{ form.age_years }}{{ form.age_years.errors }}</div>
-        <div class="sm:col-span-2"><label class="label" for="{{ form.dob.id_for_label }}">or DOB</label>{{ form.dob }}{{ form.dob.errors }}</div>
-        <div class="sm:col-span-1"><label class="label" for="{{ form.sex.id_for_label }}">Sex *</label>{{ form.sex }}{{ form.sex.errors }}</div>
-        <div class="sm:col-span-2"><label class="label" for="{{ form.alt_phone.id_for_label }}">Alternate phone</label>{{ form.alt_phone }}{{ form.alt_phone.errors }}</div>
+        <div class="sm:col-span-2" x-show="!quick" x-cloak><label class="label" for="{{ form.dob.id_for_label }}">or DOB</label>{{ form.dob }}{{ form.dob.errors }}</div>
+        <div class="sm:col-span-1"><label class="label" for="{{ form.sex.id_for_label }}">Sex<span x-show="!quick"> *</span></label>{{ form.sex }}{{ form.sex.errors }}</div>
+        <div class="sm:col-span-2" x-show="!quick" x-cloak><label class="label" for="{{ form.alt_phone.id_for_label }}">Alternate phone</label>{{ form.alt_phone }}{{ form.alt_phone.errors }}</div>
       </div>
-      <h3 class="mb-2 mt-4 text-sm font-semibold text-slate-600">Location</h3>
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-6">
-        <div class="sm:col-span-3"><label class="label" for="{{ form.house_street.id_for_label }}">House / street</label>{{ form.house_street }}</div>
-        <div class="sm:col-span-3"><label class="label" for="{{ form.locality.id_for_label }}">Locality / area</label>{{ form.locality }}<datalist id="locality-options"></datalist></div>
-        <div class="sm:col-span-2"><label class="label" for="{{ form.village_ward.id_for_label }}">Village / ward</label>{{ form.village_ward }}</div>
-        <div class="sm:col-span-2"><label class="label" for="{{ form.city.id_for_label }}">City</label>{{ form.city }}</div>
-        <div class="sm:col-span-2"><label class="label" for="{{ form.pin_code.id_for_label }}">PIN code</label>{{ form.pin_code }}{{ form.pin_code.errors }}</div>
-        <div class="sm:col-span-3"><label class="label" for="{{ form.district.id_for_label }}">District</label>{{ form.district }}</div>
-        <div class="sm:col-span-3"><label class="label" for="{{ form.state.id_for_label }}">State</label>{{ form.state }}</div>
-        <div class="sm:col-span-3"><label class="label" for="{{ form.email.id_for_label }}">Email (optional)</label>{{ form.email }}{{ form.email.errors }}</div>
-        <div class="sm:col-span-3"><label class="label" for="{{ form.notes.id_for_label }}">Notes</label>{{ form.notes }}</div>
+
+      <div x-show="!quick" x-cloak>
+        <h3 class="mb-2 mt-4 text-sm font-semibold text-slate-600">Location</h3>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-6">
+          <div class="sm:col-span-3"><label class="label" for="{{ form.locality.id_for_label }}">Locality / area</label>{{ form.locality }}<datalist id="locality-options"></datalist></div>
+          <div class="sm:col-span-3"><label class="label" for="{{ form.pin_code.id_for_label }}">PIN code</label>{{ form.pin_code }}{{ form.pin_code.errors }}</div>
+          <div class="sm:col-span-3"><label class="label" for="{{ form.email.id_for_label }}">Email (optional)</label>{{ form.email }}{{ form.email.errors }}</div>
+          <div class="sm:col-span-3"><label class="label" for="{{ form.notes.id_for_label }}">Notes</label>{{ form.notes }}</div>
+        </div>
       </div>
+
       <div class="mt-4 space-y-2 rounded-lg bg-slate-50 p-3">
-        <label class="flex items-start gap-2 text-sm">{{ form.consent_to_contact }} <span><b>Consent to contact.</b> Patient agrees to calls about follow-ups and re-test reminders. (Required before any calling — DPDP Act 2023.)</span></label>
-        <label class="flex items-center gap-2 text-sm">{{ form.do_not_call }} Do not call</label>
+        <label class="flex items-start gap-2 text-sm">{{ form.consent_to_contact }} <span><b>Consent to contact.</b> Patient agrees to calls about follow-ups and re-test reminders. (Required before any calling - DPDP Act 2023.)</span></label>
+        <label class="flex items-center gap-2 text-sm" x-show="!quick" x-cloak>{{ form.do_not_call }} Do not call</label>
       </div>
     {% endwith %}
   </section>
@@ -47,7 +64,7 @@
   </section>
   {% endif %}
 
-  <section class="card">
+  <section class="card" x-show="!quick" x-cloak>
     <h2 class="mb-3 text-base font-semibold">Tests</h2>
     <div class="relative">
       <input type="search" x-model="q" @keydown.enter.prevent="addFirst()" placeholder="Type test name or code, press Enter to add…" class="input py-2.5" aria-label="Search tests">
@@ -75,8 +92,8 @@
     {{ vform.tests.errors }}
   </section>
 
-  <section class="card">
-    <h2 class="mb-3 text-base font-semibold">Visit & payment</h2>
+  <section class="card" x-show="!quick" x-cloak>
+    <h2 class="mb-3 text-base font-semibold">Visit</h2>
     {% with form=vform %}
     {% if form.non_field_errors %}<div class="mb-2 text-sm text-red-700">{{ form.non_field_errors }}</div>{% endif %}
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-6" x-data="{ home: '{{ form.sample_collection_type.value|default:'CENTRE' }}' === 'HOME' }">
@@ -95,7 +112,7 @@
 
   <div class="sticky bottom-0 -mx-3 flex justify-end gap-2 border-t bg-white/95 px-3 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
     <a href="{% url 'patients:register' %}" class="btn">Cancel</a>
-    <button class="btn-primary px-6 py-3 text-base">Save {% if is_new %}patient & visit{% else %}visit{% endif %}</button>
+    <button class="btn-primary px-6 py-3 text-base">{% if is_new %}<span x-show="!quick">Save patient &amp; visit</span><span x-show="quick" x-cloak>Save patient</span>{% else %}Save visit{% endif %}</button>
   </div>
 </form>
 {% endblock %}
@@ -106,6 +123,9 @@ function testPicker() {
   const pre = {{ vform.tests.value|default:"[]"|safe }};
   return {
     q: '', all, selected: [],
+    // Quick add: a patient from before this app existed. Hides the visit entirely,
+    // because we know the person, not when they came in or what was run.
+    quick: {% if pform.mode == 'quick' %}true{% else %}false{% endif %},
     init() { const ids = (Array.isArray(pre) ? pre : []).map(String); this.selected = all.filter(t => ids.includes(String(t.id))); },
     matches() { const q = this.q.toLowerCase().trim(); if (!q) return [];
       return this.all.filter(t => !this.selected.some(s => s.id === t.id) && (t.name.toLowerCase().includes(q) || t.code.toLowerCase().includes(q))).slice(0, 12); },
