@@ -17,6 +17,11 @@ BRANCH="${DEPLOY_BRANCH:-main}"
 
 cd "$PROJECT_DIR"
 
+# Public link: start the cloudflared container only once a tunnel token is in .env.
+if [ -f .env ] && grep -qE '^CLOUDFLARE_TUNNEL_TOKEN=.+' .env; then
+  COMPOSE+=(--profile tunnel)
+fi
+
 if [ ! -f .env ]; then
   echo "ERROR: .env not found in $PROJECT_DIR"
   echo "  cp .env.example .env   then fill in every value (DEBUG=False, SECRET_KEY, POSTGRES_PASSWORD, ALLOWED_HOSTS ...)"

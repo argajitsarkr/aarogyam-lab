@@ -1,8 +1,9 @@
-# PowerEdge R730 (shared with GrantSetu), behind Cloudflare Tunnel.
+# PowerEdge R730 (shared with GrantSetu, phytosynergy, tgma, mmilab), behind Cloudflare.
 #   bash deploy.sh up       first start
 #   bash deploy.sh update   after pushing from the laptop
-# TLS is terminated by Cloudflare; nginx listens on 127.0.0.1:${LAB_HTTP_PORT:-8090} only.
-# Ports 3000/8000 belong to GrantSetu - nothing here publishes them.
+# TLS is terminated by Cloudflare; the `tunnel` service below talks to nginx inside the
+# compose network. nginx is also published on 127.0.0.1:${LAB_HTTP_PORT:-8090} for checks
+# over SSH. Host ports 80/3000/7070/8000/8080/8082/8100 belong to other apps.
 name: aarogyam
 
 x-app: &app
@@ -75,6 +76,21 @@ services:
       - private_media:/app/private_media:ro
     depends_on:
       web: { condition: service_healthy }
+    restart: unless-stopped
+
+  # Public link: own Cloudflare tunnel (same pattern as phytosynergy-project).
+  # Create the tunnel in Cloudflare Zero Trust -> Networks -> Tunnels, set its public
+  # hostname's service to  http://nginx:80 , and put the token in .env as
+  # CLOUDFLARE_TUNNEL_TOKEN. deploy.sh enables this profile only when the token is set.
+  tunnel:
+    # Same image the other stacks on this server already use (disk is tight).
+    image: cloudflare/cloudflared:latest
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - nginx
+    profiles: ["tunnel"]
     restart: unless-stopped
 
   db_backup:

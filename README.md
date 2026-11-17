@@ -193,10 +193,11 @@ Test a restore on a spare machine every few months.
 
 ## 8b. Laptop push -> PowerEdge pull (current setup, behind Cloudflare Tunnel)
 
-The lab runs on the same PowerEdge R730 as GrantSetu, reached through the existing
-Cloudflare Tunnel. Cloudflare terminates HTTPS; this stack uses `docker-compose.server.yml`,
-which publishes nginx on `127.0.0.1:8090` only (no ports 80/443, and GrantSetu's 3000/8000
-are untouched). No certbot is needed.
+The lab runs on the shared PowerEdge R730 (`mmilab@100.126.84.75` over Tailscale), next to
+GrantSetu, phytosynergy, tgma and mmilab. Like phytosynergy, it has **its own Cloudflare tunnel
+container** in front of **its own nginx**: Cloudflare terminates HTTPS, the `tunnel` service
+forwards to `http://nginx:80` inside the compose network, and no public host port is opened.
+nginx is additionally published on `127.0.0.1:8090` for checks over SSH. No certbot, no sudo.
 
 **Day-to-day**
 
@@ -205,10 +206,10 @@ python -m pytest            # on the laptop, before every push
 git push origin main
 ```
 
-then on the server (AnyDesk/SSH):
+then on the server:
 
 ```bash
-cd /home/mmilab/aarogyam && bash deploy.sh update
+ssh mmilab@100.126.84.75 "cd /home/mmilab/aarogyam && bash deploy.sh update"
 ```
 
 `update` refuses to run if tracked files were edited on the server, fast-forwards to
@@ -217,9 +218,9 @@ Other commands: `bash deploy.sh status | logs | backup | admin | down`.
 
 **One-time server setup**
 
-1. Read-only deploy key. The server's `~/.ssh/config` already sends `github.com` to the
-   GrantSetu key with `IdentitiesOnly yes`, and GitHub will not reuse one deploy key on two
-   repos, so this repo gets its own key and host alias:
+1. Read-only deploy key. GitHub will not reuse one deploy key on two repos, so - like
+   `github-tgma` / `github-phytosynergy` already in the server's `~/.ssh/config` - this repo
+   gets its own key and host alias:
 
    ```bash
    ssh-keygen -t ed25519 -C "aarogyam-server" -f ~/.ssh/aarogyam_deploy -N ""
@@ -253,7 +254,12 @@ Other commands: `bash deploy.sh status | logs | backup | admin | down`.
    (`ss -ltnp | grep 8090`).
 4. `bash deploy.sh up`, then `curl -sI http://127.0.0.1:8090/accounts/login/` should answer
    (a 301 to https is expected - Django sees every request as HTTPS).
-5. Add the hostname to the existing tunnel - see `docker/cloudflared-ingress.example.yml`.
+5. Public link: Cloudflare Zero Trust -> Networks -> Tunnels -> **Create a tunnel**
+   (Cloudflared), name `aarogyam-lab`. Copy the token from the install command into `.env`
+   as `CLOUDFLARE_TUNNEL_TOKEN=...`. Under **Public hostname** add the lab hostname with
+   service type `HTTP` and URL `nginx:80`. Make sure `ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS`
+   contain that hostname, then `bash deploy.sh up` again (it starts the tunnel container
+   once the token is present).
 6. **Strongly recommended:** put a Cloudflare Access (Zero Trust) policy on the lab hostname
    that allows only staff emails. Patient data should not sit behind a login page alone.
 7. Copy `.env` somewhere safe off the server; it is gitignored and not inside the DB backups.
