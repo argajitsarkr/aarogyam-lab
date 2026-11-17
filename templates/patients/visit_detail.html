@@ -7,7 +7,7 @@
   
 </div>
 
-<form method="post" enctype="multipart/form-data" class="space-y-4">
+<form method="post" class="space-y-4">
   {% csrf_token %}
   {{ formset.management_form }}
   <section class="card overflow-x-auto p-0">
@@ -32,6 +32,10 @@
           {% endif %}
         </tr>
         {% endwith %}
+      {% empty %}
+        <tr><td colspan="5" class="py-6 text-center text-sm text-slate-500">
+          No tests recorded on this visit yet. Add them below once the lab confirms what was run.
+        </td></tr>
       {% endfor %}
       </tbody>
     </table>
@@ -53,4 +57,24 @@
 
   {% if can_edit %}<div class="flex justify-end print:hidden"><button class="btn-primary px-6">Save results</button></div>{% endif %}
 </form>
+
+{% if can_edit %}
+{% comment %}
+  Its own form, outside the results form: a form inside a form is invalid HTML and
+  the browser drops the inner one. Registration does not demand a test any more, so
+  this is how a visit is completed once the lab says what was actually run.
+{% endcomment %}
+<form method="post" class="card mt-4 print:hidden">
+  {% csrf_token %}
+  <h2 class="mb-1 font-semibold">Add tests</h2>
+  <p class="mb-3 text-sm text-slate-500">Tests already on this visit are not listed. Hold Ctrl (or Cmd) to pick several.</p>
+  <div class="flex flex-wrap items-end gap-3">
+    <div class="min-w-[18rem] flex-1">
+      <label class="label" for="{{ add_form.tests.id_for_label }}">Tests</label>
+      {{ add_form.tests }}{{ add_form.tests.errors }}
+    </div>
+    <button name="add_tests" value="1" class="btn-primary">{% icon "add" %} Add to visit</button>
+  </div>
+</form>
+{% endif %}
 {% endblock %}

@@ -1,4 +1,3 @@
-from decimal import Decimal
 
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -83,13 +82,12 @@ def minimal_card(patient, user):
 # --------------------------------------------------------------------------
 @transaction.atomic
 def create_visit(*, patient, user, centre, tests, visit_fields):
-    """Create a visit at `centre` with tests priced from the catalogue."""
+    """Create a visit at `centre`. `tests` may be empty: the front desk can record
+    the visit now and the tests once the lab says what was run."""
     visit = Visit(patient=patient, centre=centre, registered_by=user, **visit_fields)
     visit.save()
-    total = Decimal(0)
     for test in tests:
         VisitTest.objects.create(visit=visit, test=test)
-        total += test.price
     visit_registered.send(sender=Visit, visit=visit)
     return visit
 

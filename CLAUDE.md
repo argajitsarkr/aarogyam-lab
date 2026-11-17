@@ -39,6 +39,12 @@ The ramps live in **two** places, because the DEBUG CDN build cannot read
 the blues and `slate` as neutral greys, rather than rewriting the utilities in forty
 templates, so every existing `bg-teal-700` / `text-slate-500` follows the palette.
 
+**A visit does not need a test.** The front desk often does not yet know what was run, so
+`VisitForm.tests` is optional (the Excel importer always allowed this). Tests are added to an
+existing visit from the visit page - `AddVisitTestsForm`, posted with `add_tests`, in its own
+`<form>` outside the results grid, since nested forms are invalid HTML and the browser drops
+the inner one. A visit with no tests simply never produces a re-test candidate.
+
 **No money anywhere.** The lab earns a commission from the partner labs, so the app records
 no billing: `Visit` has no `total_amount` / `discount` / `amount_paid` / `payment_mode`,
 `VisitTest` has no `price_charged`, and no screen shows revenue. `TestCatalog.price` stays -
@@ -165,7 +171,7 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   (cp1252 default otherwise).
 - Local runs use SQLite and CDN assets when `DEBUG=True` (`.env` here is dev-only).
 - `python manage.py create_demo_data` for fake data; refused when `DEBUG=False`.
-- Tests: `python -m pytest` (100 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
+- Tests: `python -m pytest` (106 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
 - Docker Desktop on this laptop has been unreliable (engine stuck stopped); the full
   `docker compose up` stack has not yet been verified here.
 

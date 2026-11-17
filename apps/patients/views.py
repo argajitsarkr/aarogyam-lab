@@ -20,7 +20,7 @@ from apps.core.mixins import AdminRequiredMixin, ListPageMixin, SimpleFormPageMi
 
 from . import importer
 from .filters import PatientFilter
-from .forms import (DoctorForm, ImportUploadForm, PatientForm, TestCatalogForm, VisitDetailsForm, VisitForm,
+from .forms import (AddVisitTestsForm, DoctorForm, ImportUploadForm, PatientForm, TestCatalogForm, VisitDetailsForm, VisitForm,
                     VisitTestResultFormSet)
 from .models import Doctor, Patient, TestCatalog, Visit, VisitTest
 from .services import (active_tests, check_patient_access, check_visit_edit, create_visit, employee_centre,
@@ -198,9 +198,21 @@ def visit_detail(request, pk):
     check_patient_access(request.user, visit.patient, request)
     can_edit = request.user.is_admin or request.user.home_centre_id == visit.centre_id
     qs = visit.tests.select_related("test")
-    if request.method == "POST":
+    # Two forms post to this page: the results grid, and "add tests", which exists
+    # because registration no longer demands a test up front.
+    adding = request.method == "POST" and "add_tests" in request.POST
+
+    add_form = AddVisitTestsForm(request.POST if adding else None, visit=visit)
+    if adding:
         check_visit_edit(request.user, visit)
-        formset = VisitTestResultFormSet(request.POST, request.FILES, queryset=qs, prefix="t")
+        if add_form.is_valid():
+            added = add_form.save()
+            messages.success(request, f"Added {len(added)} test{'' if len(added) == 1 else 's'} to this visit.")
+            return redirect("patients:visit_detail", pk=pk)
+
+    if request.method == "POST" and not adding:
+        check_visit_edit(request.user, visit)
+        formset = VisitTestResultFormSet(request.POST, queryset=qs, prefix="t")
         bform = VisitDetailsForm(request.POST, instance=visit, prefix="b")
         if formset.is_valid() and bform.is_valid():
             with transaction.atomic():
@@ -212,7 +224,8 @@ def visit_detail(request, pk):
         formset = VisitTestResultFormSet(queryset=qs, prefix="t")
         bform = VisitDetailsForm(instance=visit, prefix="b")
     return render(request, "patients/visit_detail.html",
-                  {"visit": visit, "formset": formset, "bform": bform, "can_edit": can_edit})
+                  {"visit": visit, "formset": formset, "bform": bform, "add_form": add_form,
+                   "can_edit": can_edit})
 
 
 # =============================================================================

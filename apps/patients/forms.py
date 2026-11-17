@@ -45,9 +45,10 @@ class PatientForm(StyledFormMixin, forms.ModelForm):
 
 
 class VisitForm(StyledFormMixin, forms.ModelForm):
+    # Optional: a visit can be recorded before anyone knows which tests were run.
+    # The Excel importer has always allowed this; the form used to demand one test.
     tests = forms.ModelMultipleChoiceField(
-        queryset=TestCatalog.objects.none(), widget=forms.MultipleHiddenInput,
-        error_messages={"required": "Add at least one test."},
+        queryset=TestCatalog.objects.none(), widget=forms.MultipleHiddenInput, required=False,
     )
     centre = forms.ModelChoiceField(queryset=Centre.objects.filter(is_active=True), required=False,
                                     help_text="Admins only — employees always register at their home centre.")
@@ -74,6 +75,29 @@ class VisitForm(StyledFormMixin, forms.ModelForm):
         if data.get("sample_collection_type") == Visit.CollectionType.HOME and not data.get("collection_address"):
             self.add_error("collection_address", "Collection address is required for home collection.")
         return data
+
+
+class AddVisitTestsForm(forms.Form):
+    """Add tests to a visit that already exists. Registration no longer demands a
+    test up front, so this is how a visit gets completed once the lab says what
+    was actually run."""
+
+    tests = forms.ModelMultipleChoiceField(
+        queryset=TestCatalog.objects.none(),
+        error_messages={"required": "Choose at least one test to add."},
+    )
+
+    def __init__(self, *args, visit=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.visit = visit
+        already = visit.tests.values_list("test_id", flat=True) if visit else []
+        self.fields["tests"].queryset = TestCatalog.objects.filter(is_active=True).exclude(pk__in=already)
+
+    def save(self):
+        from .models import VisitTest
+
+        created = [VisitTest.objects.create(visit=self.visit, test=t) for t in self.cleaned_data["tests"]]
+        return created
 
 
 class VisitDetailsForm(StyledFormMixin, forms.ModelForm):
