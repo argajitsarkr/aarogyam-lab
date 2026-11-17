@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Re-test queue{% endblock %}{% block page_title %}Re-test queue <span class="text-sm font-normal text-slate-500">· {{ scope.label }}</span>{% endblock %}
+{% block content %}
+<div class="mb-3 flex flex-wrap gap-2">
+  <a href="{% url 'retest:my_calls' %}" class="btn-primary">📞 My Call List</a>
+  {% if is_admin_user %}
+  <form method="post" action="{% url 'retest:run' %}">{% csrf_token %}<button class="btn">⟳ Run re-test scan now</button></form>
+  <a href="{% url 'retest:analytics' %}" class="btn">📈 Analytics</a>
+  {% endif %}
+</div>
+{% include "core/_filter_form.html" %}
+{% include "core/_list_toolbar.html" %}
+<div id="list-results">{% include results_template %}</div>
+{% endblock %}

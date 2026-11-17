@@ -1,0 +1,43 @@
+{% load ui %}
+{% if view_mode == 'card' %}
+<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+{% for t in object_list %}
+  <div class="card p-3 {% if not t.is_active %}opacity-60{% endif %}">
+    <div class="flex justify-between gap-2"><span class="font-semibold">{{ t.name }}</span><span class="font-bold text-teal-800">{{ t.price|inr }}</span></div>
+    <div class="text-xs text-slate-500">{{ t.code }} · {{ t.get_category_display }} · {{ t.sample_type }}</div>
+    <div class="mt-1 text-xs">{% if t.retest_interval_days %}Re-test every {{ t.retest_interval_days }} days{% if t.needs_clinical_review %} ⚕{% endif %}{% else %}No re-test{% endif %}{% if t.is_chronic_monitoring %} · chronic{% endif %}</div>
+    {% if is_admin_user %}<a href="{% url 'patients:test_update' t.pk %}" class="mt-1 inline-block text-xs text-teal-700">Edit</a>{% endif %}
+  </div>
+{% endfor %}
+</div>
+{% else %}
+<div class="card overflow-x-auto p-0">
+<table class="tbl">
+  <thead><tr>
+    {% if 'code' not in hidden_cols %}<th>{% sort_link 'code' 'Code' %}</th>{% endif %}
+    {% if 'name' not in hidden_cols %}<th>{% sort_link 'name' 'Name' %}</th>{% endif %}
+    {% if 'category' not in hidden_cols %}<th>{% sort_link 'category' 'Category' %}</th>{% endif %}
+    {% if 'sample' not in hidden_cols %}<th>Sample</th>{% endif %}
+    {% if 'price' not in hidden_cols %}<th class="text-right">{% sort_link 'price' 'Price' %}</th>{% endif %}
+    {% if 'interval' not in hidden_cols %}<th>{% sort_link 'interval' 'Re-test (days)' %}</th>{% endif %}
+    {% if 'chronic' not in hidden_cols %}<th>Chronic</th>{% endif %}
+    {% if is_admin_user %}<th></th>{% endif %}
+  </tr></thead>
+  <tbody>
+  {% for t in object_list %}
+    <tr class="{% if not t.is_active %}opacity-60{% endif %}">
+      {% if 'code' not in hidden_cols %}<td class="font-mono text-xs">{{ t.code }}</td>{% endif %}
+      {% if 'name' not in hidden_cols %}<td class="font-medium">{{ t.name }}</td>{% endif %}
+      {% if 'category' not in hidden_cols %}<td>{{ t.get_category_display }}</td>{% endif %}
+      {% if 'sample' not in hidden_cols %}<td>{{ t.sample_type }}</td>{% endif %}
+      {% if 'price' not in hidden_cols %}<td class="text-right">{{ t.price|inr }}</td>{% endif %}
+      {% if 'interval' not in hidden_cols %}<td>{{ t.retest_interval_days|default:"—" }}{% if t.retest_interval_days and t.needs_clinical_review %} <span title="Pending clinical review">⚕</span>{% endif %}</td>{% endif %}
+      {% if 'chronic' not in hidden_cols %}<td>{% if t.is_chronic_monitoring %}✓{% endif %}</td>{% endif %}
+      {% if is_admin_user %}<td><a href="{% url 'patients:test_update' t.pk %}" class="btn btn-sm">Edit</a></td>{% endif %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% include "core/_pagination.html" %}

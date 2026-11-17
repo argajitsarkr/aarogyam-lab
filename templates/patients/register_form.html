@@ -1,0 +1,126 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}{% if is_new %}New patient{% else %}New visit{% endif %}{% endblock %}
+{% block page_title %}{% if is_new %}Register new patient{% else %}New visit — {{ patient.full_name }}{% endif %}{% endblock %}
+{% block content %}
+{{ tests_json|json_script:"tests-data" }}
+<form method="post" class="mx-auto max-w-4xl space-y-4" x-data="testPicker()" x-init="init()">
+  {% csrf_token %}
+
+  {% if is_new %}
+  <section class="card">
+    <h2 class="mb-3 text-base font-semibold">Patient details</h2>
+    {% with form=pform %}
+      {% if form.non_field_errors %}<div class="mb-2 text-sm text-red-700">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-6">
+        <div class="sm:col-span-2"><label class="label" for="{{ form.phone.id_for_label }}">Mobile *</label>{{ form.phone }}{{ form.phone.errors }}</div>
+        <div class="sm:col-span-4"><label class="label" for="{{ form.full_name.id_for_label }}">Full name *</label>{{ form.full_name }}{{ form.full_name.errors }}</div>
+        <div class="sm:col-span-1"><label class="label" for="{{ form.age_years.id_for_label }}">Age</label>{{ form.age_years }}{{ form.age_years.errors }}</div>
+        <div class="sm:col-span-2"><label class="label" for="{{ form.dob.id_for_label }}">or DOB</label>{{ form.dob }}{{ form.dob.errors }}</div>
+        <div class="sm:col-span-1"><label class="label" for="{{ form.sex.id_for_label }}">Sex *</label>{{ form.sex }}{{ form.sex.errors }}</div>
+        <div class="sm:col-span-2"><label class="label" for="{{ form.alt_phone.id_for_label }}">Alternate phone</label>{{ form.alt_phone }}{{ form.alt_phone.errors }}</div>
+      </div>
+      <h3 class="mb-2 mt-4 text-sm font-semibold text-slate-600">Location</h3>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-6">
+        <div class="sm:col-span-3"><label class="label" for="{{ form.house_street.id_for_label }}">House / street</label>{{ form.house_street }}</div>
+        <div class="sm:col-span-3"><label class="label" for="{{ form.locality.id_for_label }}">Locality / area</label>{{ form.locality }}<datalist id="locality-options"></datalist></div>
+        <div class="sm:col-span-2"><label class="label" for="{{ form.village_ward.id_for_label }}">Village / ward</label>{{ form.village_ward }}</div>
+        <div class="sm:col-span-2"><label class="label" for="{{ form.city.id_for_label }}">City</label>{{ form.city }}</div>
+        <div class="sm:col-span-2"><label class="label" for="{{ form.pin_code.id_for_label }}">PIN code</label>{{ form.pin_code }}{{ form.pin_code.errors }}</div>
+        <div class="sm:col-span-3"><label class="label" for="{{ form.district.id_for_label }}">District</label>{{ form.district }}</div>
+        <div class="sm:col-span-3"><label class="label" for="{{ form.state.id_for_label }}">State</label>{{ form.state }}</div>
+        <div class="sm:col-span-3"><label class="label" for="{{ form.email.id_for_label }}">Email (optional)</label>{{ form.email }}{{ form.email.errors }}</div>
+        <div class="sm:col-span-3"><label class="label" for="{{ form.notes.id_for_label }}">Notes</label>{{ form.notes }}</div>
+      </div>
+      <div class="mt-4 space-y-2 rounded-lg bg-slate-50 p-3">
+        <label class="flex items-start gap-2 text-sm">{{ form.consent_to_contact }} <span><b>Consent to contact.</b> Patient agrees to calls about follow-ups and re-test reminders. (Required before any calling — DPDP Act 2023.)</span></label>
+        <label class="flex items-center gap-2 text-sm">{{ form.do_not_call }} Do not call</label>
+      </div>
+    {% endwith %}
+  </section>
+  {% else %}
+  <section class="card flex flex-wrap items-center gap-3">
+    <div class="flex-1">
+      <div class="font-semibold">{{ patient.full_name }}</div>
+      <div class="text-xs text-slate-500">{{ patient.patient_id }} · Last visit {{ card.last_visit_date|date:"d-m-Y"|default:"—" }} at {% centre_badge card.last_visit_centre %}</div>
+    </div>
+    <div class="text-sm text-slate-600">This visit will be recorded at <b>{% if is_admin_user %}the selected centre{% else %}{{ request.user.home_centre }}{% endif %}</b>.</div>
+  </section>
+  {% endif %}
+
+  <section class="card">
+    <h2 class="mb-3 text-base font-semibold">Tests</h2>
+    <div class="relative">
+      <input type="search" x-model="q" @keydown.enter.prevent="addFirst()" placeholder="Type test name or code, press Enter to add…" class="input py-2.5" aria-label="Search tests">
+      <div x-show="q.length" x-cloak class="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border bg-white shadow-lg">
+        <template x-for="t in matches()" :key="t.id">
+          <button type="button" @click="add(t)" class="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-teal-50">
+            <span><span x-text="t.name"></span> <span class="text-xs text-slate-400" x-text="t.code"></span></span>
+            <span x-text="'₹' + t.price"></span>
+          </button>
+        </template>
+        <div x-show="!matches().length" class="px-3 py-2 text-sm text-slate-500">No matching test</div>
+      </div>
+    </div>
+    <ul class="mt-3 divide-y rounded-md border" x-show="selected.length" x-cloak>
+      <template x-for="t in selected" :key="t.id">
+        <li class="flex items-center justify-between px-3 py-2 text-sm">
+          <span x-text="t.name"></span>
+          <span class="flex items-center gap-3"><span x-text="'₹' + t.price"></span>
+            <button type="button" @click="remove(t)" class="text-red-600" aria-label="Remove">✕</button></span>
+          <input type="hidden" name="v-tests" :value="t.id">
+        </li>
+      </template>
+    </ul>
+    <p x-show="!selected.length" class="mt-2 text-sm text-slate-500">No tests added yet.</p>
+    {{ vform.tests.errors }}
+  </section>
+
+  <section class="card">
+    <h2 class="mb-3 text-base font-semibold">Visit & payment</h2>
+    {% with form=vform %}
+    {% if form.non_field_errors %}<div class="mb-2 text-sm text-red-700">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-6" x-data="{ home: '{{ form.sample_collection_type.value|default:'CENTRE' }}' === 'HOME' }">
+      {% if form.centre %}<div class="sm:col-span-3"><label class="label" for="{{ form.centre.id_for_label }}">Centre *</label>{{ form.centre }}{{ form.centre.errors }}</div>{% endif %}
+      <div class="sm:col-span-3"><label class="label" for="{{ form.visit_date.id_for_label }}">Visit date</label>{{ form.visit_date }}{{ form.visit_date.errors }}</div>
+      <div class="sm:col-span-3"><label class="label" for="{{ form.referring_doctor.id_for_label }}">Referring doctor</label>{{ form.referring_doctor }}</div>
+      <div class="sm:col-span-3"><label class="label" for="{{ form.sample_collection_type.id_for_label }}">Sample collection</label>
+        <select name="{{ form.sample_collection_type.html_name }}" id="{{ form.sample_collection_type.id_for_label }}" class="input" @change="home = $event.target.value === 'HOME'">
+          {% for val, lab in form.fields.sample_collection_type.choices %}<option value="{{ val }}" {% if form.sample_collection_type.value == val %}selected{% endif %}>{{ lab }}</option>{% endfor %}
+        </select></div>
+      <div class="sm:col-span-6" x-show="home" x-cloak><label class="label" for="{{ form.collection_address.id_for_label }}">Collection address</label>{{ form.collection_address }}{{ form.collection_address.errors }}</div>
+      <div class="sm:col-span-2"><label class="label">Total</label><div class="input bg-slate-50 py-2 font-semibold" x-text="'₹' + total()"></div></div>
+      <div class="sm:col-span-2"><label class="label" for="{{ form.discount.id_for_label }}">Discount (₹)</label>
+        <input type="number" step="0.01" min="0" name="{{ form.discount.html_name }}" id="{{ form.discount.id_for_label }}" class="input" x-model.number="discount" value="{{ form.discount.value|default:0 }}">{{ form.discount.errors }}</div>
+      <div class="sm:col-span-2"><label class="label">Net payable</label><div class="input bg-slate-50 py-2 font-bold text-teal-800" x-text="'₹' + Math.max(total() - (discount||0), 0)"></div></div>
+      <div class="sm:col-span-3"><label class="label" for="{{ form.amount_paid.id_for_label }}">Amount paid (₹)</label>
+        <div class="flex gap-2">{{ form.amount_paid }}<button type="button" class="btn btn-sm whitespace-nowrap" @click="document.getElementById('{{ form.amount_paid.id_for_label }}').value = Math.max(total() - (discount||0), 0)">Paid in full</button></div>{{ form.amount_paid.errors }}</div>
+      <div class="sm:col-span-3"><label class="label" for="{{ form.payment_mode.id_for_label }}">Payment mode</label>{{ form.payment_mode }}</div>
+      <div class="sm:col-span-6"><label class="label" for="{{ form.notes.id_for_label }}">Visit notes</label>{{ form.notes }}</div>
+    </div>
+    {% endwith %}
+  </section>
+
+  <div class="sticky bottom-0 -mx-3 flex justify-end gap-2 border-t bg-white/95 px-3 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+    <a href="{% url 'patients:register' %}" class="btn">Cancel</a>
+    <button class="btn-primary px-6 py-3 text-base">Save {% if is_new %}patient & visit{% else %}visit{% endif %}</button>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+function testPicker() {
+  const all = JSON.parse(JSON.parse(document.getElementById('tests-data').textContent));
+  const pre = {{ vform.tests.value|default:"[]"|safe }};
+  return {
+    q: '', all, selected: [], discount: Number('{{ vform.discount.value|default:0 }}') || 0,
+    init() { const ids = (Array.isArray(pre) ? pre : []).map(String); this.selected = all.filter(t => ids.includes(String(t.id))); },
+    matches() { const q = this.q.toLowerCase().trim(); if (!q) return [];
+      return this.all.filter(t => !this.selected.some(s => s.id === t.id) && (t.name.toLowerCase().includes(q) || t.code.toLowerCase().includes(q))).slice(0, 12); },
+    add(t) { this.selected.push(t); this.q = ''; },
+    addFirst() { const m = this.matches(); if (m.length) this.add(m[0]); },
+    remove(t) { this.selected = this.selected.filter(s => s.id !== t.id); },
+    total() { return this.selected.reduce((a, t) => a + t.price, 0); },
+  };
+}
+</script>
+{% endblock %}

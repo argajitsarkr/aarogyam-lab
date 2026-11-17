@@ -1,0 +1,10 @@
+{% load ui %}{% if is_paginated %}
+<nav class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+  <div class="text-slate-500">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ paginator.count }}</div>
+  <div class="flex gap-1">
+    {% if page_obj.has_previous %}<a class="btn btn-sm" href="?{% qs_replace page=page_obj.previous_page_number %}">‹ Prev</a>{% endif %}
+    <span class="px-2 py-1">Page {{ page_obj.number }} / {{ paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a class="btn btn-sm" href="?{% qs_replace page=page_obj.next_page_number %}">Next ›</a>{% endif %}
+  </div>
+</nav>
+{% elif paginator %}<div class="mt-3 text-sm text-slate-500">{{ paginator.count }} record{{ paginator.count|pluralize }}</div>{% endif %}

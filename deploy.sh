@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# Aarogyam Pathology - deploy helper for the PowerEdge server (Cloudflare Tunnel mode).
+#
+#   bash deploy.sh up        first build + start
+#   bash deploy.sh update    git pull (fast-forward only) + rebuild + restart; migrations run on web start
+#   bash deploy.sh logs      tail all logs (Ctrl+C to stop)
+#   bash deploy.sh status    containers + memory
+#   bash deploy.sh backup    run a database backup now
+#   bash deploy.sh admin     create the first Admin (interactive)
+#   bash deploy.sh down      stop everything (data volumes are kept)
+set -euo pipefail
+
+ACTION="${1:-status}"
+PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
+COMPOSE=(docker compose -f "$PROJECT_DIR/docker-compose.server.yml" --env-file "$PROJECT_DIR/.env")
+BRANCH="${DEPLOY_BRANCH:-main}"
+
+cd "$PROJECT_DIR"
+
+if [ ! -f .env ]; then
+  echo "ERROR: .env not found in $PROJECT_DIR"
+  echo "  cp .env.example .env   then fill in every value (DEBUG=False, SECRET_KEY, POSTGRES_PASSWORD, ALLOWED_HOSTS ...)"
+  exit 1
+fi
+if grep -qE '^(SECRET_KEY|POSTGRES_PASSWORD)=(change-me.*)?$' .env; then
+  echo "ERROR: .env still has a placeholder SECRET_KEY or POSTGRES_PASSWORD."
+  exit 1
+fi
+
+mkdir -p "${BACKUP_DIR:-/home/mmilab/aarogyam-backups}"
+
+case "$ACTION" in
+  up)
+    "${COMPOSE[@]}" up -d --build
+    "${COMPOSE[@]}" ps
+    ;;
+
+  update)
+    if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+      echo "ERROR: tracked files were edited on the server. Make changes on the laptop and push;"
+      echo "       inspect with 'git status' / 'git diff' before discarding anything here."
+      exit 1
+    fi
+    before="$(git rev-parse --short HEAD)"
+    git fetch origin "$BRANCH"
+    git merge --ff-only "origin/$BRANCH"
+    after="$(git rev-parse --short HEAD)"
+    echo "Code: $before -> $after"
+    git --no-pager log --oneline "$before..$after" || true
+    "${COMPOSE[@]}" build web nginx db_backup
+    "${COMPOSE[@]}" up -d
+    echo "Waiting for web to report healthy (migrations run first)..."
+    for _ in $(seq 1 40); do
+      state="$(docker inspect -f '{{.State.Health.Status}}' "$("${COMPOSE[@]}" ps -q web)" 2>/dev/null || echo starting)"
+      [ "$state" = "healthy" ] && break
+      sleep 3
+    done
+    echo "web: ${state:-unknown}"
+    "${COMPOSE[@]}" logs --tail 30 web
+    docker image prune -f >/dev/null
+    "${COMPOSE[@]}" ps
+    ;;
+
+  logs)
+    "${COMPOSE[@]}" logs -f --tail 50 "${@:2}"
+    ;;
+
+  status)
+    "${COMPOSE[@]}" ps
+    echo
+    echo "Deployed commit: $(git rev-parse --short HEAD) ($(git log -1 --format=%cd --date=format:'%d-%m-%Y %H:%M'))"
+    ids="$("${COMPOSE[@]}" ps -q)"
+    [ -n "$ids" ] && docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" $ids
+    ;;
+
+  backup)
+    "${COMPOSE[@]}" exec db_backup /usr/local/bin/backup.sh
+    ls -lh "${BACKUP_DIR:-/home/mmilab/aarogyam-backups}" | tail -5
+    ;;
+
+  admin)
+    "${COMPOSE[@]}" exec web python manage.py create_first_admin
+    ;;
+
+  down)
+    "${COMPOSE[@]}" down
+    ;;
+
+  *)
+    echo "Usage: bash deploy.sh [up|update|logs|status|backup|admin|down]"
+    exit 1
+    ;;
+esac

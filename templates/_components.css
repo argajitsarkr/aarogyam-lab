@@ -1,0 +1,25 @@
+@layer components {
+  [x-cloak] { display: none !important; }
+  .navlink { @apply block rounded-md px-3 py-2 text-teal-50 hover:bg-white/10; }
+  .navlink-active { @apply bg-white/20 font-semibold; }
+  .card { @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm; }
+  .btn { @apply inline-flex items-center justify-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50; }
+  .btn-primary { @apply inline-flex items-center justify-center gap-1 rounded-md bg-teal-700 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50; }
+  .btn-danger { @apply inline-flex items-center justify-center gap-1 rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700; }
+  .btn-sm { @apply px-2 py-1 text-xs; }
+  .input { @apply block w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-teal-600 focus:ring-teal-600; }
+  .label { @apply mb-1 block text-sm font-medium text-slate-700; }
+  .tbl { @apply min-w-full divide-y divide-slate-200 text-sm; }
+  .tbl th { @apply whitespace-nowrap bg-slate-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-600; }
+  .tbl td { @apply whitespace-nowrap px-3 py-2 align-top; }
+  .tbl tbody tr { @apply hover:bg-slate-50; }
+  .kpi { @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm; }
+  .kpi-label { @apply text-xs font-medium uppercase tracking-wide text-slate-500; }
+  .kpi-value { @apply mt-1 text-2xl font-bold text-slate-900; }
+  .seg { @apply inline-flex overflow-hidden rounded-md border border-slate-300 text-sm; }
+  .seg a, .seg button { @apply px-3 py-1.5 hover:bg-slate-50; }
+  .seg .on { @apply bg-teal-700 text-white hover:bg-teal-700; }
+  .errorlist { @apply mt-1 text-xs text-red-600; }
+  .htmx-indicator { opacity: 0; transition: opacity 200ms; }
+  .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }
+}

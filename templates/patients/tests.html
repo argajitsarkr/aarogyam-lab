@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Test catalog{% endblock %}{% block page_title %}Test catalog{% endblock %}
+{% block content %}
+<div class="mb-3 flex flex-wrap gap-2">
+  <form method="get" class="flex flex-1 flex-wrap gap-2" hx-get="{{ request.path }}" hx-target="#list-results" hx-trigger="input changed delay:300ms from:input, change from:select" hx-push-url="true">
+    <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Search test name or code…" class="input max-w-sm" aria-label="Search tests">
+    <select name="category" class="input max-w-xs" aria-label="Category"><option value="">All categories</option>
+      {% for v, l in categories %}<option value="{{ v }}" {% if request.GET.category == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+  </form>
+  {% if is_admin_user %}<a href="{% url 'patients:test_create' %}" class="btn-primary">+ Add test</a>{% endif %}
+</div>
+<p class="mb-3 rounded-md bg-amber-50 p-2 text-xs text-amber-800">Re-test intervals marked ⚕ are seeded defaults pending clinical review by the lab's pathologist.</p>
+{% include "core/_list_toolbar.html" %}
+<div id="list-results">{% include results_template %}</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}New follow-up{% endblock %}{% block page_title %}New follow-up{% endblock %}
+{% block content %}
+<form method="post" class="card mx-auto max-w-3xl">
+  {% csrf_token %}
+  <input type="hidden" name="patient" value="{{ patient.pk }}">
+  <div class="mb-4 rounded-md bg-slate-50 p-3 text-sm">
+    <b>{{ patient.full_name }}</b> · {{ patient.patient_id }} · {% centre_badge centre %} {{ centre.name }}
+    {% if not patient.is_contactable %}<div class="mt-1 text-amber-700">⚠ Patient has not consented to be contacted (or is marked Do Not Call). Do not phone them about this follow-up.</div>{% endif %}
+  </div>
+  {% include "core/_form_fields.html" %}
+  <div class="mt-4 flex justify-end gap-2"><a href="{% url 'patients:detail' patient.pk %}" class="btn">Cancel</a><button class="btn-primary">Create follow-up</button></div>
+</form>
+{% endblock %}

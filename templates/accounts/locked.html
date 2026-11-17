@@ -1,0 +1,9 @@
+{% extends "auth_base.html" %}
+{% block title %}Account locked{% endblock %}
+{% block content %}
+<div class="text-center text-sm">
+  <p class="font-semibold text-red-700">Too many failed sign-in attempts.</p>
+  <p class="mt-2 text-slate-600">This account is temporarily locked. Try again later or ask an Admin to unlock it.</p>
+  <a class="btn mt-4" href="{% url 'accounts:login' %}">Back to sign in</a>
+</div>
+{% endblock %}

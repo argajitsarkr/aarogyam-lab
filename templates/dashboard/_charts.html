@@ -1,0 +1,49 @@
+{# Expects `charts` in context. #}
+{{ charts|json_script:"chart-data" }}
+<div class="grid gap-4 lg:grid-cols-2">
+  <div class="card"><h3 class="mb-2 text-sm font-semibold">Visits per centre — last {{ charts.labels|length }} days</h3><div class="relative h-64"><canvas id="ch-visits" aria-label="Visits per centre"></canvas></div></div>
+  <div class="card"><h3 class="mb-2 text-sm font-semibold">New registrations by centre</h3><div class="relative h-64"><canvas id="ch-regs" aria-label="New registrations by centre"></canvas></div></div>
+  <div class="card" x-data="{ c: Object.keys(JSON.parse(document.getElementById('chart-data').textContent).top_tests)[0] }">
+    <div class="mb-2 flex flex-wrap items-center gap-2"><h3 class="text-sm font-semibold">Top 10 tests</h3>
+      <div class="seg ml-auto text-xs"><template x-for="k in Object.keys(JSON.parse(document.getElementById('chart-data').textContent).top_tests)"><button type="button" :class="c===k && 'on'" @click="c=k; window.drawBar('ch-tests', 'top_tests', k)" x-text="k"></button></template></div></div>
+    <div class="relative h-72"><canvas id="ch-tests" aria-label="Top tests"></canvas></div>
+  </div>
+  <div class="card" x-data="{ c: Object.keys(JSON.parse(document.getElementById('chart-data').textContent).localities)[0] }">
+    <div class="mb-2 flex flex-wrap items-center gap-2"><h3 class="text-sm font-semibold">Localities served</h3>
+      <div class="seg ml-auto text-xs"><template x-for="k in Object.keys(JSON.parse(document.getElementById('chart-data').textContent).localities)"><button type="button" :class="c===k && 'on'" @click="c=k; window.drawBar('ch-loc', 'localities', k)" x-text="k"></button></template></div></div>
+    <div class="relative h-72"><canvas id="ch-loc" aria-label="Patient localities"></canvas></div>
+  </div>
+  <div class="card lg:col-span-2"><h3 class="mb-2 text-sm font-semibold">Re-test conversion rate — weekly</h3><div class="relative h-56"><canvas id="ch-conv" aria-label="Re-test conversion trend"></canvas></div></div>
+</div>
+<script>
+(function () {
+  const D = JSON.parse(document.getElementById('chart-data').textContent);
+  const charts = {};
+  const line = (id, series) => new Chart(document.getElementById(id), {
+    type: 'line',
+    data: { labels: D.labels, datasets: series.map(s => ({ label: s.label, data: s.data, borderColor: s.color, backgroundColor: s.color + '33', tension: .3, pointRadius: 0 })) },
+    options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+  });
+  const bar = (id, series) => new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: { labels: D.labels, datasets: series.map(s => ({ label: s.label, data: s.data, backgroundColor: s.color })) },
+    options: { maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } } },
+  });
+  window.drawBar = function (id, key, centre) {
+    const rows = (D[key] || {})[centre] || [];
+    const labels = rows.map(r => r.name || r.locality), data = rows.map(r => r.n);
+    if (charts[id]) { charts[id].data.labels = labels; charts[id].data.datasets[0].data = data; charts[id].update(); return; }
+    charts[id] = new Chart(document.getElementById(id), { type: 'bar', data: { labels, datasets: [{ label: 'Count', data, backgroundColor: '#0f766e' }] },
+      options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } } });
+  };
+  function init() {
+    line('ch-visits', D.visits);
+    bar('ch-regs', D.registrations);
+    const first = Object.keys(D.top_tests)[0];
+    if (first) { window.drawBar('ch-tests', 'top_tests', first); window.drawBar('ch-loc', 'localities', first); }
+    new Chart(document.getElementById('ch-conv'), { type: 'line', data: { labels: D.conversion.labels, datasets: [{ label: 'Booked ÷ contacted', data: D.conversion.data, borderColor: '#f59e0b', tension: .3 }] },
+      options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } } } });
+  }
+  if (window.Chart) init(); else document.addEventListener('DOMContentLoaded', init);
+})();
+</script>

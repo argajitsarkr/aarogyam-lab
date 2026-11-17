@@ -1,0 +1,36 @@
+{% load ui %}
+{% if matches %}
+  <div class="mb-2 text-sm font-medium text-amber-800">Existing patient{{ matches|length|pluralize }} found — add a new visit instead of registering again:</div>
+  <div class="space-y-2">
+  {% for m in matches %}
+    <div class="card flex flex-wrap items-center gap-3 border-amber-300 bg-amber-50/50">
+      <div class="min-w-0 flex-1">
+        <div class="font-semibold">{{ m.name }}</div>
+        <div class="text-xs text-slate-600"><span class="font-mono">{{ m.patient_id }}</span></div>
+        <div class="mt-1 text-xs text-slate-600">Last visit: {{ m.last_visit_date|date:"d-m-Y"|default:"none yet" }} at {% centre_badge m.last_visit_centre %} {{ m.last_visit_centre.name }}</div>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <a href="{% url 'patients:new_visit' m.patient.pk %}" class="btn-primary">➕ Add new visit</a>
+        {% if m.can_open %}
+          <a href="{% url 'patients:detail' m.patient.pk %}" class="btn">Open record</a>
+        {% else %}
+          <span class="self-center text-xs text-slate-500" title="Full record belongs to another centre">🔒 Other centre</span>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+  </div>
+  {% if valid_phone is not False %}
+  <p class="mt-3 text-xs text-slate-500">Different person sharing this number (e.g. family member)?
+    <a class="text-teal-700 underline" href="{% url 'patients:register_new' %}?phone={{ term|urlencode }}">Register a new patient anyway</a></p>
+  {% endif %}
+{% elif term %}
+  {% if valid_phone %}
+    <div class="card border-emerald-300 bg-emerald-50/50">
+      <div class="font-medium text-emerald-800">No patient found with {{ phone }} at any centre.</div>
+      <a href="{% url 'patients:register_new' %}?phone={{ phone }}" class="btn-primary mt-3">Continue — register new patient →</a>
+    </div>
+  {% else %}
+    <p class="text-sm text-slate-500">Keep typing — enter a full 10-digit mobile number or an exact patient ID.</p>
+  {% endif %}
+{% endif %}

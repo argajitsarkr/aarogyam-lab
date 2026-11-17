@@ -1,0 +1,43 @@
+{% load ui %}
+{% if view_mode == 'kanban' %}
+  {% include "core/_kanban.html" with kanban_item_template="followups/_kanban_card.html" %}
+{% elif view_mode == 'calendar' %}
+  {% include "core/_calendar.html" with cal_item_template="followups/_cal_item.html" %}
+{% elif view_mode == 'card' %}
+<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  {% for f in object_list %}{% include "followups/_kanban_card.html" with item=f %}{% empty %}<p class="text-sm text-slate-500">Nothing here 🎉</p>{% endfor %}
+</div>
+{% include "core/_pagination.html" %}
+{% else %}
+<div class="card overflow-x-auto p-0">
+<table class="tbl">
+  <thead><tr>
+    {% if 'patient' not in hidden_cols %}<th>{% sort_link 'patient' 'Patient' %}</th>{% endif %}
+    {% if 'centre' not in hidden_cols %}<th>Centre</th>{% endif %}
+    {% if 'reason' not in hidden_cols %}<th>Reason</th>{% endif %}
+    {% if 'due' not in hidden_cols %}<th>{% sort_link 'due' 'Due' %}</th>{% endif %}
+    {% if 'priority' not in hidden_cols %}<th>{% sort_link 'priority' 'Priority' %}</th>{% endif %}
+    {% if 'assigned' not in hidden_cols %}<th>Assigned</th>{% endif %}
+    {% if 'status' not in hidden_cols %}<th>{% sort_link 'status' 'Status' %}</th>{% endif %}
+    {% if 'next' not in hidden_cols %}<th>Next action</th>{% endif %}
+    <th></th>
+  </tr></thead>
+  <tbody>
+  {% for f in object_list %}
+    <tr class="{% if f.is_overdue %}bg-red-50/60{% endif %}">
+      {% if 'patient' not in hidden_cols %}<td><a class="font-medium hover:underline" href="{% url 'patients:detail' f.patient_id %}">{{ f.patient.full_name }}</a><div class="text-xs text-slate-500">{% if f.patient.phone and not f.patient.do_not_call %}<a href="tel:{{ f.patient.phone }}" class="text-teal-700">📞 {{ f.patient.phone }}</a>{% endif %}</div></td>{% endif %}
+      {% if 'centre' not in hidden_cols %}<td>{% centre_badge f.centre %}</td>{% endif %}
+      {% if 'reason' not in hidden_cols %}<td>{{ f.get_reason_display }}{% if f.source_test %}<div class="text-xs text-slate-500">{{ f.source_test.test.name }}</div>{% endif %}</td>{% endif %}
+      {% if 'due' not in hidden_cols %}<td class="{% if f.is_overdue %}font-semibold text-red-700{% endif %}">{{ f.due_date|date:"d-m-Y" }}</td>{% endif %}
+      {% if 'priority' not in hidden_cols %}<td>{% pill f.priority f.get_priority_display %}</td>{% endif %}
+      {% if 'assigned' not in hidden_cols %}<td>{{ f.assigned_to|default:"—" }}</td>{% endif %}
+      {% if 'status' not in hidden_cols %}<td>{% pill f.status f.get_status_display %}{% if f.scheduled_date and f.status == 'SCHEDULED' %}<div class="text-xs">{{ f.scheduled_date|date:"d-m-Y" }}</div>{% endif %}</td>{% endif %}
+      {% if 'next' not in hidden_cols %}<td>{{ f.next_action_date|date:"d-m-Y"|default:"—" }}</td>{% endif %}
+      <td><a href="{% url 'followups:detail' f.pk %}" class="btn btn-sm">Open</a></td>
+    </tr>
+  {% empty %}<tr><td colspan="9" class="py-8 text-center text-slate-500">Nothing here 🎉</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% include "core/_pagination.html" %}
+{% endif %}

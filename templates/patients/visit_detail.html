@@ -1,0 +1,61 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Visit{% endblock %}{% block page_title %}Visit — {{ visit.visit_date|date:"d-m-Y" }}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <a href="{% url 'patients:detail' visit.patient.pk %}" class="text-sm text-teal-700 hover:underline">← {{ visit.patient.full_name }} ({{ visit.patient.patient_id }})</a>
+  <span class="ml-auto text-sm">{% centre_badge visit.centre %} {{ visit.centre.name }} · by {{ visit.registered_by|default:"—" }}</span>
+  <button onclick="window.print()" class="btn btn-sm print:hidden">🖨 Print receipt</button>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="space-y-4">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <section class="card overflow-x-auto p-0">
+    <table class="tbl">
+      <thead><tr><th>Test</th><th class="text-right">Price</th><th>Status</th><th>Flag</th><th>Result summary</th><th>Report date</th><th>Report PDF</th></tr></thead>
+      <tbody>
+      {% for form in formset %}
+        {% with t=form.instance %}
+        <tr>
+          <td class="font-medium">{{ form.id }}{{ t.test.name }}<div class="text-xs text-slate-400">{{ t.test.code }}</div></td>
+          <td class="text-right">{{ t.price_charged|inr }}</td>
+          {% if can_edit %}
+            <td>{{ form.result_status }}</td>
+            <td>{{ form.flag }}{{ form.flag.errors }}</td>
+            <td class="min-w-[12rem]">{{ form.result_summary }}</td>
+            <td>{{ form.report_date }}</td>
+            <td class="min-w-[12rem]">{% if t.report_pdf %}<a href="{% url 'patients:report' t.pk %}" target="_blank" rel="noopener" class="text-xs text-teal-700 underline">View current</a>{% endif %}
+              <input type="file" name="{{ form.report_pdf.html_name }}" accept="application/pdf" class="mt-1 block w-full text-xs">{{ form.report_pdf.errors }}</td>
+          {% else %}
+            <td>{% pill t.result_status t.get_result_status_display %}</td>
+            <td>{% if t.flag %}{% pill t.flag t.get_flag_display %}{% endif %}</td>
+            <td>{{ t.result_summary }}</td>
+            <td>{{ t.report_date|date:"d-m-Y"|default:"—" }}</td>
+            <td>{% if t.report_pdf %}<a href="{% url 'patients:report' t.pk %}" target="_blank" rel="noopener" class="text-teal-700 underline">PDF</a>{% endif %}</td>
+          {% endif %}
+        </tr>
+        {% endwith %}
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if can_edit %}<p class="px-3 py-2 text-xs text-slate-500">Flagging a result <b>Abnormal</b> automatically creates a follow-up for this centre.</p>{% endif %}
+  </section>
+
+  <section class="card">
+    <h2 class="mb-3 font-semibold">Billing</h2>
+    <div class="mb-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+      <div><div class="text-slate-500">Total</div><div class="font-semibold">{{ visit.total_amount|inr }}</div></div>
+      <div><div class="text-slate-500">Discount</div><div class="font-semibold">{{ visit.discount|inr }}</div></div>
+      <div><div class="text-slate-500">Paid</div><div class="font-semibold">{{ visit.amount_paid|inr }}</div></div>
+      <div><div class="text-slate-500">Balance</div><div class="font-semibold {% if visit.balance_due > 0 %}text-red-700{% endif %}">{{ visit.balance_due|inr }}</div></div>
+    </div>
+    {% if can_edit %}
+      {% with form=bform %}{% include "core/_form_fields.html" %}{% endwith %}
+    {% else %}
+      <p class="text-sm text-slate-500">Read-only: this visit belongs to {{ visit.centre.name }}.</p>
+    {% endif %}
+  </section>
+
+  {% if can_edit %}<div class="flex justify-end print:hidden"><button class="btn-primary px-6">Save results & billing</button></div>{% endif %}
+</form>
+{% endblock %}

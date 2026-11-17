@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Doctors{% endblock %}{% block page_title %}Referring doctors{% endblock %}
+{% block content %}
+<div class="mb-3 flex flex-wrap gap-2">
+  <form method="get" class="flex-1" hx-get="{{ request.path }}" hx-target="#list-results" hx-trigger="input changed delay:300ms from:input" hx-push-url="true">
+    <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Search name, clinic, locality…" class="input" aria-label="Search doctors">
+  </form>
+  <a href="{% url 'patients:doctor_create' %}" class="btn-primary">+ Add doctor</a>
+</div>
+{% include "core/_list_toolbar.html" %}
+<div id="list-results">{% include results_template %}</div>
+{% endblock %}

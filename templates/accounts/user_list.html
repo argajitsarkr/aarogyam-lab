@@ -1,0 +1,34 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Users{% endblock %}{% block page_title %}Users & Roles{% endblock %}
+{% block content %}
+<div class="mb-3 flex flex-wrap items-center gap-3">
+  <span class="rounded-md bg-white px-3 py-1.5 text-sm shadow-sm">Admins: <b>{{ admin_count }}</b> / {{ admin_cap }}</span>
+  <span class="rounded-md bg-white px-3 py-1.5 text-sm shadow-sm">Active employees: <b>{{ employee_count }}</b> / {{ employee_cap }}</span>
+  <a href="{% url 'accounts:user_create' %}" class="btn-primary ml-auto">+ Add user</a>
+</div>
+<div class="card overflow-x-auto p-0">
+<table class="tbl">
+  <thead><tr><th>User</th><th>Role</th><th>Home centre</th><th>Extra access</th><th>Phone</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for u in object_list %}
+    <tr>
+      <td><div class="font-medium">{{ u.get_full_name|default:u.username }}</div><div class="text-xs text-slate-500">{{ u.username }}</div></td>
+      <td>{{ u.get_role_display }}</td>
+      <td>{% centre_badge u.home_centre %} {{ u.home_centre|default:"—" }}</td>
+      <td>{% for c in u.extra_centres.all %}{% centre_badge c %} {% empty %}—{% endfor %}</td>
+      <td>{{ u.phone|default:"—" }}</td>
+      <td>{% if u.is_active %}{% pill "COMPLETED" "Active" %}{% else %}{% pill "CLOSED" "Inactive" %}{% endif %}
+          {% if u.must_change_password %}<span class="text-xs text-amber-700">· must change pw</span>{% endif %}</td>
+      <td class="space-x-1 text-right">
+        <a class="btn btn-sm" href="{% url 'accounts:user_update' u.pk %}">Edit</a>
+        <form method="post" action="{% url 'accounts:user_unlock' u.pk %}" class="inline">{% csrf_token %}<button class="btn btn-sm">Unlock</button></form>
+        {% if u != request.user %}
+        <form method="post" action="{% url 'accounts:user_delete' u.pk %}" class="inline" onsubmit="return confirm('Deactivate and remove this user? Their history is kept.')">{% csrf_token %}<button class="btn btn-sm text-red-700">Remove</button></form>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

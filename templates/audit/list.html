@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Audit log{% endblock %}{% block page_title %}Audit log{% endblock %}
+{% block content %}
+{% include "core/_filter_form.html" %}
+{% include "core/_list_toolbar.html" %}
+<div id="list-results">{% include results_template %}</div>
+{% endblock %}

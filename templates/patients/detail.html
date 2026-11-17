@@ -1,0 +1,117 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}{{ patient.full_name }}{% endblock %}{% block page_title %}Patient record{% endblock %}
+{% block content %}
+<div class="grid gap-4 lg:grid-cols-3">
+  {# ---------- Summary ---------- #}
+  <aside class="space-y-4 lg:col-span-1">
+    <div class="card">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <h1 class="text-lg font-bold">{{ patient.full_name }}</h1>
+          <div class="font-mono text-xs text-slate-500">{{ patient.patient_id }}</div>
+        </div>
+        {% centre_badge patient.registered_at_centre %}
+      </div>
+      {% if patient.erased_at %}<div class="mt-2 rounded bg-zinc-100 p-2 text-xs">Personal data erased on {{ patient.erased_at|date:"d-m-Y" }} (DPDP request).</div>{% endif %}
+      <dl class="mt-3 grid grid-cols-3 gap-y-1.5 text-sm">
+        <dt class="text-slate-500">Age / Sex</dt><dd class="col-span-2">{{ patient.age_display|default:"?" }} / {{ patient.get_sex_display }}</dd>
+        <dt class="text-slate-500">Phone</dt><dd class="col-span-2">{% if patient.phone %}<a class="text-teal-700" href="tel:{{ patient.phone }}">{{ patient.phone }}</a>{% endif %}{% if patient.alt_phone %}, <a class="text-teal-700" href="tel:{{ patient.alt_phone }}">{{ patient.alt_phone }}</a>{% endif %}</dd>
+        {% if patient.email %}<dt class="text-slate-500">Email</dt><dd class="col-span-2 break-all">{{ patient.email }}</dd>{% endif %}
+        <dt class="text-slate-500">Address</dt><dd class="col-span-2">{{ patient.house_street }}{% if patient.house_street %}, {% endif %}{{ patient.locality }}{% if patient.village_ward %}, {{ patient.village_ward }}{% endif %}<br>{{ patient.city }}, {{ patient.district }}, {{ patient.state }} {{ patient.pin_code }}</dd>
+        <dt class="text-slate-500">Registered</dt><dd class="col-span-2">{{ patient.created_at|date:"d-m-Y" }} at {{ patient.registered_at_centre.name }}</dd>
+        <dt class="text-slate-500">Contact</dt>
+        <dd class="col-span-2">
+          {% if patient.consent_to_contact %}{% pill "COMPLETED" "Consent given" %} <span class="text-xs text-slate-500">{{ patient.consent_at|date:"d-m-Y" }}</span>{% else %}{% pill "CLOSED" "No consent" %}{% endif %}
+          {% if patient.do_not_call %}{% pill "ABNORMAL" "Do not call" %}{% endif %}
+        </dd>
+        <dt class="text-slate-500">Total billed</dt><dd class="col-span-2 font-semibold">{{ total_spent|inr }}</dd>
+      </dl>
+      {% if patient.notes %}<p class="mt-2 rounded bg-slate-50 p-2 text-sm">{{ patient.notes|linebreaksbr }}</p>{% endif %}
+      <div class="mt-4 flex flex-wrap gap-2">
+        <a href="{% url 'patients:new_visit' patient.pk %}" class="btn-primary">➕ New visit</a>
+        <a href="{% url 'followups:create' %}?patient={{ patient.pk }}" class="btn">📋 Add follow-up</a>
+        <a href="{% url 'patients:update' patient.pk %}" class="btn">Edit</a>
+      </div>
+    </div>
+
+    {% if is_admin_user %}
+    <div class="card text-sm" x-data="{ open:false }">
+      <button class="flex w-full justify-between font-semibold" @click="open=!open">Admin & data requests <span>▾</span></button>
+      <div x-show="open" x-cloak class="mt-3 space-y-3">
+        <a href="{% url 'patients:data_export' patient.pk %}" class="btn w-full">⬇ Export patient's data (DPDP)</a>
+        <form method="post" action="{% url 'patients:erase' patient.pk %}" class="space-y-1" onsubmit="return confirm('Erase personal data permanently? This cannot be undone.')">
+          {% csrf_token %}
+          <label class="text-xs text-slate-600" for="erase-confirm">Erase personal data — type <b>{{ patient.patient_id }}</b> to confirm</label>
+          <input id="erase-confirm" name="confirm" class="input" autocomplete="off">
+          <button class="btn-danger w-full">Erase personal data</button>
+        </form>
+        <form method="post" action="{% url 'patients:delete' patient.pk %}" onsubmit="return confirm('Archive this patient? (soft delete)')">{% csrf_token %}
+          <button class="btn w-full text-red-700">Archive (soft delete)</button></form>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if followups %}
+    <div class="card">
+      <h2 class="mb-2 font-semibold">Follow-ups</h2>
+      <ul class="space-y-2 text-sm">
+      {% for f in followups %}
+        <li class="flex items-start justify-between gap-2">
+          <a href="{% url 'followups:detail' f.pk %}" class="hover:underline">{{ f.get_reason_display }} · due {{ f.due_date|date:"d-m-Y" }}</a>
+          {% pill f.status f.get_status_display %}
+        </li>
+      {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if candidates %}
+    <div class="card">
+      <h2 class="mb-2 font-semibold">Re-test reminders & calls</h2>
+      <ul class="space-y-3 text-sm">
+      {% for c in candidates %}
+        <li>
+          <div class="flex justify-between gap-2"><span>{{ c.test.name }} · due {{ c.due_date|date:"d-m-Y" }}</span>{% pill c.status c.get_status_display %}</div>
+          {% for call in c.calls.all %}<div class="ml-2 text-xs text-slate-500">📞 {{ call.called_at|date:"d-m-Y H:i" }} — {{ call.get_outcome_display }} by {{ call.employee }}{% if call.notes %}: {{ call.notes }}{% endif %}</div>{% endfor %}
+        </li>
+      {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </aside>
+
+  {# ---------- Timeline ---------- #}
+  <section class="lg:col-span-2">
+    <h2 class="mb-3 font-semibold">Visit & test timeline <span class="text-sm font-normal text-slate-500">— all centres</span></h2>
+    <ol class="relative space-y-4 border-l-2 border-teal-200 pl-5">
+    {% for v in visits %}
+      <li class="relative">
+        <span class="absolute -left-[29px] top-3 h-4 w-4 rounded-full border-2 border-white" style="background: {{ v.centre.colour }}"></span>
+        <div class="card p-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="font-semibold">{{ v.visit_date|date:"d-m-Y" }} {% centre_badge v.centre %} <span class="text-sm font-normal text-slate-600">{{ v.centre.name }}</span></div>
+            <a href="{% url 'patients:visit_detail' v.pk %}" class="btn btn-sm">Open visit</a>
+          </div>
+          <div class="mt-1 text-xs text-slate-500">
+            {{ v.get_sample_collection_type_display }}{% if v.referring_doctor %} · Ref: {{ v.referring_doctor }}{% endif %} · {{ v.net_amount|inr }} ({{ v.get_payment_mode_display }}){% if v.balance_due > 0 %} · <span class="text-red-700">Due {{ v.balance_due|inr }}</span>{% endif %}
+          </div>
+          <ul class="mt-2 divide-y text-sm">
+          {% for t in v.tests.all %}
+            <li class="flex flex-wrap items-center justify-between gap-2 py-1.5">
+              <span>{{ t.test.name }}{% if t.result_summary %} <span class="text-slate-500">— {{ t.result_summary }}</span>{% endif %}</span>
+              <span class="flex items-center gap-2">
+                {% if t.flag %}{% pill t.flag t.get_flag_display %}{% else %}{% pill t.result_status t.get_result_status_display %}{% endif %}
+                {% if t.report_pdf %}<a href="{% url 'patients:report' t.pk %}" class="text-xs text-teal-700 underline" target="_blank" rel="noopener">PDF</a>{% endif %}
+              </span>
+            </li>
+          {% endfor %}
+          </ul>
+        </div>
+      </li>
+    {% empty %}
+      <li class="text-sm text-slate-500">No visits yet.</li>
+    {% endfor %}
+    </ol>
+  </section>
+</div>
+{% endblock %}

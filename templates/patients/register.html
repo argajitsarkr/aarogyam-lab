@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}{% block page_title %}Register patient / New visit{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-3xl">
+  <div class="card">
+    <label for="lookup-term" class="label text-base">Step 1 — Enter the patient's mobile number (or patient ID)</label>
+    <p class="mb-2 text-xs text-slate-500">We check all centres first, so the same person is never registered twice.</p>
+    <div class="flex gap-2">
+      <input id="lookup-term" name="term" type="search" inputmode="tel" autocomplete="off" autofocus
+             value="{{ phone }}" placeholder="e.g. 98xxxxxxxx or ARP-2026-000123"
+             class="input py-3 text-lg"
+             hx-get="{% url 'patients:lookup' %}" hx-trigger="input changed delay:350ms, search, load[this.value.length>0]"
+             hx-target="#lookup-results" hx-indicator="#lookup-spin">
+      <span id="lookup-spin" class="htmx-indicator self-center text-sm text-slate-500">Checking…</span>
+    </div>
+  </div>
+  <div id="lookup-results" class="mt-4"></div>
+</div>
+{% endblock %}

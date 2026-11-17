@@ -1,0 +1,4 @@
+<a href="{% url 'followups:detail' item.pk %}" title="{{ item.patient.full_name }} — {{ item.get_reason_display }} ({{ item.get_status_display }})"
+   class="block truncate rounded px-1 text-[11px] leading-5 {% if item.status == 'SCHEDULED' %}bg-indigo-100 text-indigo-800{% elif item.status == 'COMPLETED' %}bg-emerald-100 text-emerald-800 line-through{% elif item.is_overdue %}bg-red-100 text-red-800{% else %}bg-amber-50 text-amber-900{% endif %}">
+  {% if not compact %}{{ item.centre.short_code }} · {% endif %}{{ item.patient.full_name }}{% if not compact %} — {{ item.get_reason_display }}{% endif %}
+</a>

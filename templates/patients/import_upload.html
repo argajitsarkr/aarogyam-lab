@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Import patients{% endblock %}{% block page_title %}Import historical patients — step 1 of 3{% endblock %}
+{% block content %}
+<div class="mx-auto grid max-w-5xl gap-4 lg:grid-cols-2">
+  <form method="post" enctype="multipart/form-data" class="card">
+    {% csrf_token %}
+    {% include "core/_form_fields.html" %}
+    <div class="mt-4 flex justify-end"><button class="btn-primary">Upload & map columns →</button></div>
+  </form>
+  <div class="card text-sm">
+    <h2 class="mb-2 font-semibold">Columns you can map</h2>
+    <p class="mb-2 text-slate-600">Headings don't need to match exactly — you'll map them next. Dates as DD-MM-YYYY.</p>
+    <ul class="grid grid-cols-1 gap-1 sm:grid-cols-2">
+      {% for f, label, req in fields %}<li>{% if req %}<b>{{ label }} *</b>{% else %}{{ label }}{% endif %}</li>{% endfor %}
+    </ul>
+    <p class="mt-3 text-xs text-slate-500">If you include <i>Last visit date</i> + <i>Test codes</i>, a reported historical visit is created so the re-test engine can remind these patients. Rows whose phone + name already exist are skipped as duplicates.</p>
+  </div>
+</div>
+{% endblock %}

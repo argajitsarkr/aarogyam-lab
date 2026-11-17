@@ -1,0 +1,14 @@
+{% load ui %}
+<div class="cursor-grab rounded-lg border bg-white p-2.5 text-sm shadow-sm" data-move-url="{% url 'retest:move' item.pk %}">
+  <div class="flex items-start justify-between gap-2">
+    <a href="{% url 'patients:detail' item.patient_id %}" class="font-medium hover:underline">{{ item.patient.full_name }}</a>
+    {% if item.source_test.flag %}{% pill item.source_test.flag item.source_test.get_flag_display %}{% endif %}
+  </div>
+  <div class="text-xs text-slate-600">{{ item.test.name }}</div>
+  <div class="mt-1 flex items-center justify-between text-xs">
+    <span class="{% if item.days_overdue > 0 and item.status != 'CONVERTED' %}text-red-700{% endif %}">Due {{ item.due_date|date:"d-m-Y" }}{% if item.booked_date and item.status == 'SCHEDULED' %} · Booked {{ item.booked_date|date:"d-m" }}{% endif %}</span>
+    {% centre_badge item.centre %}
+  </div>
+  <div class="mt-1 flex justify-between text-xs text-slate-500"><span>{{ item.assigned_to|default:"Unassigned" }}</span><a href="tel:{{ item.patient.phone }}" class="text-teal-700">📞</a></div>
+  {% if view_mode == 'card' %}<div class="mt-1">{% pill item.status item.get_status_display %}</div>{% endif %}
+</div>

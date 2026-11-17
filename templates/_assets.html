@@ -1,0 +1,11 @@
+{% load static %}{% if USE_CDN_ASSETS %}
+  {# Dev fallback when the Tailwind bundle has not been built (DEBUG only). #}
+  <script src="https://cdn.tailwindcss.com/3.4.17?plugins=forms"></script>
+  <style type="text/tailwindcss">{% include "_components.css" %}</style>
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+  <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+{% else %}
+  <link rel="stylesheet" href="{% static 'dist/app.css' %}">
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
+{% endif %}

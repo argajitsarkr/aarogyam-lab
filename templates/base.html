@@ -1,0 +1,123 @@
+{% load static ui %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <title>{% block title %}Dashboard{% endblock %} · {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}</title>
+  {% include "_assets.html" %}
+  {% block head %}{% endblock %}
+</head>
+<body class="h-full bg-slate-50 text-slate-800 antialiased" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<div x-data="{ nav: false }" class="min-h-screen lg:flex">
+  {# ---------------- Sidebar ---------------- #}
+  <aside :class="nav ? 'translate-x-0' : '-translate-x-full'"
+         class="fixed inset-y-0 left-0 z-40 w-64 transform overflow-y-auto bg-teal-900 text-teal-50 transition lg:static lg:translate-x-0 print:hidden">
+    <div class="flex items-center gap-2 px-4 py-4">
+      <div class="grid h-9 w-9 place-items-center rounded-lg bg-white/15 font-bold">A</div>
+      <div class="leading-tight">
+        <div class="font-semibold">{{ site_settings.lab_display_name|default:"Aarogyam" }}</div>
+        <div class="text-xs text-teal-200">Lab Management</div>
+      </div>
+    </div>
+    {% with u=request.resolver_match.namespace %}
+    <nav class="space-y-0.5 px-2 pb-6 text-sm">
+      {% url 'dashboard:home' as h %}
+      <a href="{{ h }}" class="navlink {% if u == 'dashboard' and request.resolver_match.url_name == 'home' %}navlink-active{% endif %}">🏠 Dashboard</a>
+      <a href="{% url 'patients:register' %}" class="navlink bg-white/10 font-semibold">➕ Register / New Visit</a>
+      <a href="{% url 'patients:list' %}" class="navlink {% if u == 'patients' and request.resolver_match.url_name == 'list' %}navlink-active{% endif %}">👥 Patients</a>
+      <a href="{% url 'followups:list' %}" class="navlink {% if u == 'followups' %}navlink-active{% endif %}">📋 Follow-ups</a>
+      <a href="{% url 'retest:my_calls' %}" class="navlink {% if u == 'retest' and request.resolver_match.url_name == 'my_calls' %}navlink-active{% endif %}">📞 My Call List</a>
+      <a href="{% url 'retest:list' %}" class="navlink {% if u == 'retest' and request.resolver_match.url_name == 'list' %}navlink-active{% endif %}">🔁 Re-Test Queue</a>
+      <a href="{% url 'pricing:compare' %}" class="navlink {% if u == 'pricing' %}navlink-active{% endif %}">₹ Price Comparison</a>
+      <a href="{% url 'patients:tests' %}" class="navlink">🧪 Test Catalog</a>
+      <a href="{% url 'patients:doctors' %}" class="navlink">🩺 Doctors</a>
+
+      {% if pinned_filters %}
+      <div class="mt-4 px-3 pb-1 text-xs uppercase tracking-wide text-teal-300">Saved views</div>
+      {% for sf in pinned_filters %}
+        <a href="{{ sf.get_absolute_url }}" class="navlink truncate">⭐ {{ sf.name }}</a>
+      {% endfor %}
+      {% endif %}
+
+      {% if is_admin_user %}
+      <div class="mt-4 px-3 pb-1 text-xs uppercase tracking-wide text-teal-300">Admin</div>
+      <a href="{% url 'dashboard:compare' %}" class="navlink">📊 Compare Centres</a>
+      <a href="{% url 'retest:analytics' %}" class="navlink">📈 Calling Analytics</a>
+      <a href="{% url 'dashboard:map' %}" class="navlink">🗺️ Map</a>
+      <a href="{% url 'patients:import' %}" class="navlink">⬆️ Import Patients</a>
+      <a href="{% url 'pricing:manage' %}" class="navlink">🏷️ Competitor Prices</a>
+      <a href="{% url 'accounts:user_list' %}" class="navlink">🔑 Users</a>
+      <a href="{% url 'centres:list' %}" class="navlink">🏥 Centres</a>
+      <a href="{% url 'audit:list' %}" class="navlink">🛡️ Audit Log</a>
+      <a href="{% url 'core:settings' %}" class="navlink">⚙️ Settings</a>
+      {% endif %}
+    </nav>
+    {% endwith %}
+  </aside>
+  <div x-show="nav" x-cloak @click="nav=false" class="fixed inset-0 z-30 bg-black/40 lg:hidden"></div>
+
+  {# ---------------- Main ---------------- #}
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="sticky top-0 z-20 flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white/95 px-3 py-2 backdrop-blur print:hidden sm:px-4">
+      <button @click="nav=!nav" class="rounded-md p-2 hover:bg-slate-100 lg:hidden" aria-label="Menu">☰</button>
+      <div class="flex-1 truncate text-base font-semibold sm:text-lg">{% block page_title %}{% endblock %}</div>
+
+      {# Scope switcher #}
+      {% if is_admin_user %}
+        <form method="post" action="{% url 'core:set_scope' %}" class="flex items-center gap-1">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <label class="hidden text-xs text-slate-500 sm:inline" for="scope-select">Scope</label>
+          <select id="scope-select" name="scope" onchange="this.form.submit()" class="rounded-md border-slate-300 py-1 text-sm">
+            <option value="all" {% if scope.mode == 'all' %}selected{% endif %}>All Centres</option>
+            {% for c in switcher_centres %}
+              <option value="centre:{{ c.pk }}" {% if scope.mode == 'centre' and scope.centre.pk == c.pk %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+          <a href="{% url 'dashboard:compare' %}" class="hidden rounded-md border border-slate-300 px-2 py-1 text-sm hover:bg-slate-50 md:inline">Compare</a>
+        </form>
+      {% else %}
+        <span class="rounded-md bg-slate-100 px-2 py-1 text-sm">My Centre: {% centre_badge scope.centre %}</span>
+      {% endif %}
+
+      <div x-data="{ open:false }" class="relative">
+        <button @click="open=!open" class="flex items-center gap-1 rounded-md px-2 py-1 text-sm hover:bg-slate-100">
+          <span class="grid h-7 w-7 place-items-center rounded-full bg-teal-600 text-xs font-bold text-white">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</span>
+          <span class="hidden sm:inline">{{ request.user }}</span>
+        </button>
+        <div x-show="open" x-cloak @click.outside="open=false" class="absolute right-0 mt-1 w-48 rounded-md border bg-white py-1 text-sm shadow-lg">
+          <div class="px-3 py-1 text-xs text-slate-500">{{ request.user.get_role_display }}</div>
+          <a href="{% url 'accounts:password_change' %}" class="block px-3 py-2 hover:bg-slate-50">Change password</a>
+          <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+            <button class="block w-full px-3 py-2 text-left hover:bg-slate-50">Log out</button>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-7xl flex-1 px-3 py-4 sm:px-4 lg:px-6">
+      {% if messages %}
+        <div class="mb-4 space-y-2" x-data>
+          {% for m in messages %}
+            <div x-data="{show:true}" x-show="show" x-init="setTimeout(()=>show=false, 6000)"
+                 class="rounded-md border px-3 py-2 text-sm {% if m.tags == 'error' %}border-red-200 bg-red-50 text-red-800{% elif m.tags == 'warning' %}border-amber-200 bg-amber-50 text-amber-800{% else %}border-emerald-200 bg-emerald-50 text-emerald-800{% endif %}">
+              {{ m }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+<script>
+  // Idle-timeout: server session expires after inactivity; bounce to login client-side too.
+  (function(){ let t; const ms = {{ request.session.get_expiry_age|default:1800 }} * 1000;
+    const reset = () => { clearTimeout(t); t = setTimeout(() => location.reload(), ms + 5000); };
+    ['click','keydown','touchstart'].forEach(e => document.addEventListener(e, reset, {passive:true})); reset(); })();
+  document.body.addEventListener('htmx:responseError', e => { if (e.detail.xhr.status === 403) alert('You do not have access to that record.'); });
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

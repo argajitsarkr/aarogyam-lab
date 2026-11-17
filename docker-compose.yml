@@ -1,0 +1,108 @@
+# Development / evaluation stack:  docker compose up --build  ->  https://localhost
+# (self-signed certificate; accept the browser warning). Values below are dev
+# defaults and can be overridden with a .env file next to this compose file.
+x-app-env: &app-env
+  DEBUG: "True"
+  SECRET_KEY: ${SECRET_KEY:-dev-only-insecure-secret-key-change-me}
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+  CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-https://localhost}
+  DATABASE_URL: postgres://${POSTGRES_USER:-aarogyam}:${POSTGRES_PASSWORD:-aarogyam-dev}@db:5432/${POSTGRES_DB:-aarogyam}
+  REDIS_URL: redis://redis:6379/0
+  USE_X_ACCEL_REDIRECT: "True"
+  SECURE_SSL_REDIRECT: "False"
+  CELERY_TASK_ALWAYS_EAGER: "False"
+  MAX_ACTIVE_EMPLOYEES: ${MAX_ACTIVE_EMPLOYEES:-10}
+
+x-app: &app
+  build:
+    context: .
+    args:
+      INSTALL_DEV: "true"
+  image: aarogyam-web:dev
+  environment: *app-env
+  volumes:
+    - .:/app
+    - static_volume:/app/staticfiles
+    - private_media:/app/private_media
+  depends_on:
+    db: { condition: service_healthy }
+    redis: { condition: service_started }
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aarogyam}
+      POSTGRES_USER: ${POSTGRES_USER:-aarogyam}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aarogyam-dev}
+      TZ: Asia/Kolkata
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+
+  web:
+    <<: *app
+    environment:
+      <<: *app-env
+      RUN_MIGRATIONS: "1"
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ChangeMe-Admin-2026}
+      LOAD_DEMO_DATA: ${LOAD_DEMO_DATA:-0}
+    command: ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--reload", "--access-logfile", "-"]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/robots.txt')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  celery_worker:
+    <<: *app
+    command: ["celery", "-A", "config", "worker", "-l", "info", "--concurrency", "2"]
+
+  celery_beat:
+    <<: *app
+    command: ["celery", "-A", "config", "beat", "-l", "info", "--schedule", "/tmp/celerybeat-schedule"]
+
+  nginx:
+    build: ./docker/nginx
+    environment:
+      SERVER_NAME: localhost
+      SSL_CERT: /etc/nginx/certs/selfsigned.crt
+      SSL_KEY: /etc/nginx/certs/selfsigned.key
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - static_volume:/app/staticfiles:ro
+      - private_media:/app/private_media:ro
+      - nginx_certs:/etc/nginx/certs
+    depends_on:
+      web: { condition: service_healthy }
+
+  db_backup:
+    build: ./docker/backup
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aarogyam}
+      POSTGRES_USER: ${POSTGRES_USER:-aarogyam}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aarogyam-dev}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      BACKUP_HOUR: ${BACKUP_HOUR:-2}
+      TZ: Asia/Kolkata
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      db: { condition: service_healthy }
+
+volumes:
+  pg_data:
+  static_volume:
+  private_media:
+  nginx_certs:

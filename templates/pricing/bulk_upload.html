@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Upload prices{% endblock %}{% block page_title %}Upload competitor prices{% endblock %}
+{% block content %}
+{% include "pricing/_nav.html" %}
+<div class="grid gap-4 lg:grid-cols-2">
+  <form method="post" enctype="multipart/form-data" class="card">
+    {% csrf_token %}
+    <label class="label" for="price-file">Excel (.xlsx) or CSV</label>
+    <input id="price-file" type="file" name="file" accept=".xlsx,.csv" required class="block w-full text-sm">
+    <button class="btn-primary mt-4">Upload</button>
+    {% if report %}
+      <div class="mt-4 rounded-md bg-slate-50 p-3 text-sm">
+        <b>{{ report.ok }}</b> prices saved.
+        {% if report.errors %}<ul class="mt-2 list-disc pl-5 text-red-700">{% for e in report.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+    {% endif %}
+  </form>
+  <div class="card text-sm">
+    <h2 class="mb-2 font-semibold">File format</h2>
+    <p>Columns: <code>test_code</code>, <code>competitor</code> (exact name), <code>price</code>, <code>source</code>, <code>last_verified_on</code> (DD-MM-YYYY).</p>
+    <p class="mt-2">Existing prices for the same test + competitor are replaced.</p>
+    <a href="{% url 'pricing:template' %}" class="btn mt-3">⬇ Download template</a>
+  </div>
+</div>
+{% endblock %}

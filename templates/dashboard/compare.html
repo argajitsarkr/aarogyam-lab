@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Compare centres{% endblock %}{% block page_title %}Compare centres{% endblock %}
+{% block head %}{% include "_chart_assets.html" %}{% endblock %}
+{% block content %}
+<form method="get" class="card mb-4 flex flex-wrap items-end gap-3 p-3">
+  <label class="text-sm">From<input type="date" name="from" value="{{ start|date:'Y-m-d' }}" class="input"></label>
+  <label class="text-sm">To<input type="date" name="to" value="{{ end|date:'Y-m-d' }}" class="input"></label>
+  <button class="btn-primary">Apply</button>
+</form>
+<div class="mb-4 grid gap-3 md:grid-cols-3">
+  {% for r in comparison %}
+  <div class="card border-t-4" style="border-top-color: {{ r.centre.colour }}">
+    <div class="flex items-center gap-2 font-semibold">{% centre_badge r.centre %} {{ r.centre.name }}</div>
+    <dl class="mt-3 grid grid-cols-2 gap-2 text-sm">
+      <div><dt class="text-slate-500">Visits</dt><dd class="text-xl font-bold">{{ r.visits }}</dd></div>
+      <div><dt class="text-slate-500">Revenue</dt><dd class="text-xl font-bold">{{ r.revenue|inr }}</dd></div>
+      <div><dt class="text-slate-500">New patients</dt><dd class="text-xl font-bold">{{ r.new_patients }}</dd></div>
+      <div><dt class="text-slate-500">Collected</dt><dd class="text-xl font-bold">{{ r.collected|inr }}</dd></div>
+      <div><dt class="text-slate-500">Re-test conv.</dt><dd class="text-xl font-bold">{{ r.retest_rate }}%</dd></div>
+      <div><dt class="text-slate-500">Follow-up done</dt><dd class="text-xl font-bold">{{ r.followup_rate }}%</dd></div>
+    </dl>
+  </div>
+  {% endfor %}
+</div>
+{% include "dashboard/_comparison_table.html" %}
+<section class="mt-6">{% include "dashboard/_charts.html" %}</section>
+{% endblock %}

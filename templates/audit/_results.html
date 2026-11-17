@@ -1,0 +1,43 @@
+{% load ui %}
+{% if view_mode == 'card' %}
+<div class="grid gap-2 sm:grid-cols-2">
+{% for log in object_list %}
+  <div class="card p-3 text-sm">
+    <div class="flex justify-between"><b>{{ log.get_action_display }}</b><span class="text-xs text-slate-500">{{ log.timestamp|date:"d-m-Y H:i" }}</span></div>
+    <div>{{ log.object_repr }}</div>
+    <div class="text-xs text-slate-500">{{ log.user|default:"system" }} · {% centre_badge log.centre %} · {{ log.ip_address|default:"" }}</div>
+  </div>
+{% empty %}<p class="text-sm text-slate-500">No entries.</p>{% endfor %}
+</div>
+{% else %}
+<div class="card overflow-x-auto p-0">
+<table class="tbl">
+  <thead><tr>
+    {% if 'timestamp' not in hidden_cols %}<th>{% sort_link 'timestamp' 'When' %}</th>{% endif %}
+    {% if 'user' not in hidden_cols %}<th>{% sort_link 'user' 'User' %}</th>{% endif %}
+    {% if 'centre' not in hidden_cols %}<th>Centre</th>{% endif %}
+    {% if 'action' not in hidden_cols %}<th>{% sort_link 'action' 'Action' %}</th>{% endif %}
+    {% if 'object' not in hidden_cols %}<th>Object</th>{% endif %}
+    {% if 'ip' not in hidden_cols %}<th>IP</th>{% endif %}
+    {% if 'changes' not in hidden_cols %}<th>Changes</th>{% endif %}
+  </tr></thead>
+  <tbody>
+  {% for log in object_list %}
+    <tr>
+      {% if 'timestamp' not in hidden_cols %}<td>{{ log.timestamp|date:"d-m-Y H:i:s" }}</td>{% endif %}
+      {% if 'user' not in hidden_cols %}<td>{{ log.user|default:"system" }}</td>{% endif %}
+      {% if 'centre' not in hidden_cols %}<td>{% centre_badge log.centre %}</td>{% endif %}
+      {% if 'action' not in hidden_cols %}<td>{{ log.get_action_display }}</td>{% endif %}
+      {% if 'object' not in hidden_cols %}<td class="max-w-xs truncate" title="{{ log.object_repr }}">{% if log.content_type %}<span class="text-xs text-slate-400">{{ log.content_type.model }}</span> {% endif %}{{ log.object_repr }}{% if log.note %}<div class="text-xs text-slate-500">{{ log.note }}</div>{% endif %}</td>{% endif %}
+      {% if 'ip' not in hidden_cols %}<td>{{ log.ip_address|default:"" }}</td>{% endif %}
+      {% if 'changes' not in hidden_cols %}<td class="whitespace-normal">
+        {% if log.changes %}<details><summary class="cursor-pointer text-xs text-teal-700">{{ log.changes|length }} field{{ log.changes|length|pluralize }}</summary>
+          <dl class="mt-1 max-w-md text-xs">{% for k, v in log.changes.items %}<dt class="font-semibold">{{ k }}</dt><dd class="mb-1 break-all text-slate-600">{{ v.0|default:"∅" }} → {{ v.1|default:"∅" }}</dd>{% endfor %}</dl></details>{% endif %}
+      </td>{% endif %}
+    </tr>
+  {% empty %}<tr><td colspan="7" class="py-6 text-center text-slate-500">No entries.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% include "core/_pagination.html" %}

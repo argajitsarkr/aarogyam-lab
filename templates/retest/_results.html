@@ -1,0 +1,52 @@
+{% load ui %}
+{% if view_mode == 'kanban' %}
+  {% include "core/_kanban.html" with kanban_item_template="retest/_kanban_card.html" %}
+{% elif view_mode == 'calendar' %}
+  {% include "core/_calendar.html" with cal_item_template="retest/_cal_item.html" %}
+{% elif view_mode == 'card' %}
+<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  {% for c in object_list %}{% include "retest/_kanban_card.html" with item=c %}{% empty %}<p class="text-sm text-slate-500">No candidates.</p>{% endfor %}
+</div>
+{% include "core/_pagination.html" %}
+{% else %}
+<div class="card overflow-x-auto p-0">
+<table class="tbl">
+  <thead><tr>
+    {% if 'patient' not in hidden_cols %}<th>{% sort_link 'patient' 'Patient' %}</th>{% endif %}
+    {% if 'test' not in hidden_cols %}<th>{% sort_link 'test' 'Test' %}</th>{% endif %}
+    {% if 'flag' not in hidden_cols %}<th>Last flag</th>{% endif %}
+    {% if 'due' not in hidden_cols %}<th>{% sort_link 'due' 'Due' %}</th>{% endif %}
+    {% if 'priority' not in hidden_cols %}<th>{% sort_link 'priority' 'Score' %}</th>{% endif %}
+    {% if 'centre' not in hidden_cols %}<th>Centre</th>{% endif %}
+    {% if 'assigned' not in hidden_cols %}<th>Assigned</th>{% endif %}
+    {% if 'status' not in hidden_cols %}<th>Status</th>{% endif %}
+    {% if 'attempts' not in hidden_cols %}<th>{% sort_link 'attempts' 'Attempts' %}</th>{% endif %}
+  </tr></thead>
+  <tbody>
+  {% for c in object_list %}
+    <tr>
+      {% if 'patient' not in hidden_cols %}<td><a href="{% url 'patients:detail' c.patient_id %}" class="font-medium hover:underline">{{ c.patient.full_name }}</a><div class="text-xs"><a href="tel:{{ c.patient.phone }}" class="text-teal-700">📞 {{ c.patient.phone }}</a></div></td>{% endif %}
+      {% if 'test' not in hidden_cols %}<td>{{ c.test.name }}</td>{% endif %}
+      {% if 'flag' not in hidden_cols %}<td>{% if c.source_test.flag %}{% pill c.source_test.flag c.source_test.get_flag_display %}{% endif %}</td>{% endif %}
+      {% if 'due' not in hidden_cols %}<td class="{% if c.days_overdue > 0 %}text-red-700{% endif %}">{{ c.due_date|date:"d-m-Y" }}</td>{% endif %}
+      {% if 'priority' not in hidden_cols %}<td>{{ c.priority_score }}</td>{% endif %}
+      {% if 'centre' not in hidden_cols %}<td>{% centre_badge c.centre %}</td>{% endif %}
+      {% if 'assigned' not in hidden_cols %}<td>
+        {% if is_admin_user %}
+          <form method="post" action="{% url 'retest:reassign' c.pk %}" class="flex gap-1">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <select name="assigned_to" class="rounded border-slate-300 py-0.5 text-xs" onchange="this.form.submit()" aria-label="Assign">
+              <option value="">—</option>
+              {% for u in c.centre.employees.all %}{% if u.is_active %}<option value="{{ u.pk }}" {% if u.pk == c.assigned_to_id %}selected{% endif %}>{{ u }}</option>{% endif %}{% endfor %}
+            </select></form>
+        {% else %}{{ c.assigned_to|default:"—" }}{% endif %}
+      </td>{% endif %}
+      {% if 'status' not in hidden_cols %}<td>{% pill c.status c.get_status_display %}</td>{% endif %}
+      {% if 'attempts' not in hidden_cols %}<td>{{ c.attempts }}</td>{% endif %}
+    </tr>
+  {% empty %}<tr><td colspan="9" class="py-8 text-center text-slate-500">No candidates. Admins can run the scan now, or wait for the daily 6:00 AM job.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% include "core/_pagination.html" %}
+{% endif %}

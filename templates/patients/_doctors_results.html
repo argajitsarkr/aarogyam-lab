@@ -1,0 +1,42 @@
+{% load ui %}
+{% if view_mode == 'card' %}
+<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+{% for d in object_list %}
+  <div class="card p-3 {% if not d.is_active %}opacity-60{% endif %}">
+    <div class="font-semibold">Dr {{ d.name }}</div>
+    <div class="text-sm text-slate-600">{{ d.clinic|default:"" }}{% if d.specialty %} · {{ d.specialty }}{% endif %}</div>
+    <div class="mt-1 text-xs text-slate-500">{{ d.locality }} {% if d.phone %}· <a href="tel:{{ d.phone }}" class="text-teal-700">{{ d.phone }}</a>{% endif %}</div>
+    <div class="mt-2 flex justify-between text-xs"><span>{{ d.referral_count }} referral{{ d.referral_count|pluralize }}</span>
+      {% if is_admin_user %}<a href="{% url 'patients:doctor_update' d.pk %}" class="text-teal-700">Edit</a>{% endif %}</div>
+  </div>
+{% empty %}<p class="text-sm text-slate-500">No doctors yet.</p>{% endfor %}
+</div>
+{% else %}
+<div class="card overflow-x-auto p-0">
+<table class="tbl">
+  <thead><tr>
+    {% if 'name' not in hidden_cols %}<th>{% sort_link 'name' 'Name' %}</th>{% endif %}
+    {% if 'clinic' not in hidden_cols %}<th>{% sort_link 'clinic' 'Clinic / hospital' %}</th>{% endif %}
+    {% if 'specialty' not in hidden_cols %}<th>Specialty</th>{% endif %}
+    {% if 'phone' not in hidden_cols %}<th>Phone</th>{% endif %}
+    {% if 'locality' not in hidden_cols %}<th>Locality</th>{% endif %}
+    {% if 'referrals' not in hidden_cols %}<th>{% sort_link 'referrals' 'Referrals' %}</th>{% endif %}
+    <th></th>
+  </tr></thead>
+  <tbody>
+  {% for d in object_list %}
+    <tr class="{% if not d.is_active %}opacity-60{% endif %}">
+      {% if 'name' not in hidden_cols %}<td class="font-medium">Dr {{ d.name }}</td>{% endif %}
+      {% if 'clinic' not in hidden_cols %}<td>{{ d.clinic }}</td>{% endif %}
+      {% if 'specialty' not in hidden_cols %}<td>{{ d.specialty }}</td>{% endif %}
+      {% if 'phone' not in hidden_cols %}<td>{{ d.phone }}</td>{% endif %}
+      {% if 'locality' not in hidden_cols %}<td>{{ d.locality }}</td>{% endif %}
+      {% if 'referrals' not in hidden_cols %}<td>{{ d.referral_count }}</td>{% endif %}
+      <td>{% if is_admin_user %}<a href="{% url 'patients:doctor_update' d.pk %}" class="btn btn-sm">Edit</a>{% endif %}</td>
+    </tr>
+  {% empty %}<tr><td colspan="7" class="py-6 text-center text-slate-500">No doctors yet.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% include "core/_pagination.html" %}

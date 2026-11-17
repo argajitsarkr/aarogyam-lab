@@ -1,0 +1,27 @@
+{# Expects: kanban = [(status, label, items)], kanban_item_template. Each item partial must set data-move-url. #}
+{% include "_sortable_assets.html" %}
+<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  {% for status, label, items in kanban %}
+  <div class="flex flex-col rounded-xl bg-slate-100 p-2">
+    <div class="mb-2 flex items-center justify-between px-1 text-sm font-semibold">{{ label }} <span class="rounded-full bg-white px-2 text-xs">{{ items|length }}</span></div>
+    <div class="kanban-col min-h-[8rem] flex-1 space-y-2" data-status="{{ status }}">
+      {% for item in items %}{% include kanban_item_template %}{% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+<script>
+(function () {
+  const token = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+  document.querySelectorAll('.kanban-col').forEach(col => {
+    new Sortable(col, {
+      group: 'kanban', animation: 150, delay: 120, delayOnTouchOnly: true,
+      onAdd: (evt) => {
+        const body = new URLSearchParams({ status: evt.to.dataset.status });
+        fetch(evt.item.dataset.moveUrl, { method: 'POST', headers: { 'X-CSRFToken': token }, body })
+          .then(r => { if (!r.ok) { alert('Could not move this item.'); location.reload(); } });
+      },
+    });
+  });
+})();
+</script>

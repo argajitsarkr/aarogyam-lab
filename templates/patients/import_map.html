@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Map columns{% endblock %}{% block page_title %}Import — step 2 of 3: map columns{% endblock %}
+{% block content %}
+<p class="mb-3 text-sm text-slate-600">File <b>{{ state.name }}</b> · {{ row_count }} data rows. Choose which column in your file feeds each field.</p>
+<form method="post" class="card mx-auto max-w-3xl">
+  {% csrf_token %}
+  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+  {% for f, label, req in fields %}
+    <div>
+      <label class="label" for="map-{{ f }}">{{ label }}{% if req %} <span class="text-red-600">*</span>{% endif %}</label>
+      <select id="map-{{ f }}" name="{{ f }}" class="input">
+        <option value="">— not in file —</option>
+        {% for h in headers %}<option value="{{ h }}" {% if mapping|get_item:f == h %}selected{% endif %}>{{ h }}</option>{% endfor %}
+      </select>
+    </div>
+  {% endfor %}
+  </div>
+  <div class="mt-4 flex justify-between"><a href="{% url 'patients:import' %}" class="btn">← Start over</a><button class="btn-primary">Validate & preview →</button></div>
+</form>
+{% if sample %}
+<div class="card mt-4 overflow-x-auto p-0">
+  <div class="px-3 pt-3 text-sm font-semibold">First rows of your file</div>
+  <table class="tbl"><thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+  <tbody>{% for r in sample %}<tr>{% for c in r %}<td>{{ c|default:"" }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,8 @@
+{% with n=request.resolver_match.url_name %}
+<div class="seg mb-4 flex-wrap">
+  <a href="{% url 'pricing:compare' %}" class="{% if n == 'compare' %}on{% endif %}">All tests</a>
+  <a href="{% url 'pricing:lookup' %}" class="{% if n == 'lookup' %}on{% endif %}">Front-desk card</a>
+  <a href="{% url 'pricing:package' %}" class="{% if n == 'package' %}on{% endif %}">Package compare</a>
+  {% if is_admin_user %}<a href="{% url 'pricing:manage' %}" class="{% if n == 'manage' or n == 'bulk_upload' %}on{% endif %}">Edit prices</a>{% endif %}
+</div>
+{% endwith %}

@@ -1,0 +1,4 @@
+<a href="{% url 'patients:detail' item.patient_id %}" title="{{ item.patient.full_name }} — {{ item.test.name }} ({{ item.get_status_display }})"
+   class="block truncate rounded px-1 text-[11px] leading-5 {% if item.status == 'SCHEDULED' %}bg-indigo-100 text-indigo-800{% elif item.status == 'CONTACTED' %}bg-sky-100 text-sky-800{% elif item.status == 'CONVERTED' %}bg-emerald-100 text-emerald-800{% else %}bg-amber-50 text-amber-900{% endif %}">
+  {% if not compact %}{{ item.centre.short_code }} · {% endif %}{{ item.patient.full_name }}{% if not compact %} — {{ item.test.code }}{% endif %}
+</a>

@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Follow-ups{% endblock %}{% block page_title %}Follow-ups <span class="text-sm font-normal text-slate-500">· {{ scope.label }}</span>{% endblock %}
+{% block content %}
+{% if view_mode == 'table' or view_mode == 'card' %}
+<div class="mb-3 flex flex-wrap gap-1 border-b">
+  {% for key, label in tabs %}
+    <a href="?{% qs_replace tab=key page=None %}" class="-mb-px border-b-2 px-3 py-2 text-sm {% if tab == key %}border-teal-700 font-semibold text-teal-800{% else %}border-transparent text-slate-600 hover:text-slate-900{% endif %}">
+      {{ label }}{% if key in tab_counts %} <span class="rounded-full {% if key == 'overdue' and tab_counts.overdue %}bg-red-100 text-red-700{% else %}bg-slate-100{% endif %} px-1.5 text-xs">{{ tab_counts|get_item:key }}</span>{% endif %}
+    </a>
+  {% endfor %}
+  <a href="?{% if request.GET.mine %}{% qs_replace mine=None %}{% else %}{% qs_replace mine=1 %}{% endif %}" class="ml-auto self-center text-sm {% if request.GET.mine %}font-semibold text-teal-800{% else %}text-slate-600{% endif %}">{% if request.GET.mine %}☑{% else %}☐{% endif %} Only mine</a>
+</div>
+{% endif %}
+{% include "core/_filter_form.html" %}
+{% include "core/_list_toolbar.html" %}
+<div id="list-results">{% include results_template %}</div>
+{% endblock %}

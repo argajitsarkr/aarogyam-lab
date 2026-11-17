@@ -1,0 +1,6 @@
+{% load ui %}
+<div id="cand-{{ c.pk }}" class="card flex items-center justify-between gap-2 border-emerald-200 bg-emerald-50/60 p-3 text-sm">
+  <span><b>{{ c.patient.full_name }}</b> — {{ c.test.name }}: logged <b>{{ outcome }}</b>
+    {% if c.status == 'SCHEDULED' %}· booked {{ c.booked_date|date:"d-m-Y" }}{% elif c.callback_date and c.status == 'CONTACTED' %}· call back {{ c.callback_date|date:"d-m-Y" }}{% endif %}</span>
+  {% pill c.status c.get_status_display %}
+</div>

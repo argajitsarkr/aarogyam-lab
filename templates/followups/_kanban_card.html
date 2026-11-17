@@ -1,0 +1,17 @@
+{% load ui %}
+<div class="cursor-grab rounded-lg border bg-white p-2.5 text-sm shadow-sm {% if item.is_overdue %}border-red-300{% endif %}" data-move-url="{% url 'followups:move' item.pk %}">
+  <div class="flex items-start justify-between gap-2">
+    <a href="{% url 'followups:detail' item.pk %}" class="font-medium hover:underline">{{ item.patient.full_name }}</a>
+    {% pill item.priority item.get_priority_display %}
+  </div>
+  <div class="mt-0.5 text-xs text-slate-500">{{ item.get_reason_display }}{% if item.source_test %} · {{ item.source_test.test.name }}{% endif %}</div>
+  <div class="mt-1 flex items-center justify-between text-xs">
+    <span class="{% if item.is_overdue %}font-semibold text-red-700{% endif %}">Due {{ item.due_date|date:"d-m-Y" }}{% if item.status == 'SCHEDULED' and item.scheduled_date %} · Appt {{ item.scheduled_date|date:"d-m" }}{% endif %}</span>
+    {% centre_badge item.centre %}
+  </div>
+  <div class="mt-1 flex items-center justify-between text-xs text-slate-500">
+    <span>{{ item.assigned_to|default:"Unassigned" }}</span>
+    {% if item.patient.phone and not item.patient.do_not_call %}<a href="tel:{{ item.patient.phone }}" class="text-teal-700">📞 Call</a>{% endif %}
+  </div>
+  {% if view_mode == 'card' %}<div class="mt-1">{% pill item.status item.get_status_display %}</div>{% endif %}
+</div>

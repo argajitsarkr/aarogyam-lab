@@ -1,0 +1,38 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}My Call List{% endblock %}{% block page_title %}{% if show_all %}Call list — {{ scope.label }}{% else %}My Call List{% endif %}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center gap-2 text-sm">
+  <span class="rounded-md bg-white px-3 py-1.5 shadow-sm">Calls made today: <b>{{ calls_today }}</b></span>
+  <span class="rounded-md bg-white px-3 py-1.5 shadow-sm">Callbacks due: <b>{{ callbacks_due|length }}</b></span>
+  <span class="rounded-md bg-white px-3 py-1.5 shadow-sm">To call: <b>{{ fresh|length }}</b></span>
+  {% if not is_admin_user %}<a href="?{% if show_all %}{% else %}all=1{% endif %}" class="ml-auto text-teal-700">{% if show_all %}Show only mine{% else %}Show whole centre{% endif %}</a>{% endif %}
+  <a href="{% url 'retest:list' %}" class="btn btn-sm {% if is_admin_user %}ml-auto{% endif %}">Queue views →</a>
+</div>
+<p class="mb-3 text-xs text-slate-500">Only patients who consented to be contacted and are not marked Do Not Call appear here. Highest priority first: Abnormal → Borderline → chronic monitoring → others, then most overdue.</p>
+
+{% if callbacks_due %}
+<h2 class="mb-2 font-semibold text-amber-800">🔁 Callbacks due</h2>
+<div class="mb-6 space-y-2">{% for c in callbacks_due %}{% include "retest/_call_row.html" %}{% endfor %}</div>
+{% endif %}
+
+<h2 class="mb-2 font-semibold">📞 To call</h2>
+<div class="space-y-2">
+  {% for c in fresh %}{% include "retest/_call_row.html" %}{% empty %}<p class="card text-sm text-slate-500">No calls pending. 🎉</p>{% endfor %}
+</div>
+
+{% if booked %}
+<h2 class="mb-2 mt-6 font-semibold text-indigo-800">📅 Booked — waiting for patient</h2>
+<div class="card overflow-x-auto p-0"><table class="tbl">
+  <thead><tr><th>Patient</th><th>Test</th><th>Booked for</th><th>Phone</th></tr></thead>
+  <tbody>{% for c in booked %}<tr><td><a href="{% url 'patients:detail' c.patient_id %}" class="hover:underline">{{ c.patient.full_name }}</a></td><td>{{ c.test.name }}</td><td>{{ c.booked_date|date:"d-m-Y" }}</td><td><a href="tel:{{ c.patient.phone }}" class="text-teal-700">{{ c.patient.phone }}</a></td></tr>{% endfor %}</tbody>
+</table></div>
+{% endif %}
+
+{% if later %}
+<h2 class="mb-2 mt-6 font-semibold text-slate-600">⏳ Call back later</h2>
+<div class="card overflow-x-auto p-0"><table class="tbl">
+  <thead><tr><th>Patient</th><th>Test</th><th>Call back on</th></tr></thead>
+  <tbody>{% for c in later %}<tr><td>{{ c.patient.full_name }}</td><td>{{ c.test.name }}</td><td>{{ c.callback_date|date:"d-m-Y" }}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endif %}
+{% endblock %}

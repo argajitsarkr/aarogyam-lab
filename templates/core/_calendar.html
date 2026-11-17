@@ -1,0 +1,36 @@
+{% load ui %}
+{# Expects: cal (from build_calendar), cal_item_template #}
+<div class="card p-3">
+  <div class="mb-3 flex flex-wrap items-center gap-2">
+    <a class="btn btn-sm" href="?{% qs_replace d=cal.prev|date:'Y-m-d' %}">‹</a>
+    <a class="btn btn-sm" href="?{% qs_replace d=None %}">Today</a>
+    <a class="btn btn-sm" href="?{% qs_replace d=cal.next|date:'Y-m-d' %}">›</a>
+    <h3 class="ml-2 font-semibold">{{ cal.title }}</h3>
+    <div class="seg ml-auto">
+      {% for m in cal.modes %}<a href="?{% qs_replace cal=m %}" class="{% if cal.mode == m %}on{% endif %}">{{ m|capfirst }}</a>{% endfor %}
+    </div>
+  </div>
+  {% if cal.mode == 'month' %}
+    <div class="grid grid-cols-7 gap-px overflow-hidden rounded-md border bg-slate-200 text-xs">
+      {% for n in cal.weekday_names %}<div class="bg-slate-50 px-1 py-1 text-center font-semibold text-slate-600">{{ n }}</div>{% endfor %}
+      {% for week in cal.weeks %}{% for day in week %}
+        <div class="min-h-[5.5rem] bg-white p-1 {% if not day.in_month %}bg-slate-50 text-slate-400{% endif %}">
+          <a href="?{% qs_replace cal='day' d=day.date|date:'Y-m-d' %}" class="inline-block rounded px-1 {% if day.is_today %}bg-teal-700 font-bold text-white{% endif %}">{{ day.date.day }}</a>
+          <div class="mt-0.5 space-y-0.5">
+            {% for item in day.items|slice:":3" %}{% include cal_item_template with compact=True %}{% endfor %}
+            {% if day.items|length > 3 %}<a href="?{% qs_replace cal='day' d=day.date|date:'Y-m-d' %}" class="block text-[11px] text-teal-700">+{{ day.items|length|add:"-3" }} more</a>{% endif %}
+          </div>
+        </div>
+      {% endfor %}{% endfor %}
+    </div>
+  {% else %}
+    <div class="grid gap-2 {% if cal.mode == 'week' %}sm:grid-cols-7{% endif %}">
+      {% for day in cal.days %}
+        <div class="rounded-md border p-2 {% if day.is_today %}border-teal-600 bg-teal-50/40{% endif %}">
+          <div class="mb-1 text-xs font-semibold">{{ day.date|date:"D d-m" }}</div>
+          <div class="space-y-1">{% for item in day.items %}{% include cal_item_template with compact=False %}{% empty %}<div class="text-xs text-slate-400">—</div>{% endfor %}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>

@@ -1,0 +1,63 @@
+{% load ui %}
+<div class="mb-3 flex flex-wrap items-center gap-2">
+  <div class="seg" role="group" aria-label="Layout">
+    {% for m in view_modes %}
+      <a href="?{% qs_replace view=m page=None %}" class="{% if view_mode == m %}on{% endif %}">
+        {% if m == 'table' %}▤ Table{% elif m == 'card' %}▦ Cards{% elif m == 'kanban' %}▥ Kanban{% elif m == 'calendar' %}📅 Calendar{% endif %}
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if view_mode == 'table' and columns %}
+  <div x-data="{ open:false, hidden: {{ hidden_cols|default:'[]'|safe|default:'[]' }} }" class="relative">
+    <button type="button" class="btn btn-sm" @click="open=!open">Columns ▾</button>
+    <div x-show="open" x-cloak @click.outside="open=false" class="absolute z-20 mt-1 w-56 rounded-md border bg-white p-2 shadow-lg">
+      {% for key, label, visible in columns %}
+        <label class="flex items-center gap-2 px-1 py-1 text-sm">
+          <input type="checkbox" class="rounded" {% if visible %}checked{% endif %}
+                 @change="hidden = $event.target.checked ? hidden.filter(c => c !== '{{ key }}') : [...hidden, '{{ key }}'];
+                          fetch('{% url 'core:save_pref' %}', {method:'POST', headers:{'X-CSRFToken':'{{ csrf_token }}','Content-Type':'application/x-www-form-urlencoded'},
+                          body:'key=cols:{{ page_key }}&value='+encodeURIComponent(JSON.stringify(hidden))}).then(()=>location.reload())">
+          {{ label }}
+        </label>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if view_mode == 'table' or view_mode == 'card' %}
+  <form method="get" class="flex items-center gap-1 text-sm">
+    {% for k, v in request.GET.items %}{% if k != 'page_size' and k != 'page' %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endif %}{% endfor %}
+    <label for="ps" class="text-slate-500">Rows</label>
+    <select id="ps" name="page_size" class="rounded-md border-slate-300 py-1 text-sm" onchange="this.form.submit()">
+      {% for s in page_sizes %}<option value="{{ s }}" {% if page_obj.paginator.per_page == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+  </form>
+  {% endif %}
+
+  <div class="ml-auto flex items-center gap-2" x-data="{ open:false }">
+    {% block toolbar_extra %}{% endblock %}
+    {% if url_name %}
+    <button type="button" class="btn btn-sm" @click="open=!open">☆ Save view</button>
+    <form x-show="open" x-cloak method="post" action="{% url 'core:saved_filter_create' %}" class="flex items-center gap-1">
+      {% csrf_token %}
+      <input type="hidden" name="page" value="{{ url_name }}">
+      <input type="hidden" name="querystring" value="{{ request.GET.urlencode }}">
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <input name="name" required maxlength="80" placeholder="e.g. Abnormal HbA1c, 6 months" class="input py-1">
+      <button class="btn-primary btn-sm">Save</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% if saved_filters %}
+<div class="mb-3 flex flex-wrap gap-2 text-xs">
+  {% for sf in saved_filters %}
+    <span class="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-2 py-0.5">
+      <a href="{{ sf.get_absolute_url }}" class="hover:underline">{% if sf.pinned %}⭐{% endif %} {{ sf.name }}</a>
+      <form method="post" action="{% url 'core:saved_filter_pin' sf.pk %}" class="inline">{% csrf_token %}<button title="Pin/unpin" class="text-slate-400 hover:text-slate-700">📌</button></form>
+      <form method="post" action="{% url 'core:saved_filter_delete' sf.pk %}" class="inline">{% csrf_token %}<button title="Delete" class="text-slate-400 hover:text-red-600">✕</button></form>
+    </span>
+  {% endfor %}
+</div>
+{% endif %}

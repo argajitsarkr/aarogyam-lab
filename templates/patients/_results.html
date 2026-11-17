@@ -1,0 +1,58 @@
+{% load ui %}
+{% if view_mode == 'card' %}
+<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+{% for p in object_list %}
+  <a href="{% url 'patients:detail' p.pk %}" class="card block p-3 hover:border-teal-400">
+    <div class="flex items-start justify-between gap-2">
+      <div class="min-w-0">
+        <div class="truncate font-semibold">{{ p.full_name }}</div>
+        <div class="text-xs text-slate-500">{{ p.patient_id }} · {{ p.age_display|default:"?" }}{{ p.sex }}</div>
+      </div>
+      {% centre_badge p.registered_at_centre %}
+    </div>
+    <div class="mt-2 text-sm">📞 {{ p.phone }}</div>
+    <div class="text-xs text-slate-500">{{ p.locality|default:"—" }}{% if p.pin_code %} · {{ p.pin_code }}{% endif %}</div>
+    <div class="mt-2 flex justify-between text-xs text-slate-500">
+      <span>Last visit: {{ p.last_visit_date|date:"d-m-Y"|default:"—" }}</span><span>{{ p.visit_count }} visit{{ p.visit_count|pluralize }}</span>
+    </div>
+    {% if p.do_not_call %}<div class="mt-1 text-xs font-medium text-red-700">Do not call</div>{% endif %}
+  </a>
+{% empty %}
+  <p class="text-sm text-slate-500">No patients match.</p>
+{% endfor %}
+</div>
+{% else %}
+<div class="card overflow-x-auto p-0">
+<table class="tbl">
+  <thead><tr>
+    {% if 'patient_id' not in hidden_cols %}<th>{% sort_link 'patient_id' 'Patient ID' %}</th>{% endif %}
+    {% if 'name' not in hidden_cols %}<th>{% sort_link 'name' 'Name' %}</th>{% endif %}
+    {% if 'age_sex' not in hidden_cols %}<th>Age/Sex</th>{% endif %}
+    {% if 'phone' not in hidden_cols %}<th>Phone</th>{% endif %}
+    {% if 'locality' not in hidden_cols %}<th>{% sort_link 'locality' 'Locality' %}</th>{% endif %}
+    {% if 'pin' not in hidden_cols %}<th>PIN</th>{% endif %}
+    {% if 'centre' not in hidden_cols %}<th>Registered at</th>{% endif %}
+    {% if 'last_visit' not in hidden_cols %}<th>{% sort_link 'last_visit' 'Last visit' %}</th>{% endif %}
+    {% if 'visits' not in hidden_cols %}<th>{% sort_link 'visits' 'Visits' %}</th>{% endif %}
+  </tr></thead>
+  <tbody>
+  {% for p in object_list %}
+    <tr class="cursor-pointer" onclick="location.href='{% url 'patients:detail' p.pk %}'">
+      {% if 'patient_id' not in hidden_cols %}<td class="font-mono text-xs">{{ p.patient_id }}</td>{% endif %}
+      {% if 'name' not in hidden_cols %}<td class="font-medium"><a href="{% url 'patients:detail' p.pk %}">{{ p.full_name }}</a>{% if p.do_not_call %} <span title="Do not call">🚫</span>{% endif %}</td>{% endif %}
+      {% if 'age_sex' not in hidden_cols %}<td>{{ p.age_display|default:"?" }} / {{ p.sex }}</td>{% endif %}
+      {% if 'phone' not in hidden_cols %}<td>{{ p.phone }}</td>{% endif %}
+      {% if 'locality' not in hidden_cols %}<td>{{ p.locality|default:"—" }}</td>{% endif %}
+      {% if 'pin' not in hidden_cols %}<td>{{ p.pin_code|default:"—" }}</td>{% endif %}
+      {% if 'centre' not in hidden_cols %}<td>{% centre_badge p.registered_at_centre %}</td>{% endif %}
+      {% if 'last_visit' not in hidden_cols %}<td>{{ p.last_visit_date|date:"d-m-Y"|default:"—" }}</td>{% endif %}
+      {% if 'visits' not in hidden_cols %}<td>{{ p.visit_count }}</td>{% endif %}
+    </tr>
+  {% empty %}
+    <tr><td colspan="9" class="py-8 text-center text-slate-500">No patients match. <a class="text-teal-700 underline" href="{% url 'patients:register' %}">Register a new patient</a></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% include "core/_pagination.html" %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Edit prices{% endblock %}{% block page_title %}Competitor prices <span class="text-sm font-normal text-slate-500">· Admin</span>{% endblock %}
+{% block content %}
+{% include "pricing/_nav.html" %}
+<div class="mb-3 flex flex-wrap items-center gap-2">
+  <form method="get" class="flex-1"><input type="search" name="q" value="{{ q }}" placeholder="Find test to edit…" class="input max-w-sm" aria-label="Find test"></form>
+  <a href="{% url 'pricing:bulk_upload' %}" class="btn">⬆ Excel upload</a>
+  <a href="{% url 'pricing:competitor_create' %}" class="btn">+ Competitor</a>
+</div>
+<div class="mb-3 flex flex-wrap gap-2 text-xs">
+  {% for c in competitors %}<a href="{% url 'pricing:competitor_update' c.pk %}" class="rounded-full border bg-white px-2 py-0.5 hover:bg-slate-50">{{ c.name }} ✎</a>{% endfor %}
+</div>
+<form method="post" action="{% url 'pricing:save_grid' %}">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <div class="card mb-3 flex flex-wrap items-end gap-3 p-3 text-sm">
+    <label>Source for changed cells
+      <select name="source_note" class="input">{% for v, l in sources %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></label>
+    <label>Verified on<input type="date" name="verified_on" value="{{ today|date:'Y-m-d' }}" class="input"></label>
+    <span class="text-xs text-slate-500">Only cells you change are saved. Clear a cell to remove that price.</span>
+    <button class="btn-primary ml-auto">Save changes</button>
+  </div>
+  <div class="card max-h-[70vh] overflow-auto p-0">
+    <table class="tbl">
+      <thead class="sticky top-0 z-10"><tr><th>Test</th><th class="text-right">Ours</th>{% for c in competitors %}<th>{{ c.name }}</th>{% endfor %}<th></th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr>
+          <td class="font-medium">{{ r.test.name }} <span class="text-xs text-slate-400">{{ r.test.code }}</span></td>
+          <td class="text-right">{{ r.test.price|inr }}</td>
+          {% for cc, cell in r.pairs %}
+            <td>
+              <input type="hidden" name="orig_{{ r.test.pk }}_{{ cc.pk }}" value="{% if cell %}{{ cell.price|floatformat:'-2' }}{% endif %}">
+              <input type="number" step="0.01" min="0" name="price_{{ r.test.pk }}_{{ cc.pk }}" value="{% if cell %}{{ cell.price|floatformat:'-2' }}{% endif %}"
+                     class="w-24 rounded border-slate-300 py-1 text-right text-sm {% if cell.stale %}bg-amber-50{% endif %}" aria-label="{{ cc.name }} price for {{ r.test.name }}"
+                     title="{% if cell %}{{ cell.source_note }} · {{ cell.last_verified_on|date:'d-m-Y' }}{% endif %}">
+            </td>
+          {% endfor %}
+          <td><button form="verify-{{ r.test.pk }}" class="text-xs text-teal-700 hover:underline" title="Mark all prices for this test as verified today">✓ verified</button></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if not q and rows|length >= 100 %}<p class="mt-2 text-xs text-slate-500">Showing first 100 tests — search to find others.</p>{% endif %}
+</form>
+{% for r in rows %}<form id="verify-{{ r.test.pk }}" method="post" action="{% url 'pricing:mark_verified' r.test.pk %}" class="hidden">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"></form>{% endfor %}
+{% endblock %}

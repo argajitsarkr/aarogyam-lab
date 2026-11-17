@@ -1,0 +1,95 @@
+# PowerEdge R730 (shared with GrantSetu), behind Cloudflare Tunnel.
+#   bash deploy.sh up       first start
+#   bash deploy.sh update   after pushing from the laptop
+# TLS is terminated by Cloudflare; nginx listens on 127.0.0.1:${LAB_HTTP_PORT:-8090} only.
+# Ports 3000/8000 belong to GrantSetu - nothing here publishes them.
+name: aarogyam
+
+x-app: &app
+  build: .
+  image: aarogyam-web:server
+  env_file: .env
+  environment:
+    DEBUG: "False"
+    USE_X_ACCEL_REDIRECT: "True"
+    # Cloudflare already redirects http->https at the edge; Django sees
+    # X-Forwarded-Proto=https from nginx, so this stays on safely.
+    SECURE_SSL_REDIRECT: "True"
+  volumes:
+    - static_volume:/app/staticfiles
+    - private_media:/app/private_media
+  depends_on:
+    db: { condition: service_healthy }
+    redis: { condition: service_started }
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16-alpine
+    env_file: .env
+    environment:
+      TZ: Asia/Kolkata
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    restart: unless-stopped
+
+  web:
+    <<: *app
+    environment:
+      DEBUG: "False"
+      USE_X_ACCEL_REDIRECT: "True"
+      SECURE_SSL_REDIRECT: "True"
+      RUN_MIGRATIONS: "1"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/robots.txt')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+  celery_worker:
+    <<: *app
+    command: ["celery", "-A", "config", "worker", "-l", "info", "--concurrency", "2"]
+
+  celery_beat:
+    <<: *app
+    command: ["celery", "-A", "config", "beat", "-l", "info", "--schedule", "/tmp/celerybeat-schedule"]
+
+  nginx:
+    build: ./docker/nginx
+    ports:
+      - "127.0.0.1:${LAB_HTTP_PORT:-8090}:80"
+    volumes:
+      - ./docker/nginx/tunnel:/etc/nginx/templates:ro
+      - static_volume:/app/staticfiles:ro
+      - private_media:/app/private_media:ro
+    depends_on:
+      web: { condition: service_healthy }
+    restart: unless-stopped
+
+  db_backup:
+    build: ./docker/backup
+    env_file: .env
+    environment:
+      TZ: Asia/Kolkata
+    volumes:
+      # Outside the project directory on purpose: a deleted checkout must not take the backups with it.
+      - ${BACKUP_DIR:-/home/mmilab/aarogyam-backups}:/backups
+    depends_on:
+      db: { condition: service_healthy }
+    restart: unless-stopped
+
+volumes:
+  pg_data:
+  static_volume:
+  private_media:
