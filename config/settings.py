@@ -147,6 +147,19 @@ USE_THOUSAND_SEPARATOR = False
 STATIC_URL = "/static/"
 STATIC_ROOT = env("STATIC_ROOT", default=str(BASE_DIR / "staticfiles"))
 STATICFILES_DIRS = [BASE_DIR / "static"]
+# Content-hashed filenames in production: collectstatic writes app.<hash>.css and
+# {% static %} emits that name, so a changed file is a NEW url. Without this every
+# deploy reuses /static/dist/app.css, and the browser (7 days) and Cloudflare (edge
+# HIT) both keep serving the old one - which is exactly why redeploys appeared to
+# "lag". Hashed names make the cache impossible to get wrong, so Nginx can hold
+# static files for a year.
+# manifest_strict=False: a url() in vendored CSS pointing at a file we do not ship
+# must not take the whole site down at boot.
+if not DEBUG:
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "apps.core.storage.ForgivingManifestStaticFilesStorage"},
+    }
 _build_dir = Path(env("STATIC_BUILD_DIR", default=str(BASE_DIR / "static_build")))
 if _build_dir.exists():
     STATICFILES_DIRS.append(_build_dir)

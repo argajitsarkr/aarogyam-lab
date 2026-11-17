@@ -104,6 +104,15 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   `/home/mmilab/aarogyam-backups` (outside the checkout). `.env` and the `private_media`
   volume (report PDFs) are not in those dumps - back them up separately.
 - Migrations, collectstatic and seed commands run automatically when `web` starts.
+- **Static files are content-hashed in production** (`ForgivingManifestStaticFilesStorage`):
+  `collectstatic` writes `dist/app.<hash>.css` and `{% static %}` emits that name, so every
+  deploy produces new urls and nginx can hold them for a year (`immutable`). Before this,
+  `/static/dist/app.css` never changed name, so browsers kept it for 7 days and Cloudflare
+  served edge HITs - redeploys looked like they had not taken effect.
+  Two traps: `manifest_strict = False` does **not** stop a missing `url()` reference from
+  failing collectstatic, which is why `hashed_name` is overridden; and collectstatic runs
+  with `--ignore=src`, because `static/src/app.css` is the Tailwind input and its `@import`
+  lines point outside the static root.
 
 ## Accounts
 
@@ -148,7 +157,7 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   (cp1252 default otherwise).
 - Local runs use SQLite and CDN assets when `DEBUG=True` (`.env` here is dev-only).
 - `python manage.py create_demo_data` for fake data; refused when `DEBUG=False`.
-- Tests: `python -m pytest` (96 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
+- Tests: `python -m pytest` (100 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
 - Docker Desktop on this laptop has been unreliable (engine stuck stopped); the full
   `docker compose up` stack has not yet been verified here.
 

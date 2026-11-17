@@ -20,7 +20,10 @@ PY
 
 if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
   python manage.py migrate --noinput
-  python manage.py collectstatic --noinput --verbosity 0
+  # --ignore=src: static/src/app.css is the Tailwind INPUT, not an asset. It is
+  # compiled into static_build/dist at image build time, and its @import lines
+  # (node_modules, ../../templates) cannot be resolved by the hashing storage.
+  python manage.py collectstatic --noinput --verbosity 0 --ignore=src
   python manage.py seed_centres
   python manage.py seed_competitors
   python manage.py seed_test_catalog

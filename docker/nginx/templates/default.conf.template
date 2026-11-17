@@ -37,8 +37,10 @@ server {
     # Static assets (collected by Django). Long cache; filenames are stable per release.
     location /static/ {
         alias /app/staticfiles/;
-        expires 7d;
-        add_header Cache-Control "public";
+        # Safe to cache hard: filenames carry a content hash (ManifestStaticFilesStorage),
+        # so a changed file always arrives under a new name.
+        expires 1y;
+        add_header Cache-Control "public, immutable";
         add_header X-Robots-Tag "noindex, nofollow" always;
     }
 
