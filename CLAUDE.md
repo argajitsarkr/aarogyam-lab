@@ -171,9 +171,49 @@ so the lab remote must stay `git@github-aarogyam:...`; plain `git@github.com:` w
   (cp1252 default otherwise).
 - Local runs use SQLite and CDN assets when `DEBUG=True` (`.env` here is dev-only).
 - `python manage.py create_demo_data` for fake data; refused when `DEBUG=False`.
-- Tests: `python -m pytest` (106 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
+- Tests: `python -m pytest` (112 tests; settings isolation in `conftest.py`). The `django-dev` preview runs with `--noreload` - restart it after code changes.
 - Docker Desktop on this laptop has been unreliable (engine stuck stopped); the full
   `docker compose up` stack has not yet been verified here.
+
+## Working habits - mistakes already made here, do not repeat them
+
+**Verify once, not three times.** One targeted check per change: the single thing that
+would fail if the change were wrong. Prefer one combined command (one ssh, one grep with
+several patterns) over several calls. Do not re-screenshot a page, re-grep what was just
+read, or re-verify what a passing test already covers. Report it in a line, not a table.
+Spend the checks where tests cannot see: destructive migrations, anything on the server,
+template rendering, cache headers. That is where every real bug in this project came from.
+
+**Run `python manage.py migrate` locally right after `makemigrations`.** The test suite
+builds its database from migrations and passes, while the dev SQLite file still has the old
+columns - a page then 500s in the browser with a green test run. Cost an hour once.
+
+**Restart the `django-dev` preview after ANY template or code change.** It runs with
+`--noreload`. Stale templates were mistaken for broken code three times in one session.
+
+**Browser-driving traps:**
+- `document.querySelector('form')` is the scope switcher in `base.html`, not the page's
+  form. Reach the right one with `document.querySelector('#id_p-phone').form`.
+- `ref_N` ids go stale after a navigation; re-run `find` first.
+- A scripted `.click()` can beat Alpine to initialisation - a real `computer` click is the
+  honest test of an Alpine control.
+
+**Alpine `:class="cond && 'x'"` writes the literal string `false`** onto the element when
+the condition is false. Use the object form: `:class="{ 'x': cond }"`.
+
+**A Django form used with a prefix** does not see `self.data.get("field")` - the posted key
+is `prefix-field`. Use `self.add_prefix("field")`.
+
+**Measure before blaming the CSS cascade.** The sidebar rail ignored `width` because a flex
+item defaults to `min-width: auto`, not because of layer order; several rounds went into
+specificity and `!important` first.
+
+**After removing a model field, grep the TEMPLATES too.** Removing `report_pdf` left a file
+input with no field behind it and a column header for a column that no longer existed,
+sitting live on the visit page for several commits.
+
+**Keep `git push` and the ssh deploy as two separate Bash calls.** Chained in one command
+they read as a single risky action and get refused.
 
 ## Removed on purpose (2026-11-18) - do not re-add without asking
 
