@@ -59,9 +59,10 @@
   /* Inter (Google Fonts, see templates/_assets.html). Repeated here so the CDN
      fallback used when DEBUG=True picks it up as well. */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  /* Headings only. Instrument Serif ships a single weight (400), so hierarchy here
-     comes from size and from the shape being different - never from bolding it. */
-  --font-display: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+  /* Headings only. Space Grotesk has its own geometric letterforms, so a heading
+     reads as a heading next to Inter even at the same size; 600 is the heading
+     weight everywhere. */
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 html { font-family: var(--font-sans); }
@@ -75,7 +76,7 @@ body { background-color: var(--canvas); }
    utility class the templates already carry, without editing forty files. */
 .page-title {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 1.75rem;
   line-height: 1.15;
   letter-spacing: -0.01em;
@@ -83,7 +84,7 @@ body { background-color: var(--canvas); }
 }
 .section-title, .subsection-title, .card h2, .card h3, section > h2 {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 1.2rem;
   line-height: 1.25;
   letter-spacing: -0.005em;
@@ -92,12 +93,12 @@ body { background-color: var(--canvas); }
 .subsection-title { font-size: 1rem; }
 .results-title, .rcard-title {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.005em;
 }
 .results-title { font-size: 1.2rem; }
 .rcard-title { font-size: 1.35rem; }
-/* Figures stay in Inter: a serif numeral set is harder to scan in a column. */
+/* Figures stay in Inter: its tabular numerals line up down a column. */
 .stat-value, .rcard-number, .kpi-value { font-family: var(--font-sans); }
 
 /* Sidebar width, both states, from the tokens. The element carries no Tailwind

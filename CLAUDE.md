@@ -11,17 +11,16 @@ Django 5.2 / Python 3.12, PostgreSQL 16, Celery + Redis, Gunicorn + Nginx, HTMX 
 Tailwind, Chart.js, Leaflet. Docker Compose for every deployed environment.
 
 **Fonts and icons are Google's**, loaded from `fonts.googleapis.com` in `templates/_assets.html`:
-**Inter** for all UI text (Tailwind's `sans`), **Instrument Serif** for headings
+**Inter** for all UI text (Tailwind's `sans`), **Space Grotesk** for headings
 (Tailwind's `display`) and **Material Symbols Rounded** for every icon.
 
-**The type scale is four steps**, defined once in `_components.css`: `.page-title` 28px
-serif, `.section-title` 19px serif, `.subsection-title` 16px serif, Inter 14px body, and
+**The type scale is four steps**, defined once in `_components.css`: `.page-title` 28px,
+`.section-title` 19px and `.subsection-title` 16px in Space Grotesk 600, Inter 14px body, and
 11px bold uppercase labels (`.filter-label`, `.stat-label`). Headings carry only
-`.section-title` / `.subsection-title` - never `font-semibold` or `text-base` beside them,
-because Instrument Serif ships a single weight (bolding it gives a faux bold) and a size
-utility would pin the heading back to body size. Figures stay in Inter: `.stat-value`,
-`.rcard-number` and `.kpi-value` override the family, since serif numerals are harder to
-scan down a column. Before this the scale was 18/16/14 at one weight and read as one size. No emoji in templates - use the `{% icon %}` tag (`apps/core/templatetags/ui.py`)
+`.section-title` / `.subsection-title` - never a `font-*` or `text-*` utility beside them,
+which would pin the heading back to body size and weight. Figures stay in Inter:
+`.stat-value`, `.rcard-number` and `.kpi-value` override the family for its tabular numerals.
+Before this the scale was 18/16/14 at one weight and read as one size. No emoji in templates - use the `{% icon %}` tag (`apps/core/templatetags/ui.py`)
 with the Material Symbols ligature name. Icons are `aria-hidden`, so each needs visible text
 or an `aria-label`. Arrows that are data rather than decoration (audit diffs, status changes)
 stay as text characters.

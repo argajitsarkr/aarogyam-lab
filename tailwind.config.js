@@ -63,7 +63,7 @@ module.exports = {
         // what the browser shows while the webfont loads, or if Google is unreachable.
         sans: ["Inter", ...defaultTheme.fontFamily.sans],
         // Headings only - see the type scale in templates/_components.css.
-        display: ["Instrument Serif", ...defaultTheme.fontFamily.serif],
+        display: ["Space Grotesk", ...defaultTheme.fontFamily.sans],
       },
     },
   },
