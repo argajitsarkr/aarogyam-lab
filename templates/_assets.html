@@ -2,7 +2,7 @@
 {# Google Fonts: Inter for the UI, Material Symbols Rounded for every icon. #}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Instrument+Serif:ital@0;1&display=swap">
 {% comment %}
   Icons are SUBSET to the names actually used: the full Material Symbols font is 3 MB,
   this is ~15 KB. Keep the list alphabetical and in step with the icon tags in the
@@ -21,7 +21,7 @@
       slate: {"50": "#FAFAFA", "100": "#F4F4F5", "200": "#E7E7EA", "300": "#D4D4D8", "400": "#A1A1AA", "500": "#66666E", "600": "#52525B", "700": "#3F3F46", "800": "#27272A", "900": "#18181B", "950": "#09090B"},
       canvas: "#F0F0F2",
       accent: { DEFAULT: "#00A6D7", dark: "#0058B3", bg: "#EAFDFC", ink: "#001B87" }
-    }, fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"] } } } };
+    }, fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"], display: ["Instrument Serif", "ui-serif", "Georgia", "serif"] } } } };
   </script>
   <style type="text/tailwindcss">{% include "_components.css" %}</style>
   <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>

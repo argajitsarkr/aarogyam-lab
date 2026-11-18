@@ -17,7 +17,7 @@
     <input type="hidden" name="{{ pform.reg_mode.html_name }}" :value="quick ? 'quick' : 'full'">
 
     <div class="mb-4 flex flex-wrap items-center gap-2">
-      <h2 class="text-base font-semibold">Patient details</h2>
+      <h2 class="section-title">Patient details</h2>
       <div class="seg ml-auto" role="group" aria-label="How much detail">
         <button type="button" @click="quick = false" :class="!quick && 'on'">Full registration</button>
         <button type="button" @click="quick = true" :class="quick && 'on'">Quick add</button>
@@ -39,7 +39,7 @@
       </div>
 
       <div x-show="!quick" x-cloak>
-        <h3 class="mb-2 mt-4 text-sm font-semibold text-slate-600">Location</h3>
+        <h3 class="mb-2 mt-4 text-slate-600 subsection-title">Location</h3>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-6">
           <div class="sm:col-span-3"><label class="label" for="{{ form.locality.id_for_label }}">Locality / area</label>{{ form.locality }}<datalist id="locality-options"></datalist></div>
           <div class="sm:col-span-3"><label class="label" for="{{ form.pin_code.id_for_label }}">PIN code</label>{{ form.pin_code }}{{ form.pin_code.errors }}</div>
@@ -65,7 +65,7 @@
   {% endif %}
 
   <section class="card" x-show="!quick" x-cloak>
-    <h2 class="mb-3 text-base font-semibold">Tests</h2>
+    <h2 class="mb-3 section-title">Tests</h2>
     <div class="relative">
       <input type="search" x-model="q" @keydown.enter.prevent="addFirst()" placeholder="Type test name or code, press Enter to add…" class="input py-2.5" aria-label="Search tests">
       <div x-show="q.length" x-cloak class="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border bg-white shadow-lg">
@@ -93,7 +93,7 @@
   </section>
 
   <section class="card" x-show="!quick" x-cloak>
-    <h2 class="mb-3 text-base font-semibold">Visit</h2>
+    <h2 class="mb-3 section-title">Visit</h2>
     {% with form=vform %}
     {% if form.non_field_errors %}<div class="mb-2 text-sm text-red-700">{{ form.non_field_errors }}</div>{% endif %}
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-6" x-data="{ home: '{{ form.sample_collection_type.value|default:'CENTRE' }}' === 'HOME' }">

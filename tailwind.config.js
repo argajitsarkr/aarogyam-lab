@@ -62,6 +62,8 @@ module.exports = {
         // Inter comes from Google Fonts (templates/_assets.html); the stack after it is
         // what the browser shows while the webfont loads, or if Google is unreachable.
         sans: ["Inter", ...defaultTheme.fontFamily.sans],
+        // Headings only - see the type scale in templates/_components.css.
+        display: ["Instrument Serif", ...defaultTheme.fontFamily.serif],
       },
     },
   },

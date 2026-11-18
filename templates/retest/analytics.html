@@ -19,7 +19,7 @@
 
 <div class="grid gap-4 lg:grid-cols-2">
   <div class="card overflow-x-auto p-0">
-    <h2 class="px-3 pt-3 font-semibold">By employee</h2>
+    <h2 class="px-3 pt-3 section-title">By employee</h2>
     <div class="tbl-wrap">
       <table class="tbl"><thead><tr><th>Employee</th><th>Centre</th><th class="text-right">Calls</th><th class="text-right">Contacted</th><th class="text-right">Booked</th><th class="text-right">Conv.</th><th class="text-right">Returned</th></tr></thead>
     <tbody>{% for r in per_emp %}<tr><td>{{ r.employee__first_name|default:r.employee__username }}</td><td>{{ r.centre__short_code }}</td><td class="text-right">{{ r.total }}</td><td class="text-right">{{ r.contacted }}</td><td class="text-right">{{ r.booked }}</td><td class="text-right">{{ r.rate }}%</td><td class="text-right">{{ r.converted }}</td></tr>
@@ -27,7 +27,7 @@
     </div>
   </div>
   <div class="card overflow-x-auto p-0">
-    <h2 class="px-3 pt-3 font-semibold">By centre</h2>
+    <h2 class="px-3 pt-3 section-title">By centre</h2>
     <div class="tbl-wrap">
       <table class="tbl"><thead><tr><th>Centre</th><th class="text-right">Calls</th><th class="text-right">Contacted</th><th class="text-right">Booked</th><th class="text-right">Conv.</th><th class="text-right">Returned</th></tr></thead>
     <tbody>{% for r in per_centre %}<tr><td>{% centre_badge r.centre %} {{ r.centre.name }}</td><td class="text-right">{{ r.total }}</td><td class="text-right">{{ r.contacted }}</td><td class="text-right">{{ r.booked }}</td><td class="text-right">{{ r.rate }}%</td><td class="text-right">{{ r.converted }}</td></tr>{% endfor %}</tbody></table>
@@ -36,7 +36,7 @@
 </div>
 
 <div class="card mt-4">
-  <h2 class="mb-2 font-semibold">Weekly trend (last 12 weeks)</h2>
+  <h2 class="mb-2 section-title">Weekly trend (last 12 weeks)</h2>
   <div class="relative h-72"><canvas id="trend" aria-label="Weekly bookings, returns and conversion rate"></canvas></div>
 </div>
 {{ trend|json_script:"trend-data" }}

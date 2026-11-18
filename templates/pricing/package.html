@@ -4,7 +4,7 @@
 <div class="print:hidden">{% include "pricing/_nav.html" %}</div>
 <div class="grid gap-4 lg:grid-cols-3">
   <form method="get" class="card print:hidden lg:col-span-1" x-data="{ q:'' }">
-    <h2 class="mb-2 font-semibold">Select tests</h2>
+    <h2 class="mb-2 section-title">Select tests</h2>
     <input type="search" x-model="q" placeholder="Filter…" class="input mb-2" aria-label="Filter tests">
     <div class="max-h-[55vh] space-y-1 overflow-y-auto pr-1">
       {% for t in tests %}
@@ -20,7 +20,7 @@
   <div class="lg:col-span-2">
   {% if rows %}
     <div class="card">
-      <h2 class="font-semibold">{{ rows|length }} test{{ rows|length|pluralize }}: <span class="font-normal text-slate-600">{% for r in rows %}{{ r.test.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span></h2>
+      <h2 class="section-title">{{ rows|length }} test{{ rows|length|pluralize }}: <span class="font-normal text-slate-600">{% for r in rows %}{{ r.test.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span></h2>
       <div class="mt-4 grid gap-3 sm:grid-cols-2">
         {% for t in totals %}
           <div class="rounded-xl border p-4">

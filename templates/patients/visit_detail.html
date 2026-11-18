@@ -44,7 +44,7 @@
   </section>
 
   <section class="card">
-    <h2 class="mb-3 font-semibold">Visit details</h2>
+    <h2 class="mb-3 section-title">Visit details</h2>
     {% if can_edit %}
       {% with form=bform %}{% include "core/_form_fields.html" %}{% endwith %}
     {% else %}
@@ -66,7 +66,7 @@
 {% endcomment %}
 <form method="post" class="card mt-4 print:hidden">
   {% csrf_token %}
-  <h2 class="mb-1 font-semibold">Add tests</h2>
+  <h2 class="mb-1 section-title">Add tests</h2>
   <p class="mb-3 text-sm text-slate-500">Tests already on this visit are not listed. Hold Ctrl (or Cmd) to pick several.</p>
   <div class="flex flex-wrap items-end gap-3">
     <div class="min-w-[18rem] flex-1">

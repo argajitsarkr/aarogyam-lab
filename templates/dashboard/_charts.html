@@ -1,19 +1,19 @@
 {# Expects `charts` in context. #}
 {{ charts|json_script:"chart-data" }}
 <div class="grid gap-4 lg:grid-cols-2">
-  <div class="card"><h3 class="mb-2 text-sm font-semibold">Visits per centre — last {{ charts.labels|length }} days</h3><div class="relative h-64"><canvas id="ch-visits" aria-label="Visits per centre"></canvas></div></div>
-  <div class="card"><h3 class="mb-2 text-sm font-semibold">New registrations by centre</h3><div class="relative h-64"><canvas id="ch-regs" aria-label="New registrations by centre"></canvas></div></div>
+  <div class="card"><h3 class="mb-2 subsection-title">Visits per centre — last {{ charts.labels|length }} days</h3><div class="relative h-64"><canvas id="ch-visits" aria-label="Visits per centre"></canvas></div></div>
+  <div class="card"><h3 class="mb-2 subsection-title">New registrations by centre</h3><div class="relative h-64"><canvas id="ch-regs" aria-label="New registrations by centre"></canvas></div></div>
   <div class="card" x-data="{ c: Object.keys(JSON.parse(document.getElementById('chart-data').textContent).top_tests)[0] }">
-    <div class="mb-2 flex flex-wrap items-center gap-2"><h3 class="text-sm font-semibold">Top 10 tests</h3>
+    <div class="mb-2 flex flex-wrap items-center gap-2"><h3 class="subsection-title">Top 10 tests</h3>
       <div class="seg ml-auto text-xs"><template x-for="k in Object.keys(JSON.parse(document.getElementById('chart-data').textContent).top_tests)"><button type="button" :class="c===k && 'on'" @click="c=k; window.drawBar('ch-tests', 'top_tests', k)" x-text="k"></button></template></div></div>
     <div class="relative h-72"><canvas id="ch-tests" aria-label="Top tests"></canvas></div>
   </div>
   <div class="card" x-data="{ c: Object.keys(JSON.parse(document.getElementById('chart-data').textContent).localities)[0] }">
-    <div class="mb-2 flex flex-wrap items-center gap-2"><h3 class="text-sm font-semibold">Localities served</h3>
+    <div class="mb-2 flex flex-wrap items-center gap-2"><h3 class="subsection-title">Localities served</h3>
       <div class="seg ml-auto text-xs"><template x-for="k in Object.keys(JSON.parse(document.getElementById('chart-data').textContent).localities)"><button type="button" :class="c===k && 'on'" @click="c=k; window.drawBar('ch-loc', 'localities', k)" x-text="k"></button></template></div></div>
     <div class="relative h-72"><canvas id="ch-loc" aria-label="Patient localities"></canvas></div>
   </div>
-  <div class="card lg:col-span-2"><h3 class="mb-2 text-sm font-semibold">Re-test conversion rate — weekly</h3><div class="relative h-56"><canvas id="ch-conv" aria-label="Re-test conversion trend"></canvas></div></div>
+  <div class="card lg:col-span-2"><h3 class="mb-2 subsection-title">Re-test conversion rate — weekly</h3><div class="relative h-56"><canvas id="ch-conv" aria-label="Re-test conversion trend"></canvas></div></div>
 </div>
 <script>
 (function () {

@@ -29,7 +29,7 @@
 
 <div class="mt-4 grid gap-4 lg:grid-cols-2">
   <div class="card">
-    <div class="mb-2 flex items-center justify-between"><h2 class="font-semibold">{% icon "call" %} {% if is_admin_user %}Top calls to make{% else %}My Call List{% endif %}</h2><a href="{% url 'retest:my_calls' %}" class="text-sm text-teal-700">All {% icon "arrow_forward" "mi-sm" %}</a></div>
+    <div class="mb-2 flex items-center justify-between"><h2 class="section-title">{% icon "call" %} {% if is_admin_user %}Top calls to make{% else %}My Call List{% endif %}</h2><a href="{% url 'retest:my_calls' %}" class="text-sm text-teal-700">All {% icon "arrow_forward" "mi-sm" %}</a></div>
     <ul class="divide-y text-sm">
       {% for c in my_calls %}
         <li class="flex items-center justify-between gap-2 py-2">
@@ -40,7 +40,7 @@
     </ul>
   </div>
   <div class="card">
-    <div class="mb-2 flex items-center justify-between"><h2 class="font-semibold">{% icon "assignment" %} Follow-ups due</h2><a href="{% url 'followups:list' %}" class="text-sm text-teal-700">All {% icon "arrow_forward" "mi-sm" %}</a></div>
+    <div class="mb-2 flex items-center justify-between"><h2 class="section-title">{% icon "assignment" %} Follow-ups due</h2><a href="{% url 'followups:list' %}" class="text-sm text-teal-700">All {% icon "arrow_forward" "mi-sm" %}</a></div>
     <ul class="divide-y text-sm">
       {% for f in my_followups %}
         <li class="flex items-center justify-between gap-2 py-2">
@@ -55,7 +55,7 @@
 {% if is_admin_user %}
 <section class="mt-6">
   <form method="get" class="mb-2 flex flex-wrap items-end gap-2">
-    <h2 class="mr-auto font-semibold">Centre comparison</h2>
+    <h2 class="mr-auto section-title">Centre comparison</h2>
     <label class="text-xs">From<input type="date" name="from" value="{{ start|date:'Y-m-d' }}" class="input py-1"></label>
     <label class="text-xs">To<input type="date" name="to" value="{{ end|date:'Y-m-d' }}" class="input py-1"></label>
     <button class="btn btn-sm">Apply</button>

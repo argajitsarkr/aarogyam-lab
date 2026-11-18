@@ -5,7 +5,7 @@
     <a class="btn btn-sm" href="?{% qs_replace d=cal.prev|date:'Y-m-d' %}">‹</a>
     <a class="btn btn-sm" href="?{% qs_replace d=None %}">Today</a>
     <a class="btn btn-sm" href="?{% qs_replace d=cal.next|date:'Y-m-d' %}">›</a>
-    <h3 class="ml-2 font-semibold">{{ cal.title }}</h3>
+    <h3 class="ml-2 subsection-title">{{ cal.title }}</h3>
     <div class="seg ml-auto">
       {% for m in cal.modes %}<a href="?{% qs_replace cal=m %}" class="{% if cal.mode == m %}on{% endif %}">{{ m|capfirst }}</a>{% endfor %}
     </div>

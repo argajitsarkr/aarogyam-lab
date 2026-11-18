@@ -44,7 +44,7 @@
 
     {% if followups %}
     <div class="card">
-      <h2 class="mb-2 font-semibold">Follow-ups</h2>
+      <h2 class="mb-2 section-title">Follow-ups</h2>
       <ul class="space-y-2 text-sm">
       {% for f in followups %}
         <li class="flex items-start justify-between gap-2">
@@ -58,7 +58,7 @@
 
     {% if candidates %}
     <div class="card">
-      <h2 class="mb-2 font-semibold">Re-test reminders & calls</h2>
+      <h2 class="mb-2 section-title">Re-test reminders & calls</h2>
       <ul class="space-y-3 text-sm">
       {% for c in candidates %}
         <li>
@@ -73,7 +73,7 @@
 
   {# ---------- Timeline ---------- #}
   <section class="lg:col-span-2">
-    <h2 class="mb-3 font-semibold">Visit & test timeline <span class="text-sm font-normal text-slate-500">— all centres</span></h2>
+    <h2 class="mb-3 section-title">Visit & test timeline <span class="text-sm font-normal text-slate-500">— all centres</span></h2>
     <ol class="relative space-y-4 border-l-2 border-teal-200 pl-5">
     {% for v in visits %}
       <li class="relative">

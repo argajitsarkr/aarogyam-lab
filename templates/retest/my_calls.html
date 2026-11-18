@@ -11,17 +11,17 @@
 <p class="mb-3 text-xs text-slate-500">Only patients who consented to be contacted and are not marked Do Not Call appear here. Highest priority first: Abnormal → Borderline → chronic monitoring → others, then most overdue.</p>
 
 {% if callbacks_due %}
-<h2 class="mb-2 font-semibold text-amber-800">{% icon "autorenew" %} Callbacks due</h2>
+<h2 class="mb-2 text-amber-800 section-title">{% icon "autorenew" %} Callbacks due</h2>
 <div class="mb-6 space-y-2">{% for c in callbacks_due %}{% include "retest/_call_row.html" %}{% endfor %}</div>
 {% endif %}
 
-<h2 class="mb-2 font-semibold">{% icon "call" %} To call</h2>
+<h2 class="mb-2 section-title">{% icon "call" %} To call</h2>
 <div class="space-y-2">
   {% for c in fresh %}{% include "retest/_call_row.html" %}{% empty %}<p class="card text-sm text-slate-500">No calls pending. {% icon "celebration" %}</p>{% endfor %}
 </div>
 
 {% if booked %}
-<h2 class="mb-2 mt-6 font-semibold text-indigo-800">{% icon "calendar_month" %} Booked — waiting for patient</h2>
+<h2 class="mb-2 mt-6 text-indigo-800 section-title">{% icon "calendar_month" %} Booked — waiting for patient</h2>
 <div class="tbl-wrap overflow-x-auto "><div class="tbl-wrap">  <table class="tbl">
   <thead><tr><th>Patient</th><th>Test</th><th>Booked for</th><th>Phone</th></tr></thead>
   <tbody>{% for c in booked %}<tr><td><a href="{% url 'patients:detail' c.patient_id %}" class="hover:underline">{{ c.patient.full_name }}</a></td><td>{{ c.test.name }}</td><td>{{ c.booked_date|date:"d-m-Y" }}</td><td><a href="tel:{{ c.patient.phone }}" class="text-teal-700">{{ c.patient.phone }}</a></td></tr>{% endfor %}</tbody>
@@ -29,7 +29,7 @@
 {% endif %}
 
 {% if later %}
-<h2 class="mb-2 mt-6 font-semibold text-slate-600">{% icon "hourglass_empty" %} Call back later</h2>
+<h2 class="mb-2 mt-6 text-slate-600 section-title">{% icon "hourglass_empty" %} Call back later</h2>
 <div class="tbl-wrap overflow-x-auto "><div class="tbl-wrap">  <table class="tbl">
   <thead><tr><th>Patient</th><th>Test</th><th>Call back on</th></tr></thead>
   <tbody>{% for c in later %}<tr><td>{{ c.patient.full_name }}</td><td>{{ c.test.name }}</td><td>{{ c.callback_date|date:"d-m-Y" }}</td></tr>{% endfor %}</tbody>

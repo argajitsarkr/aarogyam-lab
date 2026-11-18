@@ -29,7 +29,7 @@
     </div>
 
     <div class="card">
-      <h2 class="mb-2 font-semibold">Contact history</h2>
+      <h2 class="mb-2 section-title">Contact history</h2>
       <ol class="space-y-2 text-sm">
         {% for n in notes %}
           <li class="border-l-2 border-slate-200 pl-3">
@@ -44,7 +44,7 @@
   <aside class="space-y-4">
     <form method="post" class="card" x-data="{ s: '{{ form.status.value }}' }">
       {% csrf_token %}
-      <h2 class="mb-3 font-semibold">Update status</h2>
+      <h2 class="mb-3 section-title">Update status</h2>
       <label class="label" for="id_status">Status</label>
       <select name="status" id="id_status" class="input" x-model="s">
         {% for v, l in form.fields.status.choices %}<option value="{{ v }}" {% if form.status.value == v %}selected{% endif %}>{{ l }}</option>{% endfor %}

@@ -75,7 +75,7 @@
       <button @click="toggleRail()" class="hidden rounded-md p-2 hover:bg-slate-100 lg:block" aria-label="Collapse or expand the menu"
               :title="rail ? 'Expand the menu' : 'Collapse the menu'">{% icon "menu" %}</button>
       <div class="min-w-0 flex-1">
-        <div class="truncate text-base font-semibold sm:text-lg">{% block page_title %}{% endblock %}</div>
+        <div class="page-title truncate">{% block page_title %}{% endblock %}</div>
         {% block page_subtitle %}{% endblock %}
       </div>
 

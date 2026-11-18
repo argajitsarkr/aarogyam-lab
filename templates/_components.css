@@ -59,10 +59,46 @@
   /* Inter (Google Fonts, see templates/_assets.html). Repeated here so the CDN
      fallback used when DEBUG=True picks it up as well. */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Headings only. Instrument Serif ships a single weight (400), so hierarchy here
+     comes from size and from the shape being different - never from bolding it. */
+  --font-display: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
 }
 
 html { font-family: var(--font-sans); }
 body { background-color: var(--canvas); }
+
+/* ---- type scale ----------------------------------------------------------
+   The old scale was 18/16/14 at one weight, which read as one size. These are
+   the four steps everything should use: a serif page title, a smaller serif
+   section heading, Inter for body, and tiny bold caps for labels.
+   `.card h2` and friends are selector-based (0,1,1) so they beat the single
+   utility class the templates already carry, without editing forty files. */
+.page-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.section-title, .subsection-title, .card h2, .card h3, section > h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.2rem;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+.subsection-title { font-size: 1rem; }
+.results-title, .rcard-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+.results-title { font-size: 1.2rem; }
+.rcard-title { font-size: 1.35rem; }
+/* Figures stay in Inter: a serif numeral set is harder to scan in a column. */
+.stat-value, .rcard-number, .kpi-value { font-family: var(--font-sans); }
 
 /* Sidebar width, both states, from the tokens. The element carries no Tailwind
    width utility: `w-64` sits in Tailwind's utilities layer and would outrank
