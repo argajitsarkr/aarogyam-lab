@@ -58,9 +58,26 @@ def sort_link(context, key, label):
     )
 
 
+def readable_ink(hex_colour, light="#ffffff", dark="#0A0A0B"):
+    """Pick whichever of light/dark has more contrast against `hex_colour`.
+
+    A centre's colour is editable, so a badge cannot assume white text: white on
+    the orange centre measures 2.5:1, well under the 4.5:1 small text needs, while
+    near-black on it is 7.9:1.
+    """
+    try:
+        r, g, b = (int(hex_colour.lstrip("#")[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    except (ValueError, AttributeError):
+        return light
+    def channel(c):
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    luminance = 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+    return dark if luminance > 0.35 else light
+
+
 @register.inclusion_tag("core/_centre_badge.html")
 def centre_badge(centre):
-    return {"centre": centre}
+    return {"centre": centre, "ink": readable_ink(centre.colour) if centre else "#ffffff"}
 
 
 @register.filter

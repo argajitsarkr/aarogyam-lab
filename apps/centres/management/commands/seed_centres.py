@@ -4,11 +4,11 @@ from apps.centres.models import Centre
 
 CENTRES = [
     {"name": "Aarogyam Pathology", "short_code": "ARP", "locality": "Ram Nagar", "address": "Ram Nagar, Agartala",
-     "colour": "#0f766e", "is_head_centre": True},
+     "colour": "#7B2D56", "is_head_centre": True},
     {"name": "Radha Rani MediClinic", "short_code": "RRM", "locality": "Border Road", "address": "Border Road, Agartala",
-     "colour": "#7c3aed", "is_head_centre": False},
+     "colour": "#D6303A", "is_head_centre": False},
     {"name": "BeHealthy", "short_code": "BHY", "locality": "", "address": "",
-     "colour": "#ea580c", "is_head_centre": False},
+     "colour": "#F4873A", "is_head_centre": False},
 ]
 
 

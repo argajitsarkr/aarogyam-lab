@@ -53,6 +53,13 @@ existing visit from the visit page - `AddVisitTestsForm`, posted with `add_tests
 `<form>` outside the results grid, since nested forms are invalid HTML and the browser drops
 the inner one. A visit with no tests simply never produces a re-test candidate.
 
+**Centre colours** come from the retro VHS palette: ARP `#7B2D56` plum, RRM `#D6303A` red,
+BHY `#F4873A` orange. They are editable per centre, so `{% centre_badge %}` computes its own
+text colour (`readable_ink` in `apps/core/templatetags/ui.py`) instead of assuming white -
+white on the orange is 2.5:1, near-black on it is 7.9:1. `seed_centres` only fills in centres
+that do not exist, so a colour change needs a data migration (`centres/0002`), which repaints
+only centres still holding the old default.
+
 **No money anywhere.** The lab earns a commission from the partner labs, so the app records
 no billing: `Visit` has no `total_amount` / `discount` / `amount_paid` / `payment_mode`,
 `VisitTest` has no `price_charged`, and no screen shows revenue. `TestCatalog.price` stays -
