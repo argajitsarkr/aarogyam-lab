@@ -120,7 +120,15 @@ split, not taste. `.pub-h1` is 36px where 1mg's largest text is 20px, because th
 an image with the words baked in and ours is real text.
 
 `robots.txt` now disallows only `/staff/`, `/accounts/` and `/system-admin/` instead of
-the whole site. `apps/public/tests/test_routing.py` asserts both halves.
+the whole site, and points at `/sitemap.xml`. `apps/public/tests/test_routing.py` asserts
+both halves.
+
+**The nginx blanket `X-Robots-Tag` is gone** (it used to sit at server level in both
+templates). It was right while everything was private and wrong the moment the public site
+existed: it would have made every public page unindexable while Django said the opposite,
+with nothing in the app to explain why. `NoIndexMiddleware` is now the only thing that
+sets it. Note that nginx drops inherited `add_header`s inside any location that sets one
+of its own, which is why `/media/` repeats `nosniff`.
 
 **nginx still blankets the whole server with `X-Robots-Tag: noindex` (line 28 of
 `docker/nginx/tunnel/default.conf.template`), which masks Django's rule.** That is right
@@ -131,6 +139,51 @@ unindexable and the cause is invisible from the Django side.
 Nothing in the staff templates hardcodes a path - every link is `{% url %}`, so the move
 needed no template edits. `SavedFilter.get_absolute_url()` reverses by view name too, so
 filters saved before the split still resolve.
+
+## The public site (`apps/public`, label `public_site`)
+
+A shop window, not a shop: **no cart, no payment, no patient login.** Everything a visitor
+can do ends in one `Enquiry` row that the staff work from `/staff/enquiries/` and act on by
+phone, which is how the lab already runs. The 1mg patterns we took are the sticky callback
+bar, the three booking channels (phone / prescription upload / WhatsApp), the need-based
+concern tiles and the trust row; what we did not take is their cart, checkout, payments,
+patient logins and analytics stack.
+
+- **Published is a separate switch from active.** `Centre.is_public` and
+  `TestCatalog.is_public` both default **False**, so nothing reaches the public site until
+  someone turns it on. An unpublished centre or test is a 404, not a hidden listing -
+  there are tests for exactly that.
+- **The site never invents a fact.** Phone number, WhatsApp, opening hours, licence number
+  and pharmacist name all live on `SiteSettings` / `Centre` and every block that uses one
+  is wrapped in an `{% if %}`. `seed_public_content` seeds only structure (health concerns,
+  medicine aisles) and says so when it finishes. An empty field means a hidden block, never
+  a placeholder.
+- **Partner prices, no recommendation.** The test page lists every partner's price cheapest
+  first and nothing else - no "our price", no cheapest-wins badge, no "you save". A test
+  asserts those words do not appear in the rendered page, because this is the rule most
+  likely to be undone by someone trying to be helpful.
+- **Prescriptions are medical documents.** They go to `PRIVATE_MEDIA_ROOT` through
+  `PrivateFileSystemStorage` and are served only by the staff-only view, via
+  `X-Accel-Redirect` in production. `FileSystemStorage(base_url=None)` does **not** give
+  you a private file - `base_url` falls back to `settings.MEDIA_URL`, so the moment
+  MEDIA_URL existed a prescription started reporting a `/media/...` url. The subclass
+  forces the property to None so `.url` raises again.
+- **Two media roots, and they are not interchangeable.** `MEDIA_ROOT` (`/media/`, nginx
+  serves it) is for centre and doctor photos *only*. Nothing patient-related may be written
+  there.
+- **The form variant is read from the POST, not `initial`.** `EnquiryForm.is_prescription`
+  looks at `self.data` first: on a re-render after a failed submit there is no `initial`,
+  and a template keyed off it drops the file input along with the error telling the visitor
+  to attach the prescription. Same family of bug as the prefix one below.
+- **The no-JS path redirects with messages.** Django's own `form_invalid` would re-render
+  with a *fresh, unbound* form and silently lose every error.
+- The form field for `phone` is declared **wider** than the model's 10 characters on
+  purpose: `max_length` runs before `clean_phone`, so inheriting it would reject
+  "+91 98765 43210" before there was a chance to strip it.
+
+Content is edited from `/system-admin/` (Doctors, Health concerns, Medicine categories;
+Enquiries are registered read-only there, since they are worked in the staff queue which
+records who handled each one).
 
 ## Pipeline: laptop -> GitHub -> PowerEdge
 

@@ -1,0 +1,58 @@
+{% extends "public/base.html" %}{% load ui %}
+{% block title %}Upload a prescription - {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}{% endblock %}
+{% block meta_description %}Send us a photo of your prescription. Our pharmacist checks it, confirms the price and stock, and calls you back. No payment on the website.{% endblock %}
+
+{% block body %}
+{% include "public/_page_header.html" with header_title="Send us your prescription" header_subtitle="A clear photo from your phone is enough. Our pharmacist reads it, confirms what is in stock and what it costs, and calls you back." %}
+
+<div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 lg:grid-cols-2">
+  <div class="rounded-2xl border border-slate-200 p-6">
+    {% include "public/_enquiry_form.html" with enquiry_heading="Upload a prescription" enquiry_cta="Send prescription" %}
+  </div>
+
+  <div class="space-y-6">
+    <section>
+      <h2 class="pub-h2">What happens next</h2>
+      <ol class="mt-4 space-y-4">
+        <li class="flex gap-3">
+          <span class="pub-action grid h-7 w-7 shrink-0 place-items-center rounded-full bg-teal-700 text-white">1</span>
+          <p class="pub-small">Our registered pharmacist reads the prescription and checks it is valid and complete.</p>
+        </li>
+        <li class="flex gap-3">
+          <span class="pub-action grid h-7 w-7 shrink-0 place-items-center rounded-full bg-teal-700 text-white">2</span>
+          <p class="pub-small">We call you with what is in stock, what it costs and when you can collect it.</p>
+        </li>
+        <li class="flex gap-3">
+          <span class="pub-action grid h-7 w-7 shrink-0 place-items-center rounded-full bg-teal-700 text-white">3</span>
+          <p class="pub-small">You confirm on the call. You pay when you collect - never on this website.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="rounded-2xl bg-slate-50 p-5">
+      <h2 class="pub-h3 flex items-center gap-2">{% icon "lock" %} Your prescription stays private</h2>
+      <p class="pub-small mt-2">
+        The file goes to our staff only. It is not published anywhere on this site and it is not shared with anyone
+        outside the pharmacy. There is no public address at which anyone could reach it.
+      </p>
+    </section>
+
+    <section class="rounded-2xl bg-amber-50 p-5 text-amber-900">
+      <h2 class="pub-h3 flex items-center gap-2">{% icon "warning" %} What we cannot dispense</h2>
+      <p class="pub-small mt-2">
+        We cannot supply Schedule X drugs or habit-forming medicines against a photo. Those need the original
+        prescription in person. If the prescription is unclear or out of date, we will call you rather than guess.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="pub-h3">A good photo</h2>
+      <ul class="pub-small mt-2 space-y-1.5">
+        <li class="flex items-start gap-2">{% icon "check" %} <span>All four corners of the paper in frame</span></li>
+        <li class="flex items-start gap-2">{% icon "check" %} <span>The doctor's name, registration number and date readable</span></li>
+        <li class="flex items-start gap-2">{% icon "check" %} <span>Flat on a table, in daylight, no flash glare</span></li>
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

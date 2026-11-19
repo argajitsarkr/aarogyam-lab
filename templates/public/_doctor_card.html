@@ -1,0 +1,28 @@
+{% load ui %}
+{% comment %}
+  A doctor as a card. The registration number is shown when there is one: it is
+  public information, it is what distinguishes a real listing from a stock
+  photo, and patients in India are used to looking for it.
+{% endcomment %}
+<article class="flex h-full flex-col items-center rounded-2xl border border-slate-200 p-5 text-center transition hover:shadow-md">
+  {% if doctor.photo %}
+    <img src="{{ doctor.photo.url }}" alt="{{ doctor.full_name }}" width="160" height="160" loading="lazy"
+         class="h-24 w-24 rounded-full object-cover">
+  {% else %}
+    <span class="grid h-24 w-24 place-items-center rounded-full bg-teal-50 text-teal-800">
+      <span class="mi text-4xl" aria-hidden="true" translate="no">stethoscope</span>
+    </span>
+  {% endif %}
+
+  <h3 class="pub-h3 mt-3">{{ doctor.full_name }}</h3>
+  {% if doctor.credential_line %}<p class="pub-small mt-0.5">{{ doctor.credential_line }}</p>{% endif %}
+  {% if doctor.registration_no %}<p class="pub-micro mt-1">Reg. {{ doctor.registration_no }}</p>{% endif %}
+
+  {% if doctor.centres.all %}
+    <p class="mt-3 flex flex-wrap justify-center gap-1.5">
+      {% for c in doctor.centres.all %}{% centre_badge c %}{% endfor %}
+    </p>
+  {% endif %}
+
+  {% if doctor.bio %}<p class="pub-small mt-3 text-left">{{ doctor.bio|truncatewords:28 }}</p>{% endif %}
+</article>

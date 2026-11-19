@@ -1,0 +1,116 @@
+{% extends "public/base.html" %}{% load ui humanize %}
+{% block title %}{{ test.name }} - price &amp; details{% endblock %}
+{% block meta_description %}{{ test.name }}{% if test.public_description %}: {{ test.public_description|truncatewords:22 }}{% endif %} Partner lab prices, sample type and report time.{% endblock %}
+
+{% block body %}
+<nav aria-label="Breadcrumb" class="mx-auto max-w-7xl px-4 pt-5">
+  <ol class="pub-small flex flex-wrap items-center gap-1.5 text-slate-500">
+    <li><a class="hover:underline" href="{% url 'public:home' %}">Home</a></li>
+    <li aria-hidden="true">/</li>
+    <li><a class="hover:underline" href="{% url 'public:tests' %}">Lab tests</a></li>
+    <li aria-hidden="true">/</li>
+    <li class="text-slate-800">{{ test.name }}</li>
+  </ol>
+</nav>
+
+<div class="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-3">
+  <div class="lg:col-span-2">
+    <h1 class="pub-h1">{{ test.name }}</h1>
+    <p class="pub-small mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+      <span class="pub-tag rounded-full bg-slate-100 px-3 py-1">{{ test.get_category_display }}</span>
+      {% if test.sample_type %}<span class="inline-flex items-center gap-1">{% icon "water_drop" %} {{ test.sample_type }}</span>{% endif %}
+      {% if test.report_in_hours %}<span class="inline-flex items-center gap-1">{% icon "schedule" %} Report in {{ test.report_in_hours }} hours</span>{% endif %}
+    </p>
+
+    {% if test.fasting_required %}
+      <p class="pub-small mt-4 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-amber-900">
+        {% icon "no_food" %} <span><strong>Fasting is needed.</strong> Do not eat for 8-12 hours before the sample. Water is fine.</span>
+      </p>
+    {% endif %}
+
+    {% if test.public_description %}
+      <section class="mt-6">
+        <h2 class="pub-h2">What this test is for</h2>
+        <p class="mt-2 whitespace-pre-line">{{ test.public_description }}</p>
+      </section>
+    {% endif %}
+
+    {% comment %}
+      ---------- The price table ----------
+      This is the page's reason to exist. One row per partner, cheapest first,
+      and nothing that steers the choice: no highlight, no "best value", no
+      saving. The lab earns the same commission whichever the customer picks,
+      and pretending otherwise would be the one dishonest thing on the site.
+    {% endcomment %}
+    <section class="mt-10">
+      <h2 class="pub-h2">What each partner lab charges</h2>
+      {% if test.competitor_prices.all %}
+        <div class="mt-3 overflow-hidden rounded-2xl border border-slate-200">
+          <table class="w-full text-left">
+            <caption class="sr-only">Price of {{ test.name }} at each partner laboratory</caption>
+            <thead class="bg-slate-50">
+              <tr>
+                <th scope="col" class="pub-nav px-4 py-3 text-slate-500">Partner lab</th>
+                <th scope="col" class="pub-nav px-4 py-3 text-right text-slate-500">Price</th>
+                <th scope="col" class="pub-nav px-4 py-3 text-right text-slate-500">Checked</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              {% for cp in test.competitor_prices.all %}
+              <tr>
+                <td class="px-4 py-3">{{ cp.competitor.name }}</td>
+                <td class="px-4 py-3 text-right font-semibold tabular-nums">₹{{ cp.price|floatformat:"-2"|intcomma }}</td>
+                <td class="pub-micro px-4 py-3 text-right">{{ cp.last_verified_on|date:"d M Y" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="pub-micro mt-2">
+          Prices are confirmed with each partner by hand and can change. We will tell you the current price when you call.
+        </p>
+      {% else %}
+        <p class="pub-small mt-2">We have not published a price for this test yet. Call us and we will quote it.</p>
+      {% endif %}
+    </section>
+
+    {% if related %}
+    <section class="mt-12">
+      <h2 class="pub-h2">Related tests</h2>
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        {% for t in related %}{% include "public/_test_card.html" with test=t %}{% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="lg:col-span-1">
+    <div class="sticky top-36 space-y-4">
+      <div class="rounded-2xl border border-slate-200 p-5">
+        {% include "public/_enquiry_form.html" with enquiry_heading="Book this test" enquiry_cta="Request a call back" %}
+      </div>
+
+      <div class="rounded-2xl bg-slate-50 p-5">
+        <h2 class="pub-h3">Or book it directly</h2>
+        <div class="mt-3 flex flex-col gap-2">
+          {% if site_settings.public_phone %}
+          <a href="tel:{{ site_settings.public_phone }}" class="pub-action inline-flex items-center justify-center gap-2 rounded-full bg-teal-700 px-5 py-3 text-white hover:bg-teal-800">
+            {% icon "call" %} Call {{ site_settings.public_phone }}
+          </a>
+          {% endif %}
+          {% if site_settings.public_whatsapp %}
+          <a href="https://wa.me/91{{ site_settings.public_whatsapp }}?text={{ test.name|urlencode }}" rel="noopener nofollow"
+             class="pub-action inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 hover:bg-slate-100">
+            {% icon "chat" %} WhatsApp us
+          </a>
+          {% endif %}
+          <a href="{% url 'public:prescription' %}" class="pub-action inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 hover:bg-slate-100">
+            {% icon "upload" %} Send a prescription
+          </a>
+        </div>
+        <p class="pub-micro mt-3">No payment is taken on this site. You pay at the centre.</p>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}

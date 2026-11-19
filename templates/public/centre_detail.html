@@ -1,0 +1,112 @@
+{% extends "public/base.html" %}{% load ui %}
+{% block title %}{{ centre.name }} - {{ centre.locality|default:centre.city }}{% endblock %}
+{% block meta_description %}{{ centre.name }}, {{ centre.full_address }}. Opening hours, phone number and directions.{% endblock %}
+
+{% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalClinic",
+  "name": "{{ centre.name|escapejs }}",
+  "url": "{{ request.scheme }}://{{ request.get_host }}{{ centre.get_absolute_url }}",
+  {% if centre.contact_phone %}"telephone": "{{ centre.contact_phone }}",{% endif %}
+  {% if centre.latitude and centre.longitude %}"geo": { "@type": "GeoCoordinates", "latitude": "{{ centre.latitude }}", "longitude": "{{ centre.longitude }}" },{% endif %}
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "{{ centre.address|escapejs }}",
+    "addressLocality": "{{ centre.city|escapejs }}",
+    "addressRegion": "{{ centre.state|escapejs }}",
+    "postalCode": "{{ centre.pin_code }}",
+    "addressCountry": "IN"
+  },
+  "parentOrganization": { "@type": "MedicalBusiness", "name": "{{ site_settings.lab_display_name|default:'Aarogyam Pathology'|escapejs }}" }
+}
+</script>
+{% endblock %}
+
+{% block body %}
+<nav aria-label="Breadcrumb" class="mx-auto max-w-7xl px-4 pt-5">
+  <ol class="pub-small flex items-center gap-1.5 text-slate-500">
+    <li><a class="hover:underline" href="{% url 'public:home' %}">Home</a></li>
+    <li aria-hidden="true">/</li>
+    <li><a class="hover:underline" href="{% url 'public:centres' %}">Centres</a></li>
+    <li aria-hidden="true">/</li>
+    <li class="text-slate-800">{{ centre.name }}</li>
+  </ol>
+</nav>
+
+<div class="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-3">
+  <div class="lg:col-span-2">
+    {% if centre.photo %}
+      <img src="{{ centre.photo.url }}" alt="{{ centre.name }}" width="1200" height="600"
+           class="mb-6 h-64 w-full rounded-2xl object-cover sm:h-80">
+    {% endif %}
+
+    <div class="flex flex-wrap items-center gap-3">
+      <h1 class="pub-h1">{{ centre.name }}</h1>
+      {% centre_badge centre %}
+      {% if centre.is_head_centre %}
+        <span class="pub-tag rounded-full bg-teal-50 px-3 py-1 text-teal-900">Head centre - our own lab</span>
+      {% endif %}
+    </div>
+    {% if centre.public_blurb %}<p class="pub-lead mt-2">{{ centre.public_blurb }}</p>{% endif %}
+
+    <dl class="mt-8 grid gap-6 sm:grid-cols-2">
+      <div>
+        <dt class="pub-nav flex items-center gap-1.5 text-slate-500">{% icon "location_on" %} Address</dt>
+        <dd class="mt-1">{{ centre.full_address }}</dd>
+      </div>
+      {% if centre.hours_lines %}
+      <div>
+        <dt class="pub-nav flex items-center gap-1.5 text-slate-500">{% icon "schedule" %} Opening hours</dt>
+        <dd class="mt-1">
+          <ul>{% for line in centre.hours_lines %}<li>{{ line }}</li>{% endfor %}</ul>
+        </dd>
+      </div>
+      {% endif %}
+      {% if centre.contact_phone %}
+      <div>
+        <dt class="pub-nav flex items-center gap-1.5 text-slate-500">{% icon "call" %} Phone</dt>
+        <dd class="mt-1"><a class="text-teal-700 hover:underline" href="tel:{{ centre.contact_phone }}">{{ centre.contact_phone }}</a></dd>
+      </div>
+      {% endif %}
+      {% if centre.whatsapp_number %}
+      <div>
+        <dt class="pub-nav flex items-center gap-1.5 text-slate-500">{% icon "chat" %} WhatsApp</dt>
+        <dd class="mt-1"><a class="text-teal-700 hover:underline" rel="noopener nofollow" href="https://wa.me/91{{ centre.whatsapp_number }}">Message this centre</a></dd>
+      </div>
+      {% endif %}
+    </dl>
+
+    <div class="mt-8 flex flex-wrap gap-3">
+      {% if centre.contact_phone %}
+      <a href="tel:{{ centre.contact_phone }}" class="pub-action inline-flex items-center gap-2 rounded-full bg-teal-700 px-5 py-3 text-white hover:bg-teal-800">
+        {% icon "call" %} Call this centre
+      </a>
+      {% endif %}
+      {% if centre.map_url %}
+      <a href="{{ centre.map_url }}" rel="noopener nofollow" class="pub-action inline-flex items-center gap-2 rounded-full border border-slate-300 px-5 py-3 hover:bg-slate-50">
+        {% icon "directions" %} Get directions {% icon "open_in_new" %}
+      </a>
+      {% endif %}
+    </div>
+
+    {% if centre.doctors.all %}
+    <section class="mt-12">
+      <h2 class="pub-h2">Doctors at this centre</h2>
+      <div class="mt-5 grid gap-5 sm:grid-cols-2">
+        {% for d in centre.doctors.all %}
+          {% if d.is_active %}{% include "public/_doctor_card.html" with doctor=d %}{% endif %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="lg:col-span-1">
+    <div class="sticky top-36 rounded-2xl border border-slate-200 p-5">
+      {% include "public/_enquiry_form.html" with enquiry_heading="Book at this centre" enquiry_cta="Request a call back" %}
+    </div>
+  </aside>
+</div>
+{% endblock %}

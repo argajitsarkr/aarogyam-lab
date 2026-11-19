@@ -129,3 +129,28 @@ def icon(name, cls=""):
     read the adjacent label instead, so every icon needs visible text or a title/aria-label
     on its control."""
     return format_html('<span class="mi {}" aria-hidden="true" translate="no">{}</span>', cls, name)
+
+
+@register.simple_tag
+def nav_item(url_name, icon_name, label, page_name="", match=""):
+    """One tab in the public site's category ribbon.
+
+    The active tab is decided by the view's `page_name`, not by comparing paths:
+    a test detail page has to light up "Lab Test" even though its url is
+    /lab-tests/<code>/.
+    """
+    from django.urls import reverse
+
+    is_active = bool(match) and page_name == match
+    link_cls = (
+        "border-teal-700 text-teal-700" if is_active else "border-transparent text-slate-600 hover:text-teal-700"
+    )
+    return format_html(
+        '<li><a href="{}" class="pub-nav flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-3 {}"{}>'
+        '<span class="mi" aria-hidden="true" translate="no">{}</span>{}</a></li>',
+        reverse(url_name),
+        link_cls,
+        format_html(' aria-current="page"') if is_active else "",
+        icon_name,
+        label,
+    )

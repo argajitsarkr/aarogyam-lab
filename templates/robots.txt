@@ -2,3 +2,5 @@ User-agent: *
 Disallow: /staff/
 Disallow: /accounts/
 Disallow: /system-admin/
+
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

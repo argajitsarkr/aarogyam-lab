@@ -1,0 +1,60 @@
+{% extends "public/base.html" %}{% load ui %}
+{% block title %}About us - {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}{% endblock %}
+{% block meta_description %}{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} runs diagnostic centres in Tripura with its own pathology lab and a registered pharmacy.{% endblock %}
+
+{% block body %}
+{% include "public/_page_header.html" with header_title="About us" header_subtitle="A pathology network run from Tripura, with its own lab, its own collection staff and a registered pharmacy." %}
+
+<div class="mx-auto max-w-7xl px-4 py-10">
+  <div class="grid gap-10 lg:grid-cols-3">
+    <div class="lg:col-span-2 space-y-8">
+      <section>
+        <h2 class="pub-h2">How we work</h2>
+        <p class="mt-3">
+          {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} collects samples at its centres and at
+          patients' homes, processes routine work at its own head centre, and sends specialised tests to partner
+          laboratories. A qualified pathologist reviews and signs every report.
+        </p>
+        <p class="mt-3">
+          For tests that go to a partner, we list what each partner charges and leave the choice to you. We are paid a
+          commission by the partner, not by marking up their price - which is why you will not find a "cheapest" badge
+          or a "you save" figure anywhere on this site.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="pub-h2">What we will not do</h2>
+        <ul class="mt-3 space-y-2">
+          <li class="flex items-start gap-2">{% icon "block" %} <span>We do not interpret your report over the phone. That is your doctor's work.</span></li>
+          <li class="flex items-start gap-2">{% icon "block" %} <span>We do not take payment on this website, and we will never ask for a card number or an OTP.</span></li>
+          <li class="flex items-start gap-2">{% icon "block" %} <span>We do not sell or share patient information, and we do not publish anyone's results.</span></li>
+          <li class="flex items-start gap-2">{% icon "block" %} <span>We do not dispense Schedule X or habit-forming medicines against an online request.</span></li>
+        </ul>
+      </section>
+
+      {% if centres %}
+      <section>
+        <h2 class="pub-h2">Where to find us</h2>
+        <div class="mt-5 grid gap-5 sm:grid-cols-2">
+          {% for c in centres %}{% include "public/_centre_card.html" with centre=c %}{% endfor %}
+        </div>
+      </section>
+      {% endif %}
+    </div>
+
+    <aside class="space-y-4">
+      <div class="rounded-2xl bg-slate-50 p-5">
+        <h2 class="pub-nav text-slate-500">At a glance</h2>
+        <dl class="mt-3 space-y-3">
+          <div><dt class="pub-small">Centres</dt><dd class="pub-h1">{{ centres|length }}</dd></div>
+          {% if test_count %}<div><dt class="pub-small">Tests listed</dt><dd class="pub-h1">{{ test_count }}</dd></div>{% endif %}
+          {% if doctor_count %}<div><dt class="pub-small">Affiliated doctors</dt><dd class="pub-h1">{{ doctor_count }}</dd></div>{% endif %}
+        </dl>
+      </div>
+      <div class="rounded-2xl border border-slate-200 p-5">
+        {% include "public/_enquiry_form.html" with enquiry_heading="Talk to us" enquiry_cta="Request a call back" %}
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

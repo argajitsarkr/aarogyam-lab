@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "django.contrib.sitemaps",
     "django_filters",
     "import_export",
     "axes",
@@ -86,6 +87,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.core.context_processors.app_context",
+                "apps.public.context_processors.public_nav",
             ],
         },
     },
@@ -166,6 +168,12 @@ if _build_dir.exists():
     STATICFILES_DIRS.append(_build_dir)
 # Import uploads live OUTSIDE the web root; nothing here is served by Nginx.
 PRIVATE_MEDIA_ROOT = Path(env("PRIVATE_MEDIA_ROOT", default=str(BASE_DIR / "private_media")))
+
+# Public uploads: centre and doctor photos, served straight by nginx from
+# /media/. Nothing patient-related may be written here - prescriptions and any
+# other medical document go to PRIVATE_MEDIA_ROOT and through a staff-only view.
+MEDIA_URL = "/media/"
+MEDIA_ROOT = Path(env("MEDIA_ROOT", default=str(BASE_DIR / "public_media")))
 USE_CDN_ASSETS = env("USE_CDN_ASSETS")
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024

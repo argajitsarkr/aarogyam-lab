@@ -1,0 +1,73 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Enquiries{% endblock %}
+{% block page_title %}Enquiries from the website{% endblock %}
+{% block page_subtitle %}Call-back requests, prescription uploads and test questions left by visitors. Anyone may pick one up.{% endblock %}
+
+{% block content %}
+{% comment %}
+  Open first, because an unanswered enquiry is the only state that matters here.
+  Plain links rather than the HTMX filter panel used on the patient lists: this
+  is a short queue, the filters are two, and a link is one less thing to break.
+{% endcomment %}
+<div class="filter-panel">
+  <div class="flex flex-wrap items-end gap-4">
+    <div>
+      <span class="filter-label">Status</span>
+      <div class="mt-1 flex flex-wrap gap-1.5">
+        {% for value, label in status_links %}
+          <a href="?status={{ value }}{% if active_kind %}&kind={{ active_kind }}{% endif %}"
+             class="pill-filter {% if active_status == value %}is-active{% endif %}">{{ label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+    <div>
+      <span class="filter-label">Kind</span>
+      <div class="mt-1 flex flex-wrap gap-1.5">
+        <a href="?status={{ active_status }}" class="pill-filter {% if not active_kind %}is-active{% endif %}">All</a>
+        {% for value, label in kind_choices %}
+          <a href="?status={{ active_status }}&kind={{ value }}"
+             class="pill-filter {% if active_kind == value %}is-active{% endif %}">{{ label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+    {% if new_count %}
+      <p class="ml-auto text-sm font-semibold text-teal-700">{{ new_count }} not yet contacted</p>
+    {% endif %}
+  </div>
+</div>
+
+{% include "core/_results_head.html" %}
+
+{% if enquiries %}
+<div class="tbl-wrap mt-3">
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>Received</th><th>Name</th><th>Phone</th><th>Wants</th><th>Centre</th><th>Status</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in enquiries %}
+      <tr>
+        <td class="whitespace-nowrap">{{ e.created_at|date:"d-m-Y H:i" }}</td>
+        <td><a class="font-medium text-teal-700 hover:underline" href="{% url 'enquiries:detail' e.pk %}">{{ e.name }}</a></td>
+        <td class="whitespace-nowrap"><a class="text-teal-700" href="tel:{{ e.phone }}">{{ e.phone }}</a></td>
+        <td>
+          {{ e.get_kind_display }}
+          {% if e.test %}<span class="text-slate-500">- {{ e.test.name }}</span>{% endif %}
+          {% if e.prescription %} {% icon "description" %}{% endif %}
+        </td>
+        <td>{% if e.centre %}{% centre_badge e.centre %}{% else %}<span class="text-slate-400">Any</span>{% endif %}</td>
+        <td>{% pill e.status e.get_status_display %}</td>
+        <td class="text-right"><a class="btn btn-sm" href="{% url 'enquiries:detail' e.pk %}">Open</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include "core/_pagination.html" %}
+{% else %}
+<p class="card mt-3 text-sm text-slate-500">Nothing in this view. Website enquiries will appear here as they arrive.</p>
+{% endif %}
+{% endblock %}

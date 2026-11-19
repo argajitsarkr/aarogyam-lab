@@ -9,3 +9,4 @@ psycopg[binary]==3.3.9
 gunicorn==27.0.1
 openpyxl==3.1.5
 packaging==26.0
+Pillow==12.1.0

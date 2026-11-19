@@ -1,14 +1,224 @@
-{% extends "public/base.html" %}
+{% extends "public/base.html" %}{% load ui %}
+{% block title %}{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} - lab tests &amp; pharmacy in Tripura{% endblock %}
+{% block meta_description %}Book lab tests at {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} - three centres in Tripura, home sample collection{% if site_settings.home_collection_area %} across {{ site_settings.home_collection_area }}{% endif %}, and a registered pharmacy. Compare partner lab prices before you book.{% endblock %}
+
+{% block head %}
 {% comment %}
-  Phase 0 placeholder. The routing split put the staff app under /staff/, so
-  something has to answer at /. Phase 1 replaces this with the real home page.
+  One LocalBusiness record per centre, so a search for "pathology lab near me"
+  can place them. MedicalBusiness is the right type: a diagnostic lab is not a
+  shop, and the wrong type is worse than none.
 {% endcomment %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalBusiness",
+  "name": "{{ site_settings.lab_display_name|default:'Aarogyam Pathology'|escapejs }}",
+  "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'public:home' %}",
+  {% if site_settings.public_phone %}"telephone": "{{ site_settings.public_phone|escapejs }}",{% endif %}
+  "medicalSpecialty": "Pathology",
+  "location": [
+    {% for c in centres %}{
+      "@type": "MedicalClinic",
+      "name": "{{ c.name|escapejs }}",
+      "address": { "@type": "PostalAddress", "streetAddress": "{{ c.full_address|escapejs }}", "addressRegion": "{{ c.state|escapejs }}", "postalCode": "{{ c.pin_code }}", "addressCountry": "IN" }
+      {% if c.latitude and c.longitude %}, "geo": { "@type": "GeoCoordinates", "latitude": "{{ c.latitude }}", "longitude": "{{ c.longitude }}" }{% endif %}
+      {% if c.contact_phone %}, "telephone": "{{ c.contact_phone }}"{% endif %}
+    }{% if not forloop.last %},{% endif %}{% endfor %}
+  ]
+}
+</script>
+{% endblock %}
+
 {% block body %}
-<main class="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 text-center">
-  <h1 class="pub-h1">{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}</h1>
-  <p class="pub-lead mt-3">Our website is being prepared. For appointments and reports, please call your nearest centre.</p>
-  <p class="pub-small mt-8">
-    Staff: <a class="text-teal-700 underline" href="{% url 'dashboard:home' %}">open the dashboard</a>
-  </p>
-</main>
+
+{% comment %} ---------- Hero ---------- {% endcomment %}
+<section class="bg-gradient-to-br from-teal-900 via-teal-800 to-teal-700 text-white">
+  <div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-2 lg:items-center lg:py-16">
+    <div>
+      <h1 class="pub-h1">Lab tests and medicines, close to home.</h1>
+      <p class="pub-lead mt-4 text-teal-50">
+        {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} runs three centres in Tripura with its own
+        pathology lab{% if site_settings.home_collection_area %} and home sample collection across {{ site_settings.home_collection_area }}{% endif %}.
+        Compare what each partner lab charges before you book - the choice stays yours.
+      </p>
+
+      {% comment %}
+        The three booking channels, as 1mg presents them on /labs. These are the
+        only three the lab actually operates, so they are the whole choice: no
+        online payment, no cart.
+      {% endcomment %}
+      <div class="mt-8 flex flex-wrap gap-3">
+        {% if site_settings.public_phone %}
+        <a href="tel:{{ site_settings.public_phone }}" class="pub-action inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-teal-900 hover:bg-teal-50">
+          {% icon "call" %} Book by phone
+        </a>
+        {% endif %}
+        <a href="{% url 'public:prescription' %}" class="pub-action inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-3 text-white ring-1 ring-inset ring-white/40 hover:bg-white/25">
+          {% icon "upload" %} Upload a prescription
+        </a>
+        {% if site_settings.public_whatsapp %}
+        <a href="https://wa.me/91{{ site_settings.public_whatsapp }}" rel="noopener nofollow" class="pub-action inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-3 text-white ring-1 ring-inset ring-white/40 hover:bg-white/25">
+          {% icon "chat" %} Book on WhatsApp
+        </a>
+        {% endif %}
+      </div>
+
+      <form action="{% url 'public:tests' %}" method="get" class="relative mt-8 max-w-lg">
+        <label for="hero-search" class="sr-only">Search for a lab test</label>
+        <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">{% icon "search" %}</span>
+        <input id="hero-search" type="search" name="q" placeholder="Search a test - thyroid, sugar, vitamin D"
+               class="w-full rounded-full border-0 py-3.5 pl-11 pr-28 text-slate-800 shadow-lg placeholder:text-slate-400 focus:ring-2 focus:ring-white">
+        <button type="submit" class="pub-action absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-teal-700 px-5 py-2.5 text-white hover:bg-teal-800">Search</button>
+      </form>
+    </div>
+
+    <div class="rounded-2xl bg-white p-5 text-slate-800 shadow-xl lg:ml-auto lg:max-w-md">
+      {% include "public/_enquiry_form.html" with enquiry_heading="Not sure what to book? We will call you." enquiry_cta="Request a call back" %}
+    </div>
+  </div>
+</section>
+
+{% comment %}
+  ---------- Trust row ----------
+  1mg's four-card strip. Each claim is one the lab can actually stand behind;
+  the accreditation line is deliberately about the pathologist and the head
+  centre rather than a certification the lab may not hold.
+{% endcomment %}
+<section class="border-b border-slate-200 bg-slate-50">
+  <div class="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="flex items-start gap-3">
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-teal-100 text-teal-800">{% icon "verified" %}</span>
+      <div><h2 class="pub-h3">Reported by a pathologist</h2><p class="pub-small mt-0.5">Every sample is processed at our head centre and signed off by a qualified pathologist.</p></div>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-teal-100 text-teal-800">{% icon "water_drop" %}</span>
+      <div><h2 class="pub-h3">Home sample collection</h2><p class="pub-small mt-0.5">{% if site_settings.home_collection_area %}Across {{ site_settings.home_collection_area }}.{% else %}Across Agartala and nearby areas.{% endif %} Call to fix a time.</p></div>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-teal-100 text-teal-800">{% icon "currency_rupee" %}</span>
+      <div><h2 class="pub-h3">Prices you can compare</h2><p class="pub-small mt-0.5">We list what each partner lab charges. You choose; we never mark one up.</p></div>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-teal-100 text-teal-800">{% icon "schedule" %}</span>
+      <div><h2 class="pub-h3">Reports on time</h2><p class="pub-small mt-0.5">Most routine reports the same or next day, collected at the centre or sent to you.</p></div>
+    </div>
+  </div>
+</section>
+
+{% comment %} ---------- Health concerns ---------- {% endcomment %}
+{% if concerns %}
+<section class="mx-auto max-w-7xl px-4 py-12">
+  <h2 class="pub-h2">Not sure which test? Start with what is worrying you</h2>
+  <p class="pub-small mt-1">Each one maps to the tests a doctor usually asks for.</p>
+  <ul class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+    {% for concern in concerns %}
+    <li>
+      <a href="{{ concern.get_absolute_url }}" class="flex h-full flex-col items-center gap-2 rounded-2xl border border-slate-200 p-4 text-center transition hover:border-teal-700 hover:bg-teal-50">
+        <span class="grid h-12 w-12 place-items-center rounded-full bg-teal-50 text-teal-800">{% icon concern.icon %}</span>
+        <span class="pub-action text-slate-800">{{ concern.name }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% comment %} ---------- Popular tests ---------- {% endcomment %}
+{% if popular_tests %}
+<section class="bg-slate-50 py-12">
+  <div class="mx-auto max-w-7xl px-4">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="pub-h2">Commonly booked tests</h2>
+        <p class="pub-small mt-1">Partner prices shown side by side. No booking fee, no payment on this site.</p>
+      </div>
+      <a href="{% url 'public:tests' %}" class="pub-action inline-flex items-center gap-1.5 text-teal-700 hover:underline">
+        All tests {% icon "arrow_forward" %}
+      </a>
+    </div>
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {% for test in popular_tests %}{% include "public/_test_card.html" with test=test %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% comment %} ---------- Centres ---------- {% endcomment %}
+{% if centres %}
+<section class="mx-auto max-w-7xl px-4 py-12">
+  <h2 class="pub-h2">Our centres</h2>
+  <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    {% for c in centres %}{% include "public/_centre_card.html" with centre=c %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% comment %} ---------- Medicines ---------- {% endcomment %}
+{% if medicine_categories %}
+<section class="bg-slate-50 py-12">
+  <div class="mx-auto max-w-7xl px-4">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="pub-h2">Medicines from our pharmacy</h2>
+        <p class="pub-small mt-1">
+          Order on the phone or send us the prescription{% if site_settings.medicine_discount_note %} - {{ site_settings.medicine_discount_note|lower }}{% endif %}.
+        </p>
+      </div>
+      <a href="{% url 'public:medicines' %}" class="pub-action inline-flex items-center gap-1.5 text-teal-700 hover:underline">
+        All categories {% icon "arrow_forward" %}
+      </a>
+    </div>
+    <ul class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      {% for cat in medicine_categories %}
+      <li>
+        <a href="{{ cat.get_absolute_url }}" class="flex h-full flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white p-4 text-center transition hover:border-teal-700">
+          <span class="grid h-12 w-12 place-items-center rounded-full bg-teal-50 text-teal-800">{% icon cat.icon %}</span>
+          <span class="pub-action text-slate-800">{{ cat.name }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}
+
+{% comment %} ---------- Doctors ---------- {% endcomment %}
+{% if doctors %}
+<section class="mx-auto max-w-7xl px-4 py-12">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <h2 class="pub-h2">Doctors affiliated with us</h2>
+    <a href="{% url 'public:doctors' %}" class="pub-action inline-flex items-center gap-1.5 text-teal-700 hover:underline">
+      All doctors {% icon "arrow_forward" %}
+    </a>
+  </div>
+  <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    {% for d in doctors %}{% include "public/_doctor_card.html" with doctor=d %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% comment %} ---------- How it works ---------- {% endcomment %}
+<section class="border-t border-slate-200 bg-slate-50 py-12">
+  <div class="mx-auto max-w-7xl px-4">
+    <h2 class="pub-h2">How a booking works</h2>
+    <ol class="mt-6 grid gap-6 sm:grid-cols-3">
+      <li class="rounded-2xl bg-white p-5">
+        <span class="pub-nav text-teal-700">Step 1</span>
+        <h3 class="pub-h3 mt-1">Tell us what you need</h3>
+        <p class="pub-small mt-1">Call, WhatsApp, or send a photo of the prescription. We will say what it costs at each partner lab.</p>
+      </li>
+      <li class="rounded-2xl bg-white p-5">
+        <span class="pub-nav text-teal-700">Step 2</span>
+        <h3 class="pub-h3 mt-1">Give the sample</h3>
+        <p class="pub-small mt-1">Walk into any centre, or we come to your house at a time you choose.</p>
+      </li>
+      <li class="rounded-2xl bg-white p-5">
+        <span class="pub-nav text-teal-700">Step 3</span>
+        <h3 class="pub-h3 mt-1">Collect the report</h3>
+        <p class="pub-small mt-1">Pick it up at the centre or have it sent to you. We call if anything needs attention sooner.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
 {% endblock %}

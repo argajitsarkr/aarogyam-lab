@@ -1,0 +1,68 @@
+{% extends "public/base.html" %}{% load ui %}
+{% block title %}Contact us - {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}{% endblock %}
+{% block meta_description %}Phone numbers, WhatsApp and addresses for every {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} centre, and a form to request a call back.{% endblock %}
+
+{% block body %}
+{% include "public/_page_header.html" with header_title="Contact us" header_subtitle="Call the centre nearest you, message us on WhatsApp, or leave your number and we will call back." %}
+
+<div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 lg:grid-cols-2">
+  <div class="space-y-6">
+    {% if site_settings.public_phone or site_settings.public_whatsapp or site_settings.public_email %}
+    <section class="rounded-2xl bg-slate-50 p-5">
+      <h2 class="pub-h2">Reach us directly</h2>
+      <ul class="mt-4 space-y-3">
+        {% if site_settings.public_phone %}
+        <li class="flex items-center gap-3">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-white text-teal-800">{% icon "call" %}</span>
+          <a class="pub-action-lg text-teal-700 hover:underline" href="tel:{{ site_settings.public_phone }}">{{ site_settings.public_phone }}</a>
+        </li>
+        {% endif %}
+        {% if site_settings.public_whatsapp %}
+        <li class="flex items-center gap-3">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-white text-teal-800">{% icon "chat" %}</span>
+          <a class="pub-action-lg text-teal-700 hover:underline" rel="noopener nofollow" href="https://wa.me/91{{ site_settings.public_whatsapp }}">WhatsApp us</a>
+        </li>
+        {% endif %}
+        {% if site_settings.public_email %}
+        <li class="flex items-center gap-3">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-white text-teal-800">{% icon "mail" %}</span>
+          <a class="pub-action-lg text-teal-700 hover:underline" href="mailto:{{ site_settings.public_email }}">{{ site_settings.public_email }}</a>
+        </li>
+        {% endif %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% for c in centres %}
+    <section class="rounded-2xl border border-slate-200 p-5">
+      <div class="flex items-start justify-between gap-2">
+        <h2 class="pub-h3"><a class="hover:text-teal-700 hover:underline" href="{{ c.get_absolute_url }}">{{ c.name }}</a></h2>
+        {% centre_badge c %}
+      </div>
+      <p class="pub-small mt-2 flex items-start gap-1.5">{% icon "location_on" %} <span>{{ c.full_address }}</span></p>
+      {% if c.hours_lines %}
+        <p class="pub-small mt-1 flex items-start gap-1.5">{% icon "schedule" %} <span>{{ c.hours_lines|join:" · " }}</span></p>
+      {% endif %}
+      <div class="mt-4 flex flex-wrap gap-2">
+        {% if c.contact_phone %}
+          <a href="tel:{{ c.contact_phone }}" class="pub-action inline-flex items-center gap-1.5 rounded-full bg-teal-700 px-4 py-2 text-white hover:bg-teal-800">{% icon "call" %} {{ c.contact_phone }}</a>
+        {% endif %}
+        {% if c.map_url %}
+          <a href="{{ c.map_url }}" rel="noopener nofollow" class="pub-action inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 hover:bg-slate-50">{% icon "directions" %} Directions</a>
+        {% endif %}
+      </div>
+    </section>
+    {% endfor %}
+  </div>
+
+  <div>
+    <div class="rounded-2xl border border-slate-200 p-6">
+      {% include "public/_enquiry_form.html" with enquiry_heading="Leave your number" enquiry_cta="Request a call back" %}
+    </div>
+    <p class="pub-micro mt-4">
+      We use your number only to answer this request. We will never ask you for a payment, a card number or an OTP
+      over the phone.
+    </p>
+  </div>
+</div>
+{% endblock %}

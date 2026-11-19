@@ -27,6 +27,7 @@ if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
   python manage.py seed_centres
   python manage.py seed_competitors
   python manage.py seed_test_catalog
+  python manage.py seed_public_content
   if [ -n "${ADMIN_USERNAME}" ] && [ -n "${ADMIN_PASSWORD}" ]; then
     python manage.py create_first_admin --noinput
   fi

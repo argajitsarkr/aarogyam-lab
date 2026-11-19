@@ -1,0 +1,75 @@
+{% extends "public/base.html" %}{% load ui %}
+{% block title %}Medicines - {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} pharmacy{% endblock %}
+{% block meta_description %}Order medicines from our registered pharmacy. Send a photo of the prescription or call us{% if site_settings.medicine_discount_note %} - {{ site_settings.medicine_discount_note|lower }}{% endif %}.{% endblock %}
+
+{% block body %}
+{% include "public/_page_header.html" with header_title="Medicines from our pharmacy" header_subtitle="We do not sell medicines on this website. Send us the prescription or call, and we will confirm what is in stock, the price and when you can collect it." %}
+
+<div class="mx-auto max-w-7xl px-4 py-10">
+
+  {% comment %}
+    The three channels first, before the aisles: this page's job is to start a
+    conversation, not to browse a catalogue we do not have online.
+  {% endcomment %}
+  <div class="grid gap-4 sm:grid-cols-3">
+    <a href="{% url 'public:prescription' %}" class="flex flex-col items-start gap-2 rounded-2xl bg-teal-700 p-5 text-white hover:bg-teal-800">
+      <span class="grid h-11 w-11 place-items-center rounded-xl bg-white/15">{% icon "upload" %}</span>
+      <span class="pub-action-lg">Upload a prescription</span>
+      <span class="pub-small text-teal-50">Our pharmacist checks it and calls you back.</span>
+    </a>
+    {% if site_settings.public_phone %}
+    <a href="tel:{{ site_settings.public_phone }}" class="flex flex-col items-start gap-2 rounded-2xl border border-slate-200 p-5 hover:border-teal-700">
+      <span class="grid h-11 w-11 place-items-center rounded-xl bg-teal-50 text-teal-800">{% icon "call" %}</span>
+      <span class="pub-action-lg">Order on call</span>
+      <span class="pub-small">{{ site_settings.public_phone }}</span>
+    </a>
+    {% endif %}
+    {% if site_settings.public_whatsapp %}
+    <a href="https://wa.me/91{{ site_settings.public_whatsapp }}" rel="noopener nofollow" class="flex flex-col items-start gap-2 rounded-2xl border border-slate-200 p-5 hover:border-teal-700">
+      <span class="grid h-11 w-11 place-items-center rounded-xl bg-teal-50 text-teal-800">{% icon "chat" %}</span>
+      <span class="pub-action-lg">Order on WhatsApp</span>
+      <span class="pub-small">Send the prescription as a photo.</span>
+    </a>
+    {% endif %}
+  </div>
+
+  {% if site_settings.medicine_discount_note %}
+    <p class="pub-action-lg mt-6 inline-flex items-center gap-2 rounded-full bg-teal-50 px-4 py-2 text-teal-900">
+      {% icon "sell" %} {{ site_settings.medicine_discount_note }}
+    </p>
+  {% endif %}
+
+  {% if categories %}
+  <section class="mt-12">
+    <h2 class="pub-h2">What we stock</h2>
+    <p class="pub-small mt-1">Indicative categories. Ask us about anything not listed - we can usually order it in.</p>
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {% for cat in categories %}
+      <article class="flex h-full flex-col rounded-2xl border border-slate-200 p-5 transition hover:border-teal-700 hover:shadow-md">
+        <span class="grid h-11 w-11 place-items-center rounded-xl bg-teal-50 text-teal-800">{% icon cat.icon %}</span>
+        <h3 class="pub-h3 mt-3">
+          <a href="{{ cat.get_absolute_url }}" class="hover:text-teal-700 hover:underline">{{ cat.name }}</a>
+        </h3>
+        {% if cat.blurb %}<p class="pub-small mt-1">{{ cat.blurb }}</p>{% endif %}
+        {% if cat.needs_prescription %}
+          <p class="pub-micro mt-2 inline-flex items-center gap-1 text-amber-700">{% icon "description" %} Prescription required</p>
+        {% endif %}
+        <a href="{{ cat.get_absolute_url }}" class="pub-action mt-4 inline-flex items-center gap-1.5 text-teal-700 hover:underline">
+          See what we keep {% icon "arrow_forward" %}
+        </a>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <div class="mt-12 max-w-xl rounded-2xl border border-slate-200 p-5">
+    {% include "public/_enquiry_form.html" with enquiry_heading="Ask about a medicine" enquiry_cta="Request a call back" %}
+  </div>
+
+  <p class="pub-micro mt-10 max-w-3xl">
+    Prescription medicines are dispensed only against a valid prescription from a registered medical practitioner.
+    We do not dispense Schedule X drugs or habit-forming medicines against an online request.
+  </p>
+</div>
+{% endblock %}

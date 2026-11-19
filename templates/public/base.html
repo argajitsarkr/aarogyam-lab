@@ -4,7 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}Aarogyam Pathology - diagnostic centres at ARP, RRM and BHY.{% endblock %}">
+  <meta name="description" content="{% block meta_description %}Aarogyam Pathology - diagnostic centres across Tripura. Lab tests, home sample collection and medicines, with reports you can trust.{% endblock %}">
+  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ site_settings.lab_display_name|default:'Aarogyam Pathology' }}">
   {% include "_assets.html" %}
   {% comment %}
     The public site's own two faces, both Google Fonts / OFL: Poppins for text
@@ -15,6 +18,170 @@
   {% block head %}{% endblock %}
 </head>
 <body class="public min-h-full bg-white antialiased">
-  {% block body %}{% endblock %}
+
+{% comment %}
+  ---------- Header ----------
+  Two rows on desktop, as 1mg has it: the brand and the search on top, the
+  category ribbon under it. On a phone the ribbon becomes a scrolling strip and
+  the search drops below the brand, because a 10-digit phone number and a
+  search box cannot share 375px.
+{% endcomment %}
+<header class="sticky top-0 z-40 border-b border-slate-200 bg-white">
+  <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 lg:gap-6">
+    <a href="{% url 'public:home' %}" class="flex shrink-0 items-center gap-2">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-teal-700 text-white">{% icon "local_hospital" %}</span>
+      <span class="hidden leading-tight sm:block">
+        <span class="block font-semibold text-slate-900">{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}</span>
+        <span class="pub-micro block">Diagnostics &amp; pharmacy</span>
+      </span>
+    </a>
+
+    <form action="{% url 'public:tests' %}" method="get" class="relative hidden flex-1 md:block">
+      <label for="site-search" class="sr-only">Search lab tests</label>
+      <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{% icon "search" %}</span>
+      <input id="site-search" type="search" name="q" value="{{ query|default:'' }}"
+             placeholder="Search for a test - thyroid, sugar, vitamin D"
+             class="w-full rounded-full border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-4 focus:border-teal-700 focus:bg-white focus:ring-teal-700">
+    </form>
+
+    <a href="{% url 'public:prescription' %}" class="pub-action hidden shrink-0 rounded-full bg-teal-700 px-4 py-2.5 text-white hover:bg-teal-800 lg:inline-flex lg:items-center lg:gap-1.5">
+      {% icon "upload" %} Upload prescription
+    </a>
+    {% comment %}
+      No hamburger: the category ribbon below scrolls horizontally and already
+      holds every link, so a menu button would open a second copy of the same
+      six items. On a phone the prescription button goes to the right instead,
+      since that is the action the whole page is built around.
+    {% endcomment %}
+    <a href="{% url 'public:prescription' %}" aria-label="Upload a prescription"
+       class="ml-auto grid h-9 w-9 shrink-0 place-items-center rounded-full bg-teal-700 text-white lg:hidden">
+      {% icon "upload" %}
+    </a>
+  </div>
+
+  {# Mobile search: always visible, since it is the main way in on a phone. #}
+  <form action="{% url 'public:tests' %}" method="get" class="relative px-4 pb-3 md:hidden">
+    <label for="site-search-m" class="sr-only">Search lab tests</label>
+    <span class="pointer-events-none absolute left-7 top-1/2 -translate-y-1/2 text-slate-400">{% icon "search" %}</span>
+    <input id="site-search-m" type="search" name="q" value="{{ query|default:'' }}" placeholder="Search for a test"
+           class="w-full rounded-full border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-4">
+  </form>
+
+  <nav aria-label="Main" class="border-t border-slate-100 bg-white">
+    <ul class="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-2 lg:gap-2 lg:px-4">
+      {% comment %} The two navbar items the lab asked for come first. {% endcomment %}
+      {% nav_item 'public:medicines' 'medication' 'Medicine' page_name 'medicines' %}
+      {% nav_item 'public:tests' 'science' 'Lab Test' page_name 'tests' %}
+      {% nav_item 'public:centres' 'location_on' 'Our Centres' page_name 'centres' %}
+      {% nav_item 'public:doctors' 'stethoscope' 'Doctors' page_name 'doctors' %}
+      {% nav_item 'public:about' 'shield' 'About' page_name 'about' %}
+      {% nav_item 'public:contact' 'call' 'Contact' page_name 'contact' %}
+    </ul>
+  </nav>
+</header>
+
+{% if messages %}
+<div class="mx-auto max-w-7xl px-4 pt-4">
+  {% for m in messages %}
+    <p class="rounded-lg px-4 py-3 {% if m.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-teal-50 text-teal-900{% endif %}">{{ m }}</p>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main id="content">{% block body %}{% endblock %}</main>
+
+{% comment %}
+  ---------- Footer ----------
+  The compliance block is not decoration: a licensed pharmacy that delivers
+  medicine has to show the licence and the pharmacist, and say what it will not
+  dispense. The three trust lines above it are 1mg's footer pattern.
+{% endcomment %}
+<footer class="mt-16 border-t border-slate-200 bg-slate-50">
+  <div class="mx-auto max-w-7xl px-4 py-10">
+    <div class="grid gap-8 sm:grid-cols-3">
+      <div>
+        <h2 class="pub-h3 flex items-center gap-2">{% icon "verified" %} Reliable</h2>
+        <p class="pub-small mt-1">Every sample is processed at our own head centre and reported by a qualified pathologist.</p>
+      </div>
+      <div>
+        <h2 class="pub-h3 flex items-center gap-2">{% icon "lock" %} Private</h2>
+        <p class="pub-small mt-1">Your report goes to you. We do not publish, sell or share patient information.</p>
+      </div>
+      <div>
+        <h2 class="pub-h3 flex items-center gap-2">{% icon "water_drop" %} Close by</h2>
+        <p class="pub-small mt-1">Three centres, plus home sample collection across Agartala and nearby areas.</p>
+      </div>
+    </div>
+
+    <div class="mt-10 grid gap-8 border-t border-slate-200 pt-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <h2 class="pub-nav text-slate-500">Lab tests</h2>
+        <ul class="mt-3 space-y-2">
+          <li><a class="hover:text-teal-700 hover:underline" href="{% url 'public:tests' %}">All tests</a></li>
+          <li><a class="hover:text-teal-700 hover:underline" href="{% url 'public:prescription' %}">Upload a prescription</a></li>
+          <li><a class="hover:text-teal-700 hover:underline" href="{% url 'public:contact' %}">Book home collection</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="pub-nav text-slate-500">Medicines</h2>
+        <ul class="mt-3 space-y-2">
+          {% for c in nav_medicine_categories %}
+            <li><a class="hover:text-teal-700 hover:underline" href="{{ c.get_absolute_url }}">{{ c.name }}</a></li>
+          {% empty %}
+            <li><a class="hover:text-teal-700 hover:underline" href="{% url 'public:medicines' %}">Our pharmacy</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div>
+        <h2 class="pub-nav text-slate-500">Centres</h2>
+        <ul class="mt-3 space-y-2">
+          {% for c in nav_centres %}
+            <li><a class="hover:text-teal-700 hover:underline" href="{{ c.get_absolute_url }}">{{ c.name }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div>
+        <h2 class="pub-nav text-slate-500">Company</h2>
+        <ul class="mt-3 space-y-2">
+          <li><a class="hover:text-teal-700 hover:underline" href="{% url 'public:about' %}">About us</a></li>
+          <li><a class="hover:text-teal-700 hover:underline" href="{% url 'public:doctors' %}">Our doctors</a></li>
+          <li><a class="hover:text-teal-700 hover:underline" href="{% url 'public:contact' %}">Contact</a></li>
+          <li><a class="pub-small hover:underline" href="{% url 'accounts:login' %}">Staff login</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pub-micro mt-10 space-y-2 border-t border-slate-200 pt-6">
+      <p>
+        Medicines are dispensed by a registered pharmacy under the Drugs and Cosmetics Act, 1940 and the Drugs and
+        Cosmetics Rules, 1945. A valid prescription from a registered medical practitioner is required for all
+        prescription medicines.
+      </p>
+      <p>
+        We do not dispense Schedule X drugs or habit-forming medicines against an online request. Diagnostic
+        information on this site is general and is not a substitute for a consultation.
+      </p>
+      {% if site_settings.pharmacy_licence_no or site_settings.pharmacist_name %}
+      <p>
+        {% if site_settings.pharmacy_licence_no %}Retail drug licence: {{ site_settings.pharmacy_licence_no }}.{% endif %}
+        {% if site_settings.pharmacist_name %}Registered pharmacist: {{ site_settings.pharmacist_name }}{% if site_settings.pharmacist_reg_no %} ({{ site_settings.pharmacist_reg_no }}){% endif %}.{% endif %}
+      </p>
+      {% endif %}
+      <p>&copy; {% now "Y" %} {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+{% comment %}
+  ---------- Sticky callback bar ----------
+  Straight from 1mg, and the single most useful thing on their site for this
+  business: the visitor never has to find the contact page. Hidden on the
+  prescription and contact pages, where it would sit on top of the real form.
+{% endcomment %}
+{% if page_name != "contact" %}
+{% include "public/_callback_bar.html" %}
+{% endif %}
+
+{% block scripts %}{% endblock %}
 </body>
 </html>

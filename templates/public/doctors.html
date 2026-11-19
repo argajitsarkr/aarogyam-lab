@@ -1,0 +1,22 @@
+{% extends "public/base.html" %}{% load ui %}
+{% block title %}Doctors - {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}{% endblock %}
+{% block meta_description %}The doctors affiliated with {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}, their qualifications and the centres they attend.{% endblock %}
+
+{% block body %}
+{% include "public/_page_header.html" with header_title="Doctors affiliated with us" header_subtitle="Reports are reviewed and signed by qualified doctors. Registration numbers are listed so you can verify them." %}
+
+<section class="mx-auto max-w-7xl px-4 py-10">
+  {% if doctors %}
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {% for d in doctors %}{% include "public/_doctor_card.html" with doctor=d %}{% endfor %}
+    </div>
+  {% else %}
+    <p class="pub-lead">Our doctor listings are being prepared. Please call us in the meantime.</p>
+  {% endif %}
+
+  <p class="pub-micro mt-10 max-w-3xl">
+    Listing a doctor here does not amount to medical advice, and this site does not offer online consultations.
+    Please see a doctor in person to discuss a report.
+  </p>
+</section>
+{% endblock %}

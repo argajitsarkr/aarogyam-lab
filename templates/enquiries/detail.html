@@ -1,0 +1,90 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Enquiry from {{ enquiry.name }}{% endblock %}
+{% block page_title %}Enquiry from {{ enquiry.name }}{% endblock %}
+{% block page_subtitle %}Left on the website {{ enquiry.created_at|date:"d-m-Y" }} at {{ enquiry.created_at|date:"H:i" }}.{% endblock %}
+
+{% block content %}
+<div class="grid gap-4 lg:grid-cols-3">
+  <div class="space-y-4 lg:col-span-2">
+    <div class="card">
+      <div class="flex flex-wrap items-start justify-between gap-2">
+        <h2 class="section-title">{{ enquiry.get_kind_display }}</h2>
+        {% pill enquiry.status enquiry.get_status_display %}
+      </div>
+
+      <dl class="mt-4 grid grid-cols-3 gap-y-2 text-sm">
+        <dt class="text-slate-500">Name</dt><dd class="col-span-2">{{ enquiry.name }}</dd>
+        <dt class="text-slate-500">Phone</dt>
+        <dd class="col-span-2">
+          <a class="font-semibold text-teal-700" href="tel:{{ enquiry.phone }}">{% icon "call" %} {{ enquiry.phone }}</a>
+        </dd>
+        <dt class="text-slate-500">Centre asked for</dt>
+        <dd class="col-span-2">{% if enquiry.centre %}{% centre_badge enquiry.centre %} {{ enquiry.centre.name }}{% else %}Any centre{% endif %}</dd>
+        {% if enquiry.test %}
+          <dt class="text-slate-500">Test</dt>
+          <dd class="col-span-2">
+            {{ enquiry.test.name }}
+            {% if enquiry.test.is_public %}
+              <a class="text-xs text-teal-700 hover:underline" href="{% url 'public:test' enquiry.test.code %}" target="_blank" rel="noopener">see the page they read {% icon "open_in_new" %}</a>
+            {% endif %}
+          </dd>
+        {% endif %}
+        <dt class="text-slate-500">From IP</dt><dd class="col-span-2 font-mono text-xs">{{ enquiry.client_ip|default:"-" }}</dd>
+      </dl>
+
+      {% if enquiry.message %}
+        <div class="mt-4">
+          <span class="filter-label">What they wrote</span>
+          <p class="mt-1 rounded bg-slate-50 p-3 text-sm">{{ enquiry.message|linebreaksbr }}</p>
+        </div>
+      {% endif %}
+
+      {% if enquiry.prescription %}
+        <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <span class="filter-label">Prescription</span>
+          {% comment %}
+            The file is in private_media and has no public url - this link goes
+            through the staff-only view, which hands it to nginx to send.
+          {% endcomment %}
+          <p class="mt-1 text-sm">
+            <a class="btn btn-sm" href="{% url 'enquiries:prescription' enquiry.pk %}" target="_blank" rel="noopener">
+              {% icon "description" %} Open the prescription
+            </a>
+          </p>
+          <p class="mt-2 text-xs text-amber-900">
+            A pharmacist must check this before anything is dispensed. Record what was decided in the notes below.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if enquiry.handled_by %}
+    <div class="card text-sm">
+      <h2 class="subsection-title">Handled</h2>
+      <p class="mt-1 text-slate-600">
+        {{ enquiry.handled_by }} on {{ enquiry.handled_at|date:"d-m-Y H:i" }}
+      </p>
+      {% if enquiry.staff_notes %}<p class="mt-2 rounded bg-slate-50 p-3">{{ enquiry.staff_notes|linebreaksbr }}</p>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <aside class="lg:col-span-1">
+    <div class="card">
+      <h2 class="section-title">After you call</h2>
+      <form method="post" class="mt-3 space-y-3">
+        {% csrf_token %}
+        {% include "core/_form_fields.html" with form=form %}
+        <button class="btn-primary w-full">Save</button>
+      </form>
+      <p class="mt-3 text-xs text-slate-500">
+        Marking anything other than New records you as the person who handled it.
+      </p>
+    </div>
+
+    <p class="mt-4 text-sm">
+      <a class="text-teal-700 hover:underline" href="{% url 'enquiries:list' %}">{% icon "arrow_back" %} Back to the queue</a>
+    </p>
+  </aside>
+</div>
+{% endblock %}

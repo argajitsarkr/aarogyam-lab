@@ -158,6 +158,17 @@ class TestCatalog(TimeStampedModel):
     needs_clinical_review = models.BooleanField(default=True, help_text="Seeded interval pending review by the pathologist.")
     is_active = models.BooleanField(default=True)
 
+    # ---- public site ------------------------------------------------------
+    is_public = models.BooleanField(
+        default=False, verbose_name="List on the public site",
+        help_text="Off by default: a test is only listed once its description reads plainly to a patient.",
+    )
+    public_description = models.TextField(blank=True, help_text="Plain language, no abbreviations. Two or three sentences.")
+    fasting_required = models.BooleanField(default=False)
+    report_in_hours = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text="Typical turnaround, shown as 'Report in 24 hours'."
+    )
+
     class Meta:
         ordering = ["name"]
         verbose_name = "test"

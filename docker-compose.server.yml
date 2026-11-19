@@ -20,6 +20,9 @@ x-app: &app
   volumes:
     - static_volume:/app/staticfiles
     - private_media:/app/private_media
+    # Centre and doctor photos. Public by design - nginx serves it straight
+    # from /media/ - so NOTHING patient-related may be written here.
+    - public_media:/app/public_media
   depends_on:
     db: { condition: service_healthy }
     redis: { condition: service_started }
@@ -76,6 +79,7 @@ services:
       - ./docker/nginx/tunnel:/etc/nginx/templates:ro
       - static_volume:/app/staticfiles:ro
       - private_media:/app/private_media:ro
+      - public_media:/app/public_media:ro
     depends_on:
       web: { condition: service_healthy }
     restart: unless-stopped
@@ -128,3 +132,4 @@ volumes:
   pg_data:
   static_volume:
   private_media:
+  public_media:

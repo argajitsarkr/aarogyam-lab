@@ -1,0 +1,73 @@
+{% extends "public/base.html" %}{% load ui %}
+{% block title %}{{ category.name }} - our pharmacy{% endblock %}
+{% block meta_description %}{{ category.blurb|default:category.name }} - order from our registered pharmacy by phone, WhatsApp or prescription upload.{% endblock %}
+
+{% block body %}
+<nav aria-label="Breadcrumb" class="mx-auto max-w-7xl px-4 pt-5">
+  <ol class="pub-small flex flex-wrap items-center gap-1.5 text-slate-500">
+    <li><a class="hover:underline" href="{% url 'public:home' %}">Home</a></li>
+    <li aria-hidden="true">/</li>
+    <li><a class="hover:underline" href="{% url 'public:medicines' %}">Medicines</a></li>
+    <li aria-hidden="true">/</li>
+    <li class="text-slate-800">{{ category.name }}</li>
+  </ol>
+</nav>
+
+<div class="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-3">
+  <div class="lg:col-span-2">
+    <div class="flex items-start gap-3">
+      <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-teal-50 text-teal-800">{% icon category.icon %}</span>
+      <div>
+        <h1 class="pub-h1">{{ category.name }}</h1>
+        {% if category.blurb %}<p class="pub-lead mt-1">{{ category.blurb }}</p>{% endif %}
+      </div>
+    </div>
+
+    {% if category.needs_prescription %}
+      <p class="pub-small mt-6 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-amber-900">
+        {% icon "description" %}
+        <span><strong>A prescription is required for this category.</strong> Send us a photo of it and our pharmacist will confirm what can be dispensed.</span>
+      </p>
+    {% endif %}
+
+    {% if category.example_list %}
+    <section class="mt-8">
+      <h2 class="pub-h2">What we usually keep</h2>
+      <p class="pub-small mt-1">Stock changes. Call to confirm before you travel.</p>
+      <ul class="mt-4 grid gap-2 sm:grid-cols-2">
+        {% for item in category.example_list %}
+          <li class="flex items-start gap-2 rounded-xl border border-slate-200 px-4 py-3">
+            {% icon "check" %} <span>{{ item }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if other_categories %}
+    <section class="mt-12">
+      <h2 class="pub-h2">Other categories</h2>
+      <ul class="mt-4 flex flex-wrap gap-2">
+        {% for c in other_categories %}
+          <li><a href="{{ c.get_absolute_url }}" class="pub-tag inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 hover:bg-slate-50">{% icon c.icon %} {{ c.name }}</a></li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="lg:col-span-1">
+    <div class="sticky top-36 space-y-4">
+      <div class="rounded-2xl border border-slate-200 p-5">
+        {% include "public/_enquiry_form.html" with enquiry_heading="Ask about this category" enquiry_cta="Request a call back" %}
+      </div>
+      <div class="rounded-2xl bg-slate-50 p-5">
+        <h2 class="pub-h3">Have the prescription with you?</h2>
+        <a href="{% url 'public:prescription' %}" class="pub-action mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-teal-700 px-5 py-3 text-white hover:bg-teal-800">
+          {% icon "upload" %} Upload it
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}

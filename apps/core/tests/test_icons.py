@@ -7,10 +7,18 @@ from pathlib import Path
 TEMPLATES = Path(__file__).resolve().parents[3] / "templates"
 
 
+# {% icon "call" %} and the public nav's {% nav_item 'url' 'call' 'Label' ... %},
+# whose second argument is an icon name the first pattern cannot see.
+ICON_TAG = re.compile(r'\{%\s*icon\s+"([a-z0-9_]+)"')
+NAV_ITEM_TAG = re.compile(r"\{%\s*nav_item\s+'[^']+'\s+'([a-z0-9_]+)'")
+
+
 def used_icon_names():
     names = set()
     for p in TEMPLATES.rglob("*.html"):
-        names |= set(re.findall(r'\{%\s*icon\s+"([a-z0-9_]+)"', p.read_text(encoding="utf-8")))
+        text = p.read_text(encoding="utf-8")
+        names |= set(ICON_TAG.findall(text))
+        names |= set(NAV_ITEM_TAG.findall(text))
     return names
 
 

@@ -1,0 +1,103 @@
+{% load ui %}
+{% comment %}
+  The one form on the public site, included by every call-to-action and posted
+  back to itself over HTMX. It is also the response: after a successful post the
+  view re-renders this file with `submitted` set, which swaps the fields for the
+  thank-you panel in place.
+
+  It works with JavaScript off: without HTMX the browser posts normally and the
+  view redirects with a message. `next` is what it comes back to.
+
+  `compact` hides the heading and the message box, for the sticky bar.
+{% endcomment %}
+<div id="enquiry-panel">
+{% if submitted %}
+  <div class="rounded-xl bg-teal-50 p-4 text-center">
+    <p class="pub-action-lg flex items-center justify-center gap-2 text-teal-900">{% icon "check_circle" %} Thank you, {{ submitted.name }}.</p>
+    <p class="pub-small mt-1">
+      {% if submitted.kind == "PRESCRIPTION" %}
+        We have your prescription. Our pharmacist will check it and call you on {{ submitted.phone }}.
+      {% else %}
+        We will call you on {{ submitted.phone }} shortly.
+      {% endif %}
+    </p>
+  </div>
+{% else %}
+  {% comment %}
+    Always multipart and always hx-encoding: the prescription variant of this
+    form carries a file, and a plain urlencoded post would silently drop it.
+  {% endcomment %}
+  <form method="post" action="{% url 'public:enquiry' %}" enctype="multipart/form-data"
+        hx-post="{% url 'public:enquiry' %}" hx-target="#enquiry-panel" hx-swap="outerHTML"
+        hx-encoding="multipart/form-data" class="space-y-3">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    {{ enquiry_form.kind }}{{ enquiry_form.test }}
+
+    {% if not compact %}
+      <h2 class="pub-h3">{{ enquiry_heading|default:"Request a call back" }}</h2>
+    {% endif %}
+
+    {% if enquiry_form.non_field_errors %}
+      <p class="pub-small rounded-lg bg-red-50 px-3 py-2 text-red-800">{{ enquiry_form.non_field_errors|join:" " }}</p>
+    {% endif %}
+
+    <div class="grid gap-3 sm:grid-cols-2">
+      <div>
+        <label class="pub-nav text-slate-500" for="{{ enquiry_form.name.id_for_label }}">Your name</label>
+        <input type="text" name="{{ enquiry_form.name.html_name }}" id="{{ enquiry_form.name.id_for_label }}"
+               value="{{ enquiry_form.name.value|default:'' }}" required autocomplete="name" maxlength="120"
+               placeholder="Your name"
+               class="mt-1 w-full rounded-lg border-slate-300 focus:border-teal-700 focus:ring-teal-700">
+        {% for e in enquiry_form.name.errors %}<p class="pub-small mt-1 text-red-700">{{ e }}</p>{% endfor %}
+      </div>
+      <div>
+        <label class="pub-nav text-slate-500" for="{{ enquiry_form.phone.id_for_label }}">Mobile number</label>
+        <input type="tel" name="{{ enquiry_form.phone.html_name }}" id="{{ enquiry_form.phone.id_for_label }}"
+               value="{{ enquiry_form.phone.value|default:'' }}" required inputmode="numeric"
+               autocomplete="tel-national" maxlength="13" placeholder="10-digit mobile number"
+               class="mt-1 w-full rounded-lg border-slate-300 focus:border-teal-700 focus:ring-teal-700">
+        {% for e in enquiry_form.phone.errors %}<p class="pub-small mt-1 text-red-700">{{ e }}</p>{% endfor %}
+      </div>
+    </div>
+
+    {% if not compact %}
+    <div>
+      <label class="pub-nav text-slate-500" for="{{ enquiry_form.centre.id_for_label }}">Nearest centre</label>
+      {{ enquiry_form.centre }}
+    </div>
+    {% endif %}
+
+    {% if enquiry_form.is_prescription %}
+    <div>
+      <label class="pub-nav text-slate-500" for="{{ enquiry_form.prescription.id_for_label }}">Prescription</label>
+      <input type="file" name="{{ enquiry_form.prescription.html_name }}" id="{{ enquiry_form.prescription.id_for_label }}"
+             accept="image/*,application/pdf" capture="environment"
+             class="mt-1 w-full rounded-lg border border-slate-300 p-2">
+      <p class="pub-micro mt-1">A clear photo from your phone is fine. JPG, PNG or PDF, up to 8 MB.</p>
+      {% for e in enquiry_form.prescription.errors %}<p class="pub-small mt-1 text-red-700">{{ e }}</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not compact %}
+    <div>
+      <label class="pub-nav text-slate-500" for="{{ enquiry_form.message.id_for_label }}">Anything we should know?</label>
+      {{ enquiry_form.message }}
+    </div>
+    {% endif %}
+
+    {% comment %} The bot trap. Off-screen rather than display:none, which some bots check for. {% endcomment %}
+    <div class="absolute left-[-9999px]" aria-hidden="true">
+      <label for="{{ enquiry_form.website.id_for_label }}">Website</label>
+      <input type="text" name="{{ enquiry_form.website.html_name }}" id="{{ enquiry_form.website.id_for_label }}" tabindex="-1" autocomplete="off">
+    </div>
+
+    <button type="submit" class="pub-action w-full rounded-full bg-teal-700 px-5 py-3 text-white hover:bg-teal-800">
+      {{ enquiry_cta|default:"Request a call back" }}
+    </button>
+    <p class="pub-micro">
+      We use your number only to call you about this request. No payment is taken on this site.
+    </p>
+  </form>
+{% endif %}
+</div>

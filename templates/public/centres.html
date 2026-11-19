@@ -1,0 +1,26 @@
+{% extends "public/base.html" %}{% load ui %}
+{% block title %}Our centres - {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}{% endblock %}
+{% block meta_description %}Addresses, opening hours and phone numbers for every {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} centre in Tripura.{% endblock %}
+
+{% block body %}
+{% include "public/_page_header.html" with header_title="Our centres" header_subtitle="Walk in during opening hours, or call the centre nearest you to arrange a home collection." %}
+
+<section class="mx-auto max-w-7xl px-4 py-10">
+  {% if centres %}
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {% for c in centres %}{% include "public/_centre_card.html" with centre=c %}{% endfor %}
+    </div>
+  {% else %}
+    {% comment %}
+      No centre is published yet - a centre has to be switched on for the public
+      side once its photo and hours are confirmed. Say so plainly rather than
+      showing an empty grid.
+    {% endcomment %}
+    <p class="pub-lead">Our centre details are being updated. Please call us and we will point you to the nearest one.</p>
+  {% endif %}
+
+  <div class="mt-12 max-w-xl rounded-2xl border border-slate-200 p-5">
+    {% include "public/_enquiry_form.html" with enquiry_heading="Want a home collection instead?" enquiry_cta="Request a call back" %}
+  </div>
+</section>
+{% endblock %}

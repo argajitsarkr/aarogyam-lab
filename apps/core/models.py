@@ -52,6 +52,25 @@ class SiteSettings(models.Model):
     )
     price_stale_days = models.PositiveSmallIntegerField(default=settings.PRICE_STALE_DAYS)
     lab_display_name = models.CharField(max_length=100, default="Aarogyam Pathology")
+
+    # ---- public site -------------------------------------------------------
+    # The licence and the pharmacist are a legal requirement on a site that
+    # takes medicine orders, not a nicety - the footer hides the block until
+    # they are filled in, so the site never claims something it cannot show.
+    public_phone = models.CharField(max_length=14, blank=True, help_text="Shown in the header and the callback bar.")
+    public_whatsapp = models.CharField(max_length=14, blank=True, help_text="Blank hides the WhatsApp buttons.")
+    public_email = models.EmailField(blank=True)
+    pharmacy_licence_no = models.CharField(max_length=80, blank=True, verbose_name="Retail drug licence number")
+    pharmacist_name = models.CharField(max_length=120, blank=True, verbose_name="Registered pharmacist")
+    pharmacist_reg_no = models.CharField(max_length=80, blank=True, verbose_name="Pharmacist registration number")
+    home_collection_area = models.CharField(
+        max_length=200, blank=True, default="Agartala and nearby areas",
+        help_text="Where home sample collection is offered.",
+    )
+    medicine_discount_note = models.CharField(
+        max_length=120, blank=True, help_text="e.g. 'Up to 20% off on medicines'. Blank hides the claim.",
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

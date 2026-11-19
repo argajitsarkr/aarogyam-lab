@@ -1,0 +1,49 @@
+{% load ui humanize %}
+{% comment %}
+  A lab test as a card. The partner prices are the point of this card and the
+  one thing 1mg has no equivalent for: they show a single price because they are
+  the seller. Here the lab takes a commission and the customer picks the partner,
+  so every partner's price is listed plainly, cheapest first, with no "our price"
+  column, no cheapest-wins badge and no "you save" - see the pricing rule in
+  CLAUDE.md. `from_price` is an annotation, not a recommendation: it tells the
+  visitor what the test can cost before they open the page.
+{% endcomment %}
+<article class="flex h-full flex-col rounded-2xl border border-slate-200 p-4 transition hover:border-teal-700 hover:shadow-md">
+  <h3 class="pub-h3">
+    <a href="{% url 'public:test' test.code %}" class="hover:text-teal-700 hover:underline">{{ test.name }}</a>
+  </h3>
+
+  <p class="pub-micro mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+    {% if test.sample_type %}<span class="inline-flex items-center gap-1">{% icon "water_drop" %} {{ test.sample_type }}</span>{% endif %}
+    {% if test.report_in_hours %}<span class="inline-flex items-center gap-1">{% icon "schedule" %} Report in {{ test.report_in_hours }} h</span>{% endif %}
+    {% if test.fasting_required %}<span class="inline-flex items-center gap-1 text-amber-700">{% icon "no_food" %} Fasting needed</span>{% endif %}
+  </p>
+
+  {% if test.public_description %}
+    <p class="pub-small mt-2 line-clamp-3">{{ test.public_description }}</p>
+  {% endif %}
+
+  <div class="mt-3 flex-1">
+    {% if test.competitor_prices.all %}
+      <p class="pub-nav text-slate-500">Price by partner lab</p>
+      <ul class="mt-1.5 divide-y divide-slate-100">
+        {% for cp in test.competitor_prices.all|slice:":3" %}
+          <li class="flex items-baseline justify-between gap-3 py-1">
+            <span class="pub-small text-slate-700">{{ cp.competitor.name }}</span>
+            <span class="font-semibold tabular-nums">₹{{ cp.price|floatformat:"-2"|intcomma }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+      {% if test.competitor_prices.all|length > 3 %}
+        <p class="pub-micro mt-1">+ {{ test.competitor_prices.all|length|add:"-3" }} more on the test page</p>
+      {% endif %}
+    {% else %}
+      <p class="pub-small mt-1 text-slate-500">Call us for the current price.</p>
+    {% endif %}
+  </div>
+
+  <a href="{% url 'public:test' test.code %}"
+     class="pub-action mt-4 inline-flex items-center justify-center gap-1.5 rounded-full border border-teal-700 px-4 py-2 text-teal-700 hover:bg-teal-50">
+    Details &amp; booking {% icon "arrow_forward" %}
+  </a>
+</article>

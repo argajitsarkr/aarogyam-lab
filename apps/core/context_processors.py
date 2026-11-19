@@ -20,6 +20,9 @@ def app_context(request):
             "pinned_filters": user.saved_filters.filter(pinned=True)[:12],
             # Sidebar collapsed to an icon rail? Remembered per user (B4).
             "sidebar_rail": bool(get_pref(user, "ui:sidebar_rail", False)),
+            # Website enquiries nobody has picked up yet. Cached, because it is
+            # on every staff page and nothing breaks if it is a minute stale.
+            "open_enquiries": _open_enquiry_count(),
         }
     )
     if user.is_admin:
@@ -36,3 +39,15 @@ def _built_css_exists():
 
         _css_cache["v"] = bool(finders.find("dist/app.css"))
     return _css_cache["v"]
+
+
+def _open_enquiry_count():
+    from django.core.cache import cache
+
+    count = cache.get("enquiries:open")
+    if count is None:
+        from apps.public.models import Enquiry
+
+        count = Enquiry.objects.filter(status=Enquiry.Status.NEW).count()
+        cache.set("enquiries:open", count, 60)
+    return count

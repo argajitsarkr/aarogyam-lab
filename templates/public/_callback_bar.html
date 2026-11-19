@@ -1,0 +1,51 @@
+{% load ui %}
+{% comment %}
+  The sticky bar, taken from 1mg. It is the site's main conversion path: this
+  business closes on the phone, so the phone number and a callback request
+  follow the visitor down every page.
+
+  Dismissable, and the dismissal is remembered for the session only - someone
+  who closes it on the home page should not have to close it again on the test
+  page, but a return visit gets it back.
+{% endcomment %}
+<div x-data="{ show: true, init() { try { this.show = sessionStorage.getItem('cb-hidden') !== '1' } catch (e) {} },
+               hide() { this.show = false; try { sessionStorage.setItem('cb-hidden', '1') } catch (e) {} } }"
+     x-show="show" x-cloak
+     class="fixed inset-x-0 bottom-0 z-50 border-t border-teal-800 bg-teal-900 text-white shadow-lg">
+  <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+    <p class="pub-action-lg flex-1 basis-full sm:basis-auto">
+      {% if site_settings.public_phone %}
+        Call us at <a class="underline" href="tel:{{ site_settings.public_phone }}">{{ site_settings.public_phone }}</a>
+        or get a call back
+      {% else %}
+        Not sure which test you need? Get a call back.
+      {% endif %}
+    </p>
+
+    <div class="flex flex-1 flex-wrap items-center gap-2 sm:flex-none">
+      {% if site_settings.public_phone %}
+      <a href="tel:{{ site_settings.public_phone }}"
+         class="pub-action inline-flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 hover:bg-white/20">
+        {% icon "call" %} Call now
+      </a>
+      {% endif %}
+      {% if site_settings.public_whatsapp %}
+      <a href="https://wa.me/91{{ site_settings.public_whatsapp }}" rel="noopener nofollow"
+         class="pub-action inline-flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 hover:bg-white/20">
+        {% icon "chat" %} WhatsApp
+      </a>
+      {% endif %}
+      <button type="button" @click="$refs.panel.classList.toggle('hidden')"
+              class="pub-action inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-teal-900 hover:bg-teal-50">
+        {% icon "call" %} Request a call
+      </button>
+      <button type="button" @click="hide()" class="ml-auto rounded-full p-1.5 hover:bg-white/10" aria-label="Hide this bar">
+        {% icon "close" %}
+      </button>
+    </div>
+
+    <div x-ref="panel" class="hidden basis-full rounded-xl bg-white p-4 text-slate-800 sm:max-w-md">
+      {% include "public/_enquiry_form.html" with compact=True %}
+    </div>
+  </div>
+</div>

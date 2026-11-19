@@ -1,0 +1,53 @@
+{% load ui %}
+{% comment %}
+  A centre as a card. The photo is the strongest thing on this card - 1mg's
+  equivalent strip is almost entirely photography - so when there is no photo
+  the card shows a tinted block in the centre's own colour rather than a grey
+  placeholder, which reads as broken.
+{% endcomment %}
+<article class="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 transition hover:shadow-md">
+  {% if centre.photo %}
+    <img src="{{ centre.photo.url }}" alt="{{ centre.name }}" width="640" height="360" loading="lazy"
+         class="h-44 w-full object-cover">
+  {% else %}
+    <div class="grid h-44 w-full place-items-center" style="background: {{ centre.colour }}1a">
+      <span class="mi text-5xl" aria-hidden="true" translate="no" style="color: {{ centre.colour }}">local_hospital</span>
+    </div>
+  {% endif %}
+
+  <div class="flex flex-1 flex-col p-4">
+    <div class="flex items-start justify-between gap-2">
+      <h3 class="pub-h3">
+        <a href="{{ centre.get_absolute_url }}" class="hover:text-teal-700 hover:underline">{{ centre.name }}</a>
+      </h3>
+      {% centre_badge centre %}
+    </div>
+
+    {% if centre.public_blurb %}<p class="pub-small mt-1">{{ centre.public_blurb }}</p>{% endif %}
+
+    <p class="pub-small mt-2 flex items-start gap-1.5 text-slate-600">
+      {% icon "location_on" %} <span>{{ centre.full_address }}</span>
+    </p>
+    {% if centre.hours_lines %}
+      <p class="pub-small mt-1 flex items-start gap-1.5 text-slate-600">
+        {% icon "schedule" %} <span>{{ centre.hours_lines|first }}</span>
+      </p>
+    {% endif %}
+
+    <div class="mt-4 flex flex-wrap gap-2 pt-0">
+      {% if centre.contact_phone %}
+      <a href="tel:{{ centre.contact_phone }}" class="pub-action inline-flex items-center gap-1.5 rounded-full bg-teal-700 px-4 py-2 text-white hover:bg-teal-800">
+        {% icon "call" %} Call
+      </a>
+      {% endif %}
+      {% if centre.map_url %}
+      <a href="{{ centre.map_url }}" rel="noopener nofollow" class="pub-action inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 hover:bg-slate-50">
+        {% icon "directions" %} Directions
+      </a>
+      {% endif %}
+      <a href="{{ centre.get_absolute_url }}" class="pub-action inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 hover:bg-slate-50">
+        Details
+      </a>
+    </div>
+  </div>
+</article>

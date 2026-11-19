@@ -1,0 +1,97 @@
+{% extends "public/base.html" %}{% load ui %}
+{% block title %}{% if query %}{{ query }} - lab tests{% else %}Lab tests &amp; prices{% endif %} - {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}{% endblock %}
+{% block meta_description %}Lab tests at {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} with each partner lab's price listed side by side. Sample type, fasting and report time for every test.{% endblock %}
+
+{% block body %}
+{% include "public/_page_header.html" with header_title="Lab tests and prices" header_subtitle="Every partner lab's price, side by side. We take a commission from the partner, so the price you see is theirs - we do not add to it." %}
+
+<div class="mx-auto max-w-7xl px-4 py-8">
+
+  {% comment %}
+    Filters, in the same shape as the staff list pages: the most-used filter as
+    one-click pills, the search box beside it. Plain GET, no JS needed.
+  {% endcomment %}
+  <form method="get" class="rounded-2xl bg-slate-50 p-4">
+    <div class="flex flex-wrap items-end gap-3">
+      <div class="min-w-[16rem] flex-1">
+        <label class="pub-nav text-slate-500" for="q">Search</label>
+        <input id="q" type="search" name="q" value="{{ query }}" placeholder="Test name"
+               class="mt-1 w-full rounded-full border-slate-300 focus:border-teal-700 focus:ring-teal-700">
+      </div>
+      <button type="submit" class="pub-action rounded-full bg-teal-700 px-5 py-2.5 text-white hover:bg-teal-800">Search</button>
+      {% if query or active_category %}
+        <a href="{% url 'public:tests' %}" class="pub-action rounded-full border border-slate-300 px-5 py-2.5 hover:bg-white">Clear</a>
+      {% endif %}
+    </div>
+
+    {% if categories %}
+    <fieldset class="mt-4">
+      <legend class="pub-nav text-slate-500">Category</legend>
+      <div class="mt-2 flex flex-wrap gap-2">
+        <a href="?{% if query %}q={{ query|urlencode }}{% endif %}"
+           class="pub-tag rounded-full border px-3 py-1.5 {% if not active_category %}border-teal-700 bg-teal-50 text-teal-900{% else %}border-slate-300 bg-white hover:bg-slate-100{% endif %}">All</a>
+        {% for value, label in categories %}
+          <a href="?category={{ value }}{% if query %}&q={{ query|urlencode }}{% endif %}"
+             class="pub-tag rounded-full border px-3 py-1.5 {% if active_category == value %}border-teal-700 bg-teal-50 text-teal-900{% else %}border-slate-300 bg-white hover:bg-slate-100{% endif %}">{{ label }}</a>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+  </form>
+
+  <p class="pub-small mt-4">
+    {% if page_obj %}
+      Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ paginator.count }} test{{ paginator.count|pluralize }}
+    {% else %}
+      {{ tests|length }} test{{ tests|length|pluralize }}
+    {% endif %}
+    {% if query %} for "{{ query }}"{% endif %}
+  </p>
+
+  {% if tests %}
+    <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {% for test in tests %}{% include "public/_test_card.html" with test=test %}{% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Pages" class="mt-10 flex items-center justify-center gap-2">
+      {% if page_obj.has_previous %}
+        <a class="pub-action rounded-full border border-slate-300 px-4 py-2 hover:bg-slate-50"
+           href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}">{% icon "arrow_back" %} Previous</a>
+      {% endif %}
+      <span class="pub-small">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a class="pub-action rounded-full border border-slate-300 px-4 py-2 hover:bg-slate-50"
+           href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}">Next {% icon "arrow_forward" %}</a>
+      {% endif %}
+    </nav>
+    {% endif %}
+  {% else %}
+    <div class="mt-6 rounded-2xl border border-slate-200 p-8 text-center">
+      <p class="pub-h3">We could not find that test on the list.</p>
+      <p class="pub-small mt-2">
+        We run many more tests than are listed here. Tell us the name on your prescription and we will quote it.
+      </p>
+      <div class="mx-auto mt-6 max-w-md text-left">
+        {% include "public/_enquiry_form.html" with enquiry_heading="Ask us about a test" enquiry_cta="Request a call back" %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if concerns %}
+  <section class="mt-14">
+    <h2 class="pub-h2">Or start from a health concern</h2>
+    <ul class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+      {% for concern in concerns %}
+      <li>
+        <a href="{{ concern.get_absolute_url }}" class="flex h-full flex-col items-center gap-2 rounded-2xl border border-slate-200 p-4 text-center hover:border-teal-700 hover:bg-teal-50">
+          <span class="grid h-11 w-11 place-items-center rounded-full bg-teal-50 text-teal-800">{% icon concern.icon %}</span>
+          <span class="pub-action text-slate-800">{{ concern.name }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

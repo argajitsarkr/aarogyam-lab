@@ -8,11 +8,28 @@ from django.core.files.storage import FileSystemStorage
 logger = logging.getLogger(__name__)
 
 
+class PrivateFileSystemStorage(FileSystemStorage):
+    """FileSystemStorage with no public url, ever.
+
+    Passing `base_url=None` to FileSystemStorage does NOT do this: `base_url`
+    falls back to `settings.MEDIA_URL`, so once MEDIA_URL existed (added with
+    the public site, for centre and doctor photos) a private file would happily
+    report `/media/prescriptions/...` - a url nginx serves from the *public*
+    media root. Forcing the property to None brings back the ValueError that
+    `.url` is supposed to raise here, so a template can never accidentally
+    publish a medical document.
+    """
+
+    @property
+    def base_url(self):
+        return None
+
+
 def private_storage():
     """File storage rooted OUTSIDE the web root; files are only reachable via
-    authenticated, centre-scoped download views. (Callable so migrations stay
+    authenticated download views. (Callable so migrations stay
     environment-independent.)"""
-    return FileSystemStorage(location=str(settings.PRIVATE_MEDIA_ROOT), base_url=None)
+    return PrivateFileSystemStorage(location=str(settings.PRIVATE_MEDIA_ROOT))
 
 
 class ForgivingManifestStaticFilesStorage(ManifestStaticFilesStorage):

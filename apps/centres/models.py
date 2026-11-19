@@ -35,11 +35,51 @@ class Centre(TimeStampedModel):
     is_head_centre = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
+    # ---- public site ------------------------------------------------------
+    # A centre can be live for the staff and not yet shown to the public (no
+    # photo, hours not confirmed), so listing is a separate switch.
+    is_public = models.BooleanField(
+        default=False, verbose_name="Show on the public site",
+        help_text="Off until the photo and opening hours are confirmed.",
+    )
+    public_blurb = models.CharField(max_length=200, blank=True, help_text="One line under the centre name.")
+    opening_hours = models.TextField(blank=True, help_text="One line per day or range, e.g. 'Mon-Sat  7:00 am - 8:00 pm'.")
+    whatsapp = models.CharField(
+        max_length=10, blank=True, validators=[validate_indian_phone],
+        help_text="Blank falls back to the contact phone.",
+    )
+    photo = models.ImageField(upload_to="centres/", blank=True)
+    map_url = models.URLField(blank=True, help_text="Google Maps link for the Directions button.")
+
     class Meta:
         ordering = ["-is_head_centre", "name"]
 
     def __str__(self):
         return self.name
+
+    @property
+    def slug(self):
+        """The public url segment. The short code is already unique and stable -
+        it is the prefix of every patient ID - so there is no slug field."""
+        return self.short_code.lower()
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+
+        return reverse("public:centre", args=[self.slug])
+
+    @property
+    def hours_lines(self):
+        return [line.strip() for line in self.opening_hours.splitlines() if line.strip()]
+
+    @property
+    def whatsapp_number(self):
+        return self.whatsapp or self.contact_phone
+
+    @property
+    def full_address(self):
+        bits = [self.address.strip(), self.locality, f"{self.city} {self.pin_code}".strip(), self.district]
+        return ", ".join(b for b in bits if b)
 
     def save(self, *args, **kwargs):
         self.short_code = (self.short_code or "").upper()
