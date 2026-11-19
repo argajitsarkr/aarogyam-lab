@@ -35,6 +35,20 @@
         {% for b in banners %}
         <li class="w-full shrink-0 snap-start"
             :aria-hidden="i !== {{ forloop.counter0 }}">
+          {% if b.caption_in_image and b.image %}
+          {% comment %}
+            A finished banner: the headline, the logo and the badges are already
+            in the artwork. Nothing is drawn over it - no shading, no second
+            heading, no button - and the whole slide is the link. The height
+            comes from the artwork's own 3:1 shape rather than a fixed h-44, so
+            a wide design is not cropped through its own words.
+          {% endcomment %}
+          <a {% if b.link_url %}href="{{ b.link_url }}"{% else %}href="{% url 'public:tests' %}"{% endif %}
+             class="block aspect-[3/1] w-full overflow-hidden">
+            <img src="{{ b.image.url }}" alt="{{ b.title }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                 class="h-full w-full object-cover">
+          </a>
+          {% else %}
           <a {% if b.link_url %}href="{{ b.link_url }}"{% else %}href="{% url 'public:tests' %}"{% endif %}
              class="group relative block h-44 overflow-hidden sm:h-56 lg:h-64"
              {% if not b.image %}style="background: {{ b.accent }}"{% endif %}>
@@ -59,30 +73,41 @@
               {% endif %}
             </div>
           </a>
+          {% endif %}
         </li>
         {% endfor %}
       </ul>
 
-      {% if banners|length > 1 %}
+    </div>
+
+    {% comment %}
+      The controls sit UNDER the strip, not on it. Over a finished banner they
+      covered the headline it was drawn with - and there is no safe corner to
+      put them in, because a designer uses all four. Below the artwork they are
+      always legible and never cover anything, on either kind of slide.
+    {% endcomment %}
+    {% if banners|length > 1 %}
+    <div class="mt-3 flex items-center justify-center gap-3">
       <button type="button" @click="stop(); go(i - 1)" aria-label="Previous banner"
-              class="absolute left-2 top-1/2 hidden -translate-y-1/2 place-items-center rounded-full bg-white/90 p-2 text-slate-800 shadow hover:bg-white sm:grid">
+              class="grid place-items-center rounded-full border border-slate-300 p-1.5 text-slate-600 hover:border-teal-700 hover:text-teal-700">
         {% icon "arrow_back" %}
       </button>
-      <button type="button" @click="stop(); go(i + 1)" aria-label="Next banner"
-              class="absolute right-2 top-1/2 hidden -translate-y-1/2 place-items-center rounded-full bg-white/90 p-2 text-slate-800 shadow hover:bg-white sm:grid">
-        {% icon "arrow_forward" %}
-      </button>
 
-      <div class="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+      <div class="flex gap-1.5">
         {% for b in banners %}
         <button type="button" @click="stop(); go({{ forloop.counter0 }})"
                 aria-label="Show banner {{ forloop.counter }}"
-                class="h-1.5 rounded-full bg-white/60 transition-all"
-                :class="i === {{ forloop.counter0 }} ? 'w-6 bg-white' : 'w-1.5'"></button>
+                class="h-1.5 rounded-full bg-slate-300 transition-all"
+                :class="i === {{ forloop.counter0 }} ? 'w-6 bg-teal-700' : 'w-1.5'"></button>
         {% endfor %}
       </div>
-      {% endif %}
+
+      <button type="button" @click="stop(); go(i + 1)" aria-label="Next banner"
+              class="grid place-items-center rounded-full border border-slate-300 p-1.5 text-slate-600 hover:border-teal-700 hover:text-teal-700">
+        {% icon "arrow_forward" %}
+      </button>
     </div>
+    {% endif %}
   </div>
 </section>
 {% endif %}

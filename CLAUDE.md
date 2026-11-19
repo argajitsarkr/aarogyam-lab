@@ -194,6 +194,11 @@ patient logins and analytics stack.
   The lab changes a camp or a package far more often than anything else on the site. An image
   is optional: with none the slide is a coloured panel whose ink comes from `readable_ink`, so
   an editable accent can never produce white-on-aqua. Two traps already hit:
+  A slide whose artwork already carries its own headline sets **`caption_in_image`**:
+  the slide is then the image alone at its native 3:1, with no shading, no second heading
+  and no button drawn over it, and the whole thing is the link. The carousel's arrows and
+  dots sit **under** the strip for the same reason - over a finished banner they covered
+  the words it was designed with, and a designer uses all four corners.
   **`overflow: hidden` must not go on the element being translated** - the track carries its
   own clip box along and every slide but the first disappears; the wrapper does the clipping.
   And a **seeded link must be `reverse()`d, not typed** - `/prescription/` is really

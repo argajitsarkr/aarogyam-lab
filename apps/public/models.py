@@ -205,6 +205,15 @@ class Banner(TimeStampedModel):
         upload_to="banners/", blank=True,
         help_text="Wide artwork, about 1200x400. Leave blank for a plain coloured slide.",
     )
+    caption_in_image = models.BooleanField(
+        default=False,
+        verbose_name="The artwork already has the words on it",
+        help_text=(
+            "Tick this for a finished banner with its own headline. The slide then shows the "
+            "artwork alone - no heading, no shading and no button drawn over it. The title is "
+            "still used, as the description a screen reader reads out."
+        ),
+    )
     link_url = models.CharField(
         max_length=300, blank=True,
         help_text="Where the button goes - a path like /lab-tests/ or a full address.",

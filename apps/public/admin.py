@@ -26,9 +26,12 @@ class BannerAdmin(admin.ModelAdmin):
                 "Leave the image blank and the slide is drawn as a plain coloured panel "
                 "with the words on it - still a usable slide, never a broken one."
             ),
-            "fields": ("image", "accent"),
+            "fields": ("image", "caption_in_image", "accent"),
         }),
-        ("Button", {"fields": ("link_url", "link_label")}),
+        ("Button", {
+            "description": "Ignored when the artwork already carries its own words - the whole slide is the link.",
+            "fields": ("link_url", "link_label"),
+        }),
     )
 
     @admin.display(description="Artwork?", boolean=True)
