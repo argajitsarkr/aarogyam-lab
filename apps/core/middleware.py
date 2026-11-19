@@ -97,4 +97,16 @@ class NoIndexMiddleware:
             # Patient data and the sign-in screen: never indexed, never cached.
             response["X-Robots-Tag"] = "noindex, nofollow, noarchive"
             response.setdefault("Cache-Control", "private, no-store")
+        else:
+            # The public half. Until the split, every response carried
+            # `no-store` from the branch above; scoping that to the staff side
+            # left public pages with NO caching directive at all, which does not
+            # mean "do not cache" - a browser with nothing to go on may reuse a
+            # page heuristically, and a redeploy then looks like it did not take
+            # effect. This is the same complaint that content-hashed static
+            # files fixed for CSS, returning for HTML.
+            #
+            # `max-age=0, must-revalidate` still allows a conditional request,
+            # so the page is cheap to re-check but never served stale.
+            response.setdefault("Cache-Control", "public, max-age=0, must-revalidate")
         return response
