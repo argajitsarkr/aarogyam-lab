@@ -46,7 +46,12 @@
             <div class="relative flex h-full max-w-xl flex-col justify-center gap-2 p-6 sm:py-8 sm:pl-16 sm:pr-8"
                  style="color: {% if b.image %}#FFFFFF{% else %}{{ b.accent|readable_ink }}{% endif %}">
               <h2 class="pub-h2">{{ b.title }}</h2>
-              {% if b.subtitle %}<p class="pub-small">{{ b.subtitle }}</p>{% endif %}
+              {% comment %}
+                `.pub-small` pins its own muted grey, which is right on a white
+                card and unreadable on a dark slide. The colour has to come from
+                the slide, so it is set inline here rather than by a class.
+              {% endcomment %}
+              {% if b.subtitle %}<p class="pub-small" style="color: inherit; opacity: .9">{{ b.subtitle }}</p>{% endif %}
               {% if b.link_label %}
               <span class="pub-action mt-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-4 py-2 text-slate-900 group-hover:bg-slate-100">
                 {{ b.link_label }} {% icon "arrow_forward" %}
