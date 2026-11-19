@@ -91,6 +91,29 @@ built from those tokens.
 The two webfonts are the only runtime CDN dependency: if the lab ever needs to run without
 reaching Google, self-host them and change that one `<link>`.
 
+## Two halves: public site and staff app
+
+Since Phase 0 (2026-11-19) the url tree is split, and the split is by **path prefix** so
+the login gate, the no-index header and `robots.txt` can tell the halves apart without
+knowing every view:
+
+- **`/staff/...`** - the whole internal app (dashboard, patients, followups, retest,
+  pricing, audit, core). `/accounts/` and `/system-admin/` sit outside `/staff/` but count
+  as staff: `is_staff_area()` in `apps/core/middleware.py` is the single rule, and
+  `LoginRequiredMiddleware` and `NoIndexMiddleware` both use it. Only `/accounts/login/`
+  and `/accounts/locked/` are reachable without a session.
+- **`/`** - `apps.public`, which owns the rest of the tree. It is open, indexable and gets
+  no `no-store`. Its include is **last** in `config/urls.py` so it cannot shadow the
+  staff prefixes. Today it is one placeholder page (`templates/public/home.html`) on its
+  own shell (`templates/public/base.html`) - Phase 1 replaces it.
+
+`robots.txt` now disallows only `/staff/`, `/accounts/` and `/system-admin/` instead of
+the whole site. `apps/public/tests/test_routing.py` asserts both halves.
+
+Nothing in the staff templates hardcodes a path - every link is `{% url %}`, so the move
+needed no template edits. `SavedFilter.get_absolute_url()` reverses by view name too, so
+filters saved before the split still resolve.
+
 ## Pipeline: laptop -> GitHub -> PowerEdge
 
 | Where | Path | Git auth |

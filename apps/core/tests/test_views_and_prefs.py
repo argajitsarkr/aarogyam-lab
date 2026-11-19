@@ -74,7 +74,7 @@ def test_saved_filter_pinned(client, employee):
     client.post(reverse("core:saved_filter_create"),
                 {"page": "patients:list", "name": "Abnormal HbA1c 6m", "querystring": "flag=ABNORMAL&visit_from=2026-05-01"})
     sf = SavedFilter.objects.get(user=user)
-    assert sf.get_absolute_url() == "/patients/?flag=ABNORMAL&visit_from=2026-05-01"
+    assert sf.get_absolute_url() == "/staff/patients/?flag=ABNORMAL&visit_from=2026-05-01"
     assert "Abnormal HbA1c 6m" in client.get(reverse("dashboard:home")).content.decode()
 
 

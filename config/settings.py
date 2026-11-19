@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "apps.retest",
     "apps.pricing",
     "apps.dashboard",
+    "apps.public",
 ]
 
 MIDDLEWARE = [

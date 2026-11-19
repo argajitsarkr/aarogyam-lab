@@ -1,0 +1,14 @@
+{% load static ui %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Aarogyam Pathology - diagnostic centres at ARP, RRM and BHY.{% endblock %}">
+  {% include "_assets.html" %}
+  {% block head %}{% endblock %}
+</head>
+<body class="min-h-full bg-white text-slate-800 antialiased">
+  {% block body %}{% endblock %}
+</body>
+</html>
