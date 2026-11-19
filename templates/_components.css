@@ -63,6 +63,14 @@
      reads as a heading next to Inter even at the same size; 600 is the heading
      weight everywhere. */
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* ---- Public site only (loaded in templates/public/base.html) ------------
+     Taken from 1mg: Poppins for everything you read, Figtree for everything you
+     act on - buttons, nav labels, badges, the callback bar. The staff app keeps
+     Inter / Space Grotesk; see the note in CLAUDE.md for why the two halves do
+     not share a face. */
+  --font-public: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-public-ui: "Figtree", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 html { font-family: var(--font-sans); }
@@ -320,4 +328,88 @@ body { background-color: var(--canvas); }
 
   .htmx-indicator { opacity: 0; transition: opacity 200ms; }
   .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }
+}
+
+/* ============================================================
+   PUBLIC SITE TYPE
+   ============================================================
+   1mg's own scale, measured off their home page: Poppins at 14/400 for body
+   with 1.5 line-height, section headings at 20/600, and Figtree 700 for the
+   things you click. Everything here is scoped to `body.public`, so none of it
+   can reach the staff app.
+
+   One deliberate departure: 1mg's largest text is 20px, because their hero is
+   an image banner with the words baked in. Ours is real text, so `.pub-h1` is
+   36px - the scale below it is theirs untouched.
+   ------------------------------------------------------------ */
+body.public {
+  font-family: var(--font-public);
+  font-size: 0.875rem;   /* 14px, as theirs */
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.pub-h1 {
+  font-family: var(--font-public);
+  font-weight: 600;
+  font-size: 2.25rem;    /* ours, not theirs - see above */
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.pub-h2 {
+  font-family: var(--font-public);
+  font-weight: 600;
+  font-size: 1.25rem;    /* 20px */
+  line-height: 1.5;
+}
+.pub-h3 {
+  font-family: var(--font-public);
+  font-weight: 600;
+  font-size: 1.125rem;   /* 18px */
+  line-height: 1.5;
+}
+.pub-lead {
+  font-family: var(--font-public);
+  font-weight: 500;
+  font-size: 1rem;       /* 16px */
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.pub-small {
+  font-size: 0.75rem;    /* 12px */
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+.pub-micro {
+  font-size: 0.6875rem;  /* 11px - their test-count and delivery lines */
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+/* Figtree: the acting half of the scale. */
+.pub-action {
+  font-family: var(--font-public-ui);
+  font-weight: 700;
+  font-size: 0.875rem;   /* 14px - their "Get a Call to Order Medicines" */
+  line-height: 1.45;
+}
+.pub-action-lg {
+  font-family: var(--font-public-ui);
+  font-weight: 700;
+  font-size: 1rem;       /* 16px - the callback bar headline */
+  line-height: 1.5;
+}
+.pub-nav {
+  font-family: var(--font-public-ui);
+  font-weight: 700;
+  font-size: 0.75rem;    /* 12px uppercase - their MEDICINES / LAB TESTS ribbon */
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.pub-tag {
+  font-family: var(--font-public-ui);
+  font-weight: 500;
+  font-size: 0.75rem;    /* 12px - their "50% off" chips */
+  line-height: 1.5;
 }

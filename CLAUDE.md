@@ -107,6 +107,18 @@ knowing every view:
   staff prefixes. Today it is one placeholder page (`templates/public/home.html`) on its
   own shell (`templates/public/base.html`) - Phase 1 replaces it.
 
+**The two halves do not share a typeface.** The public site uses 1mg's own pairing -
+**Poppins** for everything you read, **Figtree** 700 for everything you act on (buttons,
+the nav ribbon, chips, the callback bar) - at 1mg's measured scale: 14px/1.5 body, 20px/600
+section headings, 12px uppercase nav. Both are Google Fonts / OFL. The tokens are
+`--font-public` / `--font-public-ui` and the `.pub-*` classes at the foot of
+`_components.css`, all scoped to `body.public` so none of it reaches the staff app, which
+keeps Inter / Space Grotesk. Only the public shell loads the two faces.
+Poppins is a geometric face with no tabular figures and a narrow 1/l distinction, which is
+fine for a brochure page and wrong for a dense result table - that is the reason for the
+split, not taste. `.pub-h1` is 36px where 1mg's largest text is 20px, because their hero is
+an image with the words baked in and ours is real text.
+
 `robots.txt` now disallows only `/staff/`, `/accounts/` and `/system-admin/` instead of
 the whole site. `apps/public/tests/test_routing.py` asserts both halves.
 

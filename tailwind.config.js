@@ -64,6 +64,10 @@ module.exports = {
         sans: ["Inter", ...defaultTheme.fontFamily.sans],
         // Headings only - see the type scale in templates/_components.css.
         display: ["Space Grotesk", ...defaultTheme.fontFamily.sans],
+        // Public site only, from 1mg: Poppins reads, Figtree acts. Loaded in
+        // templates/public/base.html, not in the staff shell.
+        poppins: ["Poppins", ...defaultTheme.fontFamily.sans],
+        figtree: ["Figtree", ...defaultTheme.fontFamily.sans],
       },
     },
   },

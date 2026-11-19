@@ -6,9 +6,15 @@
   <title>{% block title %}{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}Aarogyam Pathology - diagnostic centres at ARP, RRM and BHY.{% endblock %}">
   {% include "_assets.html" %}
+  {% comment %}
+    The public site's own two faces, both Google Fonts / OFL: Poppins for text
+    and Figtree for buttons and nav, as 1mg uses them. The staff shell does not
+    load these, and body.public is what switches the scale on.
+  {% endcomment %}
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Figtree:wght@400..700&display=swap">
   {% block head %}{% endblock %}
 </head>
-<body class="min-h-full bg-white text-slate-800 antialiased">
+<body class="public min-h-full bg-white antialiased">
   {% block body %}{% endblock %}
 </body>
 </html>

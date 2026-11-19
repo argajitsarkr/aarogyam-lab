@@ -5,9 +5,9 @@
 {% endcomment %}
 {% block body %}
 <main class="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 text-center">
-  <h1 class="page-title">{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}</h1>
-  <p class="mt-3 text-slate-600">Our website is being prepared. For appointments and reports, please call your nearest centre.</p>
-  <p class="mt-8 text-sm text-slate-500">
+  <h1 class="pub-h1">{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}</h1>
+  <p class="pub-lead mt-3">Our website is being prepared. For appointments and reports, please call your nearest centre.</p>
+  <p class="pub-small mt-8">
     Staff: <a class="text-teal-700 underline" href="{% url 'dashboard:home' %}">open the dashboard</a>
   </p>
 </main>
