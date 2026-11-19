@@ -6,6 +6,12 @@ db.sqlite3
 staticfiles/
 static_build/
 private_media/
+# Uploads belong to the media volume, not to git. The banner artwork landed
+# here once and was committed by accident: a tracked file under an upload
+# directory is a trap, because `deploy.sh update` refuses to run when a tracked
+# file on the server differs. Banners and photos are uploaded from
+# /system-admin/, which writes straight into the volume.
+public_media/
 backups/
 node_modules/
 .pytest_cache/
