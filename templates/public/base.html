@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}Aarogyam Pathology - diagnostic centres across Tripura. Lab tests, home sample collection and medicines, with reports you can trust.{% endblock %}">
+  <meta name="description" content="{% block meta_description %}Aarogyam Pathology - Agartala's trusted pathology lab, with centres across Tripura. Lab tests, home sample collection and a registered pharmacy.{% endblock %}">
   <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="{{ site_settings.lab_display_name|default:'Aarogyam Pathology' }}">
@@ -28,11 +28,17 @@
 {% endcomment %}
 <header class="sticky top-0 z-40 border-b border-slate-200 bg-white">
   <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 lg:gap-6">
-    <a href="{% url 'public:home' %}" class="flex shrink-0 items-center gap-2">
-      <span class="grid h-9 w-9 place-items-center rounded-lg bg-teal-700 text-white">{% icon "local_hospital" %}</span>
-      <span class="hidden leading-tight sm:block">
-        <span class="block font-semibold text-slate-900">{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}</span>
-        <span class="pub-micro block">Diagnostics &amp; pharmacy</span>
+    {% comment %}
+      The logo is a white wordmark on its own blue field, so it is shown as the
+      block it is rather than knocked out onto the header - rounded, with no
+      padding of its own. The wordmark already says "aarogyam pathology", so
+      the only text beside it is the one line the wordmark does not carry.
+    {% endcomment %}
+    <a href="{% url 'public:home' %}" class="flex shrink-0 items-center gap-3">
+      <img src="{% static 'img/aarogyam-logo.png' %}" alt="{{ site_settings.lab_display_name|default:'Aarogyam Pathology' }}"
+           width="848" height="341" class="h-9 w-auto rounded-md lg:h-11">
+      <span class="pub-micro hidden border-l border-slate-200 pl-3 leading-tight lg:block">
+        Agartala, Tripura<br>Diagnostics &amp; pharmacy
       </span>
     </a>
 
@@ -98,10 +104,13 @@
 {% endcomment %}
 <footer class="mt-16 border-t border-slate-200 bg-slate-50">
   <div class="mx-auto max-w-7xl px-4 py-10">
+    <img src="{% static 'img/aarogyam-logo.png' %}" alt="{{ site_settings.lab_display_name|default:'Aarogyam Pathology' }}"
+         width="848" height="341" loading="lazy" class="mb-8 h-10 w-auto rounded-md">
+
     <div class="grid gap-8 sm:grid-cols-3">
       <div>
         <h2 class="pub-h3 flex items-center gap-2">{% icon "verified" %} Reliable</h2>
-        <p class="pub-small mt-1">Every sample is processed at our own head centre and reported by a qualified pathologist.</p>
+        <p class="pub-small mt-1">Every sample is processed at our own Agartala head centre and reported by a qualified pathologist.</p>
       </div>
       <div>
         <h2 class="pub-h3 flex items-center gap-2">{% icon "lock" %} Private</h2>
@@ -109,7 +118,7 @@
       </div>
       <div>
         <h2 class="pub-h3 flex items-center gap-2">{% icon "water_drop" %} Close by</h2>
-        <p class="pub-small mt-1">Three centres, plus home sample collection across Agartala and nearby areas.</p>
+        <p class="pub-small mt-1">Three centres in and around Agartala, plus home sample collection across the city.</p>
       </div>
     </div>
 

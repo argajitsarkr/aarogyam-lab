@@ -8,7 +8,32 @@ registered read-only so an Admin can still look at an old enquiry.
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Doctor, Enquiry, HealthConcern, MedicineCategory
+from .models import Banner, Doctor, Enquiry, HealthConcern, MedicineCategory
+
+
+@admin.register(Banner)
+class BannerAdmin(admin.ModelAdmin):
+    """The rotating strip on the home page. Lowest display order shows first."""
+
+    list_display = ("title", "has_image", "link_url", "display_order", "is_active")
+    list_editable = ("display_order", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("title", "subtitle")
+    fieldsets = (
+        (None, {"fields": ("title", "subtitle", "display_order", "is_active")}),
+        ("Artwork", {
+            "description": (
+                "Leave the image blank and the slide is drawn as a plain coloured panel "
+                "with the words on it - still a usable slide, never a broken one."
+            ),
+            "fields": ("image", "accent"),
+        }),
+        ("Button", {"fields": ("link_url", "link_label")}),
+    )
+
+    @admin.display(description="Artwork?", boolean=True)
+    def has_image(self, obj):
+        return bool(obj.image)
 
 
 @admin.register(Doctor)

@@ -6,6 +6,13 @@ from django.utils.html import format_html
 register = template.Library()
 
 
+@register.filter(name="readable_ink")
+def readable_ink_filter(hex_colour):
+    """Template side of `readable_ink`, for a colour that is a field rather than
+    a centre - the editable banner accent, say."""
+    return readable_ink(hex_colour)
+
+
 @register.filter
 def inr(value):
     """Format a number as Indian Rupees with Indian digit grouping: ₹1,23,456."""

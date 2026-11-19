@@ -16,7 +16,7 @@ from apps.patients.models import TestCatalog
 from apps.pricing.models import CompetitorPrice
 
 from .forms import EnquiryForm
-from .models import Doctor, Enquiry, HealthConcern, MedicineCategory
+from .models import Banner, Doctor, Enquiry, HealthConcern, MedicineCategory
 
 
 def public_tests():
@@ -63,6 +63,7 @@ class HomeView(PublicPageMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx["banners"] = Banner.objects.published()[:6]
         ctx["concerns"] = HealthConcern.objects.published()[:8]
         ctx["centres"] = Centre.objects.filter(is_active=True, is_public=True)
         ctx["doctors"] = Doctor.objects.published().prefetch_related("centres")[:4]
@@ -133,6 +134,7 @@ class TestListView(PublicPageMixin, ListView):
         ctx["categories"] = [c for c in TestCatalog.Category.choices if c[0] in used]
         ctx["query"] = self.query
         ctx["active_category"] = self.category
+        ctx["banners"] = Banner.objects.published()[:6]
         ctx["concerns"] = HealthConcern.objects.published()[:8]
         return ctx
 

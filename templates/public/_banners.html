@@ -1,0 +1,83 @@
+{% load ui %}
+{% comment %}
+  The rotating strip, as 1mg runs one across the top of their home page.
+
+  Three rules it follows that a naive carousel does not:
+  - it auto-advances only until somebody touches it (`stop()` on any click or
+    key), because a slide moving under a finger is how people lose a link;
+  - it pauses on hover and on keyboard focus, so a reader is never timed out;
+  - with JavaScript off it is a horizontal scroll strip of the same slides, not
+    a stack of six banners - `snap` does the work the script would.
+
+  `x-data` holds the index only. The slides themselves are real DOM, so the
+  page is readable before Alpine runs.
+{% endcomment %}
+{% if banners %}
+<section aria-label="Offers and announcements" class="bg-white">
+  <div class="mx-auto max-w-7xl px-4 py-6"
+       x-data="{ i: 0, n: {{ banners|length }}, timer: null,
+                 go(k) { this.i = (k + this.n) % this.n },
+                 stop() { if (this.timer) { clearInterval(this.timer); this.timer = null } },
+                 start() { this.stop(); if (this.n > 1) this.timer = setInterval(() => this.go(this.i + 1), 5000) } }"
+       x-init="start()"
+       @mouseenter="stop()" @mouseleave="start()"
+       @focusin="stop()">
+
+    <div class="relative overflow-hidden rounded-2xl">
+      {# No-JS and pre-Alpine: a scroll-snap strip. With Alpine: one slide at a time. #}
+      <ul class="flex snap-x snap-mandatory overflow-x-auto"
+          {% comment %}
+            `overflow: visible`, not hidden: the clipping belongs to the wrapper
+            above. Clipping the element that is itself being translated hides
+            every slide but the first - the track moves its own clip box with it.
+          {% endcomment %}
+          :style="`transform: translateX(-${i * 100}%); transition: transform .5s ease; overflow: visible`">
+        {% for b in banners %}
+        <li class="w-full shrink-0 snap-start"
+            :aria-hidden="i !== {{ forloop.counter0 }}">
+          <a {% if b.link_url %}href="{{ b.link_url }}"{% else %}href="{% url 'public:tests' %}"{% endif %}
+             class="group relative block h-44 overflow-hidden sm:h-56 lg:h-64"
+             {% if not b.image %}style="background: {{ b.accent }}"{% endif %}>
+            {% if b.image %}
+              <img src="{{ b.image.url }}" alt="{{ b.title }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                   class="absolute inset-0 h-full w-full object-cover">
+              <span class="absolute inset-0 bg-gradient-to-r from-black/65 via-black/30 to-transparent"></span>
+            {% endif %}
+            <div class="relative flex h-full max-w-xl flex-col justify-center gap-2 p-6 sm:py-8 sm:pl-16 sm:pr-8"
+                 style="color: {% if b.image %}#FFFFFF{% else %}{{ b.accent|readable_ink }}{% endif %}">
+              <h2 class="pub-h2">{{ b.title }}</h2>
+              {% if b.subtitle %}<p class="pub-small">{{ b.subtitle }}</p>{% endif %}
+              {% if b.link_label %}
+              <span class="pub-action mt-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-4 py-2 text-slate-900 group-hover:bg-slate-100">
+                {{ b.link_label }} {% icon "arrow_forward" %}
+              </span>
+              {% endif %}
+            </div>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+
+      {% if banners|length > 1 %}
+      <button type="button" @click="stop(); go(i - 1)" aria-label="Previous banner"
+              class="absolute left-2 top-1/2 hidden -translate-y-1/2 place-items-center rounded-full bg-white/90 p-2 text-slate-800 shadow hover:bg-white sm:grid">
+        {% icon "arrow_back" %}
+      </button>
+      <button type="button" @click="stop(); go(i + 1)" aria-label="Next banner"
+              class="absolute right-2 top-1/2 hidden -translate-y-1/2 place-items-center rounded-full bg-white/90 p-2 text-slate-800 shadow hover:bg-white sm:grid">
+        {% icon "arrow_forward" %}
+      </button>
+
+      <div class="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+        {% for b in banners %}
+        <button type="button" @click="stop(); go({{ forloop.counter0 }})"
+                aria-label="Show banner {{ forloop.counter }}"
+                class="h-1.5 rounded-full bg-white/60 transition-all"
+                :class="i === {{ forloop.counter0 }} ? 'w-6 bg-white' : 'w-1.5'"></button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}

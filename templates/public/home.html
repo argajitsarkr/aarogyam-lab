@@ -1,6 +1,6 @@
 {% extends "public/base.html" %}{% load ui %}
-{% block title %}{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} - lab tests &amp; pharmacy in Tripura{% endblock %}
-{% block meta_description %}Book lab tests at {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} - three centres in Tripura, home sample collection{% if site_settings.home_collection_area %} across {{ site_settings.home_collection_area }}{% endif %}, and a registered pharmacy. Compare partner lab prices before you book.{% endblock %}
+{% block title %}{{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} - lab tests &amp; pharmacy in Agartala, Tripura{% endblock %}
+{% block meta_description %}Book lab tests at {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} - three centres in Agartala and across Tripura, home sample collection{% if site_settings.home_collection_area %} across {{ site_settings.home_collection_area }}{% endif %}, and a registered pharmacy. Compare partner lab prices before you book.{% endblock %}
 
 {% block head %}
 {% comment %}
@@ -35,10 +35,17 @@
 <section class="bg-gradient-to-br from-teal-900 via-teal-800 to-teal-700 text-white">
   <div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-2 lg:items-center lg:py-16">
     <div>
-      <h1 class="pub-h1">Lab tests and medicines, close to home.</h1>
+      {% comment %}
+        Agartala first, then Tripura. Somebody searching "blood test near me"
+        in Agartala needs to see their own city in the first line, not a state.
+        The claim is "trusted by", which is about the people who already come -
+        not an accreditation the lab may not hold.
+      {% endcomment %}
+      <p class="pub-nav text-teal-100">Agartala, Tripura</p>
+      <h1 class="pub-h1 mt-2">Agartala's trusted pathology lab.</h1>
       <p class="pub-lead mt-4 text-teal-50">
-        {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} runs three centres in Tripura with its own
-        pathology lab{% if site_settings.home_collection_area %} and home sample collection across {{ site_settings.home_collection_area }}{% endif %}.
+        {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} runs three centres in and around Agartala,
+        with its own pathology lab{% if site_settings.home_collection_area %} and home sample collection across {{ site_settings.home_collection_area }}{% endif %}.
         Compare what each partner lab charges before you book - the choice stays yours.
       </p>
 
@@ -77,6 +84,8 @@
     </div>
   </div>
 </section>
+
+{% include "public/_banners.html" %}
 
 {% comment %}
   ---------- Trust row ----------
@@ -146,7 +155,7 @@
 {% comment %} ---------- Centres ---------- {% endcomment %}
 {% if centres %}
 <section class="mx-auto max-w-7xl px-4 py-12">
-  <h2 class="pub-h2">Our centres</h2>
+  <h2 class="pub-h2">Our centres in Tripura</h2>
   <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
     {% for c in centres %}{% include "public/_centre_card.html" with centre=c %}{% endfor %}
   </div>

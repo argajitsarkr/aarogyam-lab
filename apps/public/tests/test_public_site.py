@@ -243,3 +243,32 @@ def test_seed_public_content_is_idempotent_and_invents_no_facts():
     assert Doctor.objects.count() == 0
     s = SiteSettings.load()
     assert s.public_phone == "" and s.pharmacy_licence_no == ""
+
+
+# ---------------------------------------------------------------- banners
+
+@pytest.mark.django_db
+def test_a_banner_shows_on_the_home_page_only_when_it_is_active(client):
+    from apps.public.models import Banner
+
+    b = Banner.objects.create(title="Free health camp", subtitle="At the head centre", link_url="/centres/")
+    assert "Free health camp" in client.get(reverse("public:home")).content.decode()
+
+    b.is_active = False
+    b.save()
+    assert "Free health camp" not in client.get(reverse("public:home")).content.decode()
+
+
+@pytest.mark.django_db
+def test_every_seeded_banner_links_somewhere_real():
+    """The first seeded set pointed at /prescription/, which is a 404 - the real
+    path is /upload-prescription/. They are built from view names now, and this
+    is what stops that coming back."""
+    from django.core.management import call_command
+    from django.test import Client
+    from apps.public.models import Banner
+
+    call_command("seed_public_content", stdout=io.StringIO())
+    c = Client()
+    for banner in Banner.objects.all():
+        assert c.get(banner.link_url).status_code == 200, f"{banner.title} -> {banner.link_url}"

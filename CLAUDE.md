@@ -181,6 +181,24 @@ patient logins and analytics stack.
   purpose: `max_length` runs before `clean_phone`, so inheriting it would reject
   "+91 98765 43210" before there was a chance to strip it.
 
+- **The logo is a white wordmark on its own blue field** (`static/img/aarogyam-logo.png`,
+  the long lockup; `aarogyam-mark.png` is the square one). It is shown as the block it is -
+  rounded corners, no padding - rather than knocked out onto white, because the artwork
+  carries its own background. It already reads "aarogyam pathology", so the only text
+  beside it in the header is the line it does not carry: "Agartala, Tripura".
+- **Agartala first, then Tripura.** Somebody searching "blood test near me" needs their own
+  city in the first line, and the h1 is "Agartala's trusted pathology lab". "Trusted" is a
+  claim about the people who already come, not an accreditation the lab may not hold - keep
+  it that way.
+- **The rotating banner strip is rows, not markup** (`Banner`, `templates/public/_banners.html`).
+  The lab changes a camp or a package far more often than anything else on the site. An image
+  is optional: with none the slide is a coloured panel whose ink comes from `readable_ink`, so
+  an editable accent can never produce white-on-aqua. Two traps already hit:
+  **`overflow: hidden` must not go on the element being translated** - the track carries its
+  own clip box along and every slide but the first disappears; the wrapper does the clipping.
+  And a **seeded link must be `reverse()`d, not typed** - `/prescription/` is really
+  `/upload-prescription/`, and the hand-typed path shipped as a 404.
+
 Content is edited from `/system-admin/`:
 
 - **Site settings** - the public phone, WhatsApp, e-mail, the pharmacy licence and the

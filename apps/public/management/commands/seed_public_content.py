@@ -12,9 +12,10 @@ tests by name and whatever is missing is simply left unlinked and reported.
 """
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.urls import reverse
 
 from apps.patients.models import TestCatalog
-from apps.public.models import HealthConcern, MedicineCategory
+from apps.public.models import Banner, HealthConcern, MedicineCategory
 
 CONCERNS = [
     ("Full Body Checkup", "grid_view", "The routine panel most doctors start with.",
@@ -34,6 +35,22 @@ CONCERNS = [
      ["Liver Function Test", "Kidney Function Test", "Uric Acid", "Serum Creatinine"]),
     ("Women's Health", "groups", "Anaemia, thyroid and hormones.",
      ["Complete Blood Count", "Thyroid Profile", "Iron Studies", "Vitamin D"]),
+]
+
+# Starter slides for the rotating strip. Every line here restates something the
+# site already says elsewhere - the three channels for booking, the centres, the
+# pharmacy - so none of it is a new claim the lab has to stand behind. They are
+# meant to be replaced: the lab writes its own from /system-admin/.
+BANNERS = [
+    ("Agartala's trusted pathology lab",
+     "Three centres, our own lab, and reports signed by a pathologist.",
+     "public:centres", "See our centres", "#001B87"),
+    ("Home sample collection in Agartala",
+     "Give your sample at home, at a time that suits you. Call to fix a slot.",
+     "public:contact", "Book a collection", "#0058B3"),
+    ("Send us the prescription",
+     "Photograph it, send it, and we will tell you what each partner lab charges.",
+     "public:prescription", "Upload a prescription", "#0058B3"),
 ]
 
 MEDICINE_CATEGORIES = [
@@ -95,8 +112,24 @@ class Command(BaseCommand):
             )
             made_categories += int(created)
 
+        made_banners = 0
+        # The link is a view name, resolved here: a hand-typed path silently
+        # became a 404 the first time, because /prescription/ is really
+        # /upload-prescription/.
+        for order, (title, subtitle, view_name, label, accent) in enumerate(BANNERS):
+            link = reverse(view_name)
+            _, created = Banner.objects.get_or_create(
+                title=title,
+                defaults={
+                    "subtitle": subtitle, "link_url": link, "link_label": label,
+                    "accent": accent, "display_order": order,
+                },
+            )
+            made_banners += int(created)
+
         self.stdout.write(
             f"seed_public_content: {made_concerns} health concerns (+{linked} test links), "
+            f"{made_banners} banners, "
             f"{made_categories} medicine categories"
         )
         if unmatched:

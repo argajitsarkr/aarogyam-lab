@@ -186,3 +186,42 @@ class Enquiry(TimeStampedModel):
     @property
     def is_open(self):
         return self.status in (self.Status.NEW, self.Status.CONTACTED)
+
+
+class Banner(TimeStampedModel):
+    """A slide in the rotating strip under the hero, as 1mg runs across the top
+    of their home page.
+
+    The lab changes these far more often than anything else on the site - a camp,
+    a seasonal package, a new centre - so they are rows, not template markup.
+    An image is optional: with none, the slide renders as its own coloured
+    panel with the heading and the button, which is what the lab can produce on
+    a Tuesday afternoon without a designer.
+    """
+
+    title = models.CharField(max_length=90, help_text="The one line people read. Keep it under about 50 characters.")
+    subtitle = models.CharField(max_length=160, blank=True)
+    image = models.ImageField(
+        upload_to="banners/", blank=True,
+        help_text="Wide artwork, about 1200x400. Leave blank for a plain coloured slide.",
+    )
+    link_url = models.CharField(
+        max_length=300, blank=True,
+        help_text="Where the button goes - a path like /lab-tests/ or a full address.",
+    )
+    link_label = models.CharField(max_length=40, blank=True, default="Know more")
+    accent = models.CharField(
+        max_length=7, default="#0058B3",
+        help_text="Background of a slide that has no image. A hex colour, e.g. #0058B3.",
+    )
+    display_order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True, verbose_name="Show on the public site")
+
+    objects = PublishedQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["display_order", "-created_at"]
+        verbose_name = "home page banner"
+
+    def __str__(self):
+        return self.title
