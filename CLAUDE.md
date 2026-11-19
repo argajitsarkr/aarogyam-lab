@@ -110,6 +110,12 @@ knowing every view:
 `robots.txt` now disallows only `/staff/`, `/accounts/` and `/system-admin/` instead of
 the whole site. `apps/public/tests/test_routing.py` asserts both halves.
 
+**nginx still blankets the whole server with `X-Robots-Tag: noindex` (line 28 of
+`docker/nginx/tunnel/default.conf.template`), which masks Django's rule.** That is right
+while the public side is a placeholder, and it is the one thing that must be narrowed to
+the staff locations before the public site goes live - otherwise the new pages ship
+unindexable and the cause is invisible from the Django side.
+
 Nothing in the staff templates hardcodes a path - every link is `{% url %}`, so the move
 needed no template edits. `SavedFilter.get_absolute_url()` reverses by view name too, so
 filters saved before the split still resolve.
