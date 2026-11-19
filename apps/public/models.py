@@ -42,6 +42,10 @@ class Doctor(TimeStampedModel):
 
     class Meta:
         ordering = ["display_order", "full_name"]
+        # The staff app already has a `patients.Doctor` (referring doctors), so
+        # without this the admin index lists "Doctors" twice.
+        verbose_name = "doctor (public site)"
+        verbose_name_plural = "doctors (public site)"
 
     def __str__(self):
         return self.full_name

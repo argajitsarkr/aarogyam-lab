@@ -181,9 +181,21 @@ patient logins and analytics stack.
   purpose: `max_length` runs before `clean_phone`, so inheriting it would reject
   "+91 98765 43210" before there was a chance to strip it.
 
-Content is edited from `/system-admin/` (Doctors, Health concerns, Medicine categories;
-Enquiries are registered read-only there, since they are worked in the staff queue which
-records who handled each one).
+Content is edited from `/system-admin/`:
+
+- **Site settings** - the public phone, WhatsApp, e-mail, the pharmacy licence and the
+  pharmacist. `SiteSettings` had **no admin at all** until the public site needed one,
+  which made every one of those fields uneditable by anybody; it is a singleton, so adding
+  and deleting are off and the changelist redirects straight to the single row.
+- **Centres** and **Tests** both carry a "ready?" column saying whether the page has what
+  it needs (photo + hours + phone; a written description) *before* the publish tick is on.
+  `is_public` is editable from the test changelist, and the bulk action only ever takes
+  tests **off** the site - a bulk publish would produce public pages with no description.
+- **Doctors (public site)**, Health concerns, Medicine categories. The public `Doctor`
+  carries an explicit `verbose_name`, because `patients.Doctor` (referring doctors)
+  already exists and the admin index otherwise lists "Doctors" twice.
+- **Enquiries** are registered read-only, since they are worked in the staff queue, which
+  records who handled each one.
 
 ## Pipeline: laptop -> GitHub -> PowerEdge
 
