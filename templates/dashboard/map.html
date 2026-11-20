@@ -29,7 +29,12 @@
 document.addEventListener('DOMContentLoaded', () => {
   const D = JSON.parse(document.getElementById('map-data').textContent);
   const map = L.map('map').setView([23.8315, 91.2868], 12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+  // Esri light-grey tiles, keyless. OpenStreetMap's volunteer servers block a
+  // deployed app by referrer (an "access blocked" tile), which is what the
+  // public centres map hit; this map shares the same failure, so the same fix.
+  const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas';
+  L.tileLayer(esri + '/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, attribution: 'Tiles &copy; Esri' }).addTo(map);
+  L.tileLayer(esri + '/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }).addTo(map);
   const bounds = [];
   const max = Math.max(1, ...D.pins.map(p => p.n));
   D.pins.forEach(p => {
