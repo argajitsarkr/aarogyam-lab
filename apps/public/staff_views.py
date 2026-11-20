@@ -13,10 +13,13 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.utils import timezone
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView, ListView, TemplateView
 
-from .models import Enquiry
+from apps.centres.models import Centre
+
+from .models import Enquiry, Review
 from .staff_forms import EnquiryHandleForm
 
 
@@ -76,6 +79,70 @@ class EnquiryDetailView(LoginRequiredMixin, DetailView):
         enquiry.save()
         messages.success(request, f"Enquiry marked {enquiry.get_status_display().lower()}.")
         return redirect("enquiries:detail", pk=enquiry.pk)
+
+
+class ReviewQRView(LoginRequiredMixin, TemplateView):
+    """A printable sheet of QR codes - one per public centre - that open the
+    rating page for that centre. Stick each at its counter; a customer scans it,
+    taps a star rating and it appears on the centre's public page."""
+
+    template_name = "enquiries/review_qr.html"
+
+    def get_context_data(self, **kwargs):
+        import segno
+
+        ctx = super().get_context_data(**kwargs)
+        cards = []
+        for centre in Centre.objects.filter(is_active=True, is_public=True):
+            url = self.request.build_absolute_uri(
+                reverse("public:review") + f"?c={centre.short_code}"
+            )
+            qr = segno.make(url, error="m")
+            cards.append({"centre": centre, "url": url, "qr": qr.svg_data_uri(scale=6)})
+        ctx["cards"] = cards
+        ctx["unpublished_centres"] = Centre.objects.filter(is_active=True, is_public=False)
+        return ctx
+
+
+class ReviewListView(LoginRequiredMixin, ListView):
+    """Recent customer reviews, newest first, with a one-click hide for anything
+    abusive. Full moderation (and the approval switch) lives in System admin."""
+
+    template_name = "enquiries/review_list.html"
+    context_object_name = "reviews"
+    paginate_by = 30
+    results_label = "reviews"
+
+    def get_queryset(self):
+        qs = Review.objects.select_related("centre")
+        self.shown = self.request.GET.get("shown") or "ALL"
+        if self.shown == "PUBLISHED":
+            qs = qs.filter(is_published=True)
+        elif self.shown == "HIDDEN":
+            qs = qs.filter(is_published=False)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        from .stats import rating_summary
+
+        ctx = super().get_context_data(**kwargs)
+        ctx["results_label"] = self.results_label
+        ctx["active_shown"] = self.shown
+        ctx["showns"] = [("ALL", "All"), ("PUBLISHED", "Shown"), ("HIDDEN", "Hidden")]
+        ctx["rating"] = rating_summary()
+        return ctx
+
+    def post(self, request, *args, **kwargs):
+        review = get_object_or_404(Review, pk=request.POST.get("review"))
+        review.is_published = not review.is_published
+        review.save(update_fields=["is_published"])
+        from .stats import clear_rating_cache
+
+        clear_rating_cache(review.centre_id)
+        messages.success(
+            request, f"Review by {review.name} {'shown' if review.is_published else 'hidden'}."
+        )
+        return redirect(request.META.get("HTTP_REFERER") or reverse("enquiries:reviews"))
 
 
 def prescription_download(request, pk):

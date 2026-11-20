@@ -9,14 +9,16 @@ from django.db.models import Min, Prefetch
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 
 from apps.centres.models import Centre
 from apps.patients.models import TestCatalog
 from apps.pricing.models import CompetitorPrice
 
-from .forms import EnquiryForm
-from .models import Banner, Doctor, Enquiry, HealthConcern, MedicineCategory
+from .forms import EnquiryForm, ReviewForm
+from .models import Banner, Doctor, Enquiry, HealthConcern, MedicineCategory, Review
+from .stats import client_ip, rating_summary
 
 
 def public_tests():
@@ -69,6 +71,8 @@ class HomeView(PublicPageMixin, TemplateView):
         ctx["doctors"] = Doctor.objects.published().prefetch_related("centres")[:4]
         ctx["popular_tests"] = with_partner_prices(public_tests())[:6]
         ctx["medicine_categories"] = MedicineCategory.objects.published()[:6]
+        ctx["rating"] = rating_summary()
+        ctx["recent_reviews"] = Review.objects.published().select_related("centre")[:6]
         return ctx
 
 
@@ -122,6 +126,8 @@ class CentreDetailView(PublicPageMixin, DetailView):
         ctx["enquiry_form"] = EnquiryForm(
             initial={"kind": Enquiry.Kind.CALLBACK, "centre": self.object.pk}
         )
+        ctx["rating"] = rating_summary(self.object)
+        ctx["reviews"] = self.object.reviews.published()[:8]
         return ctx
 
 
@@ -266,16 +272,6 @@ class ContactView(PublicPageMixin, TemplateView):
         return ctx
 
 
-def client_ip(request):
-    # Behind the Cloudflare tunnel nginx forwards the real address in
-    # CF-Connecting-IP; X-Forwarded-For is the fallback for a direct proxy.
-    for header in ("CF-Connecting-IP", "X-Forwarded-For"):
-        value = request.headers.get(header)
-        if value:
-            return value.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR")
-
-
 class EnquiryCreateView(PublicPageMixin, FormView):
     """The one write the public site can make. Posted by every call-to-action;
     answers HTMX with a panel and a plain browser with a redirect + message."""
@@ -321,3 +317,70 @@ class EnquiryCreateView(PublicPageMixin, FormView):
 
     def get(self, request, *args, **kwargs):
         return HttpResponse(status=405)
+
+
+class ReviewCreateView(PublicPageMixin, FormView):
+    """The page the QR code opens: rate the centre. The centre is read from the
+    ?c=<short_code> in the QR, not chosen by the visitor, so the sticker at a
+    counter always rates that counter. One review per device per centre per day.
+    """
+
+    form_class = ReviewForm
+    template_name = "public/review.html"
+    page_name = "centres"
+
+    def dispatch(self, request, *args, **kwargs):
+        from apps.centres.models import Centre
+
+        code = (request.GET.get("c") or "").upper()
+        self.centre = None
+        if code:
+            self.centre = Centre.objects.filter(
+                short_code=code, is_active=True, is_public=True
+            ).first()
+        return super().dispatch(request, *args, **kwargs)
+
+    def _throttle_key(self):
+        ip = client_ip(self.request) or "anon"
+        where = self.centre.pk if self.centre else "lab"
+        return f"review:{timezone.localdate().isoformat()}:{where}:{ip}"
+
+    def form_valid(self, form):
+        from django.core.cache import cache
+
+        from apps.core.models import SiteSettings
+
+        if cache.get(self._throttle_key()):
+            # Already reviewed this centre today from this device: thank them
+            # rather than taking a second rating from the same person.
+            messages.info(self.request, "Thanks - we already have your rating for today.")
+            return redirect(self._done_url())
+
+        review = form.save(commit=False)
+        review.centre = self.centre
+        review.client_ip = client_ip(self.request)
+        if form.looks_like_spam or SiteSettings.load().reviews_need_approval:
+            review.is_published = False
+        review.save()
+        cache.set(self._throttle_key(), 1, 60 * 60 * 20)
+
+        from .stats import clear_rating_cache
+
+        clear_rating_cache(self.centre.pk if self.centre else None)
+        messages.success(self.request, "Thank you for rating us!")
+        return redirect(self._done_url())
+
+    def _done_url(self):
+        url = reverse("public:review")
+        if self.centre:
+            url += f"?c={self.centre.short_code}&thanks=1"
+        else:
+            url += "?thanks=1"
+        return url
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["centre"] = self.centre
+        ctx["thanks"] = self.request.GET.get("thanks") == "1"
+        ctx["rating"] = rating_summary(self.centre)
+        return ctx

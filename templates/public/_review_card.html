@@ -1,0 +1,18 @@
+{% load ui %}
+{% comment %}
+  One customer review: their stars, their words, their name. These are the
+  lab's own reviews, left at the centre via the QR code - shown to build the
+  trust a new visitor is looking for.
+{% endcomment %}
+<article class="flex h-full flex-col rounded-2xl border border-slate-200 p-5">
+  {% stars review.rating "text-lg" %}
+  {% if review.comment %}
+    <p class="pub-small mt-3 flex-1 text-slate-700">"{{ review.comment }}"</p>
+  {% else %}
+    <p class="pub-small mt-3 flex-1 text-slate-400">Rated {{ review.rating }} out of 5.</p>
+  {% endif %}
+  <div class="mt-4 flex items-center justify-between gap-2">
+    <span class="pub-action text-slate-800">{{ review.name }}</span>
+    {% if review.centre %}{% centre_badge review.centre %}{% endif %}
+  </div>
+</article>

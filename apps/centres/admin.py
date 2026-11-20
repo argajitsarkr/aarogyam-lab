@@ -25,7 +25,8 @@ class CentreAdmin(admin.ModelAdmin):
                 "<b>Show on the public site</b>. Anything left blank is hidden rather than "
                 "shown empty, and the centre is a 404 until the tick is on."
             ),
-            "fields": ("is_public", "public_blurb", "opening_hours", "whatsapp", "photo", "map_url"),
+            "fields": ("is_public", "public_blurb", "opening_hours", "whatsapp", "photo", "map_url",
+                       "google_review_url"),
         }),
     )
 

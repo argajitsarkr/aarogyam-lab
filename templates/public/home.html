@@ -221,6 +221,26 @@
 </section>
 {% endif %}
 
+{% comment %} ---------- Reviews / ratings ---------- {% endcomment %}
+{% if recent_reviews %}
+<section class="mx-auto max-w-7xl px-4 py-12">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h2 class="pub-h2">What our patients say</h2>
+      {% if rating.count %}
+      <div class="mt-2 flex items-center gap-3">
+        {% stars rating.avg "text-2xl" %}
+        <p class="pub-small text-slate-600"><b class="text-lg text-slate-900">{{ rating.avg }}</b> from {{ rating.count }} rating{{ rating.count|pluralize }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for review in recent_reviews %}{% include "public/_review_card.html" with review=review %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
 {% comment %} ---------- How it works ---------- {% endcomment %}
 <section class="border-t border-slate-200 bg-slate-50 py-12">
   <div class="mx-auto max-w-7xl px-4">

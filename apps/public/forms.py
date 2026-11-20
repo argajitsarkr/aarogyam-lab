@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Enquiry
+from .models import Enquiry, Review
 
 MAX_PRESCRIPTION_BYTES = 8 * 1024 * 1024
 ALLOWED_PRESCRIPTION_TYPES = {"image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"}
@@ -105,6 +105,46 @@ class EnquiryForm(forms.ModelForm):
     @property
     def is_prescription(self):
         return self.kind_value == Enquiry.Kind.PRESCRIPTION
+
+    @property
+    def looks_like_spam(self):
+        return bool(self.data.get(self.add_prefix("website")))
+
+
+class ReviewForm(forms.ModelForm):
+    """The form behind the QR code. The centre is fixed by the QR (passed in by
+    the view), so the visitor only gives their name, a star rating and - if they
+    like - a line about the visit."""
+
+    website = forms.CharField(required=False, widget=forms.HiddenInput)  # honeypot
+
+    class Meta:
+        model = Review
+        fields = ["name", "rating", "comment"]
+        widgets = {
+            "name": forms.TextInput(attrs={
+                "placeholder": "Your name", "autocomplete": "name", "maxlength": "80",
+            }),
+            "rating": forms.HiddenInput,  # set by the star control in the template
+            "comment": forms.Textarea(attrs={
+                "rows": 3, "placeholder": "A few words about your visit (optional)", "maxlength": "500",
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["comment"].required = False
+        field_class = (
+            "mt-1 w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-700 focus:ring-teal-700"
+        )
+        self.fields["name"].widget.attrs["class"] = field_class
+        self.fields["comment"].widget.attrs["class"] = field_class
+
+    def clean_rating(self):
+        rating = self.cleaned_data.get("rating")
+        if not rating or not (1 <= rating <= 5):
+            raise forms.ValidationError("Please tap a star rating.")
+        return rating
 
     @property
     def looks_like_spam(self):

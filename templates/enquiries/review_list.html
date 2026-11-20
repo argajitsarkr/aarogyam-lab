@@ -1,0 +1,68 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Ratings{% endblock %}
+{% block page_title %}Customer ratings{% endblock %}
+{% block page_subtitle %}Reviews left at the centres through the QR code. They publish as they arrive - hide anything abusive here.{% endblock %}
+
+{% block content %}
+<div class="filter-panel">
+  <div class="flex flex-wrap items-end gap-4">
+    <div>
+      <span class="filter-label">Show</span>
+      <div class="mt-1 flex flex-wrap gap-1.5">
+        {% for value, label in showns %}
+          <a href="?shown={{ value }}" class="pill-filter {% if active_shown == value %}is-active{% endif %}">{{ label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+    {% if rating.count %}
+    <p class="ml-auto flex items-center gap-2 text-sm">
+      {% stars rating.avg "text-base" %}
+      <span class="font-semibold">{{ rating.avg }}</span>
+      <span class="text-slate-500">from {{ rating.count }} rating{{ rating.count|pluralize }}</span>
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+{% include "core/_results_head.html" %}
+
+{% if reviews %}
+<div class="tbl-wrap mt-3">
+  <table class="tbl">
+    <thead>
+      <tr><th>When</th><th>Name</th><th>Stars</th><th>Comment</th><th>Centre</th><th>Shown</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for r in reviews %}
+      <tr class="{% if not r.is_published %}opacity-60{% endif %}">
+        <td class="whitespace-nowrap">{{ r.created_at|date:"d-m-Y H:i" }}</td>
+        <td class="font-medium">{{ r.name }}</td>
+        <td class="whitespace-nowrap">{% stars r.rating "text-sm" %}</td>
+        <td class="max-w-xs">{{ r.comment|default:"-" }}</td>
+        <td>{% if r.centre %}{% centre_badge r.centre %}{% else %}<span class="text-slate-400">Lab</span>{% endif %}</td>
+        <td>
+          {% if r.is_published %}
+            <span class="inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Shown</span>
+          {% else %}
+            <span class="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Hidden</span>
+          {% endif %}
+        </td>
+        <td class="text-right">
+          <form method="post" action="{% url 'enquiries:reviews' %}">
+            {% csrf_token %}
+            <input type="hidden" name="review" value="{{ r.pk }}">
+            <button type="submit" class="btn btn-sm">{% if r.is_published %}Hide{% else %}Show{% endif %}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/_pagination.html" %}
+{% else %}
+<p class="card mt-3 text-sm text-slate-500">
+  No ratings in this view yet. Print the <a class="underline" href="{% url 'enquiries:review_qr' %}">QR codes</a> and place them at the counters.
+</p>
+{% endif %}
+{% endblock %}

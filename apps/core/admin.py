@@ -40,6 +40,13 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             "description": "Only write what the lab can stand behind. Blank hides the claim.",
             "fields": ("medicine_discount_note",),
         }),
+        ("Public site - reviews", {
+            "description": (
+                "Customer ratings come in through the QR code at each centre. Leave this off "
+                "and a rating shows at once; turn it on to hold new ratings until staff approve them."
+            ),
+            "fields": ("reviews_need_approval",),
+        }),
         ("Internal rules", {
             "classes": ("collapse",),
             "fields": ("max_active_employees", "retest_lookahead_days", "price_stale_days"),

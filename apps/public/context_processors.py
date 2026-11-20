@@ -25,7 +25,14 @@ def public_nav(request):
             "site_settings": SiteSettings.load(),
         }
         cache.set(PUBLIC_NAV_CACHE_KEY, data, PUBLIC_NAV_TTL)
-    return data
+
+    # Count the visit and hand the footer the running total. Kept out of the
+    # cached block above because the total changes while the nav does not; both
+    # the de-dupe and the total are themselves cached, so this stays cheap.
+    from .stats import record_visit, total_visits
+
+    record_visit(request)
+    return {**data, "visitor_count": total_visits()}
 
 
 def clear_public_nav_cache(**_kwargs):

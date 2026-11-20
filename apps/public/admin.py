@@ -8,7 +8,7 @@ registered read-only so an Admin can still look at an old enquiry.
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Banner, Doctor, Enquiry, HealthConcern, MedicineCategory
+from .models import Banner, Doctor, Enquiry, HealthConcern, MedicineCategory, Review
 
 
 @admin.register(Banner)
@@ -75,6 +75,45 @@ class MedicineCategoryAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "needs_prescription")
     search_fields = ("name", "blurb", "examples")
     prepopulated_fields = {"slug": ("name",)}
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    """Customer ratings from the QR code. Instant-publish by default; untick
+    'shown on the public site' to hide a bad one, or use the bulk actions."""
+
+    list_display = ("created_at", "name", "rating", "centre", "is_published", "short_comment")
+    list_editable = ("is_published",)
+    list_filter = ("is_published", "rating", "centre")
+    search_fields = ("name", "comment")
+    date_hierarchy = "created_at"
+    readonly_fields = ("client_ip", "created_at", "updated_at")
+    actions = ("publish", "hide")
+
+    @admin.display(description="comment")
+    def short_comment(self, obj):
+        return (obj.comment[:60] + "...") if len(obj.comment) > 60 else obj.comment
+
+    @admin.action(description="Publish selected reviews")
+    def publish(self, request, queryset):
+        queryset.update(is_published=True)
+        self._clear_cache()
+
+    @admin.action(description="Hide selected reviews")
+    def hide(self, request, queryset):
+        queryset.update(is_published=False)
+        self._clear_cache()
+
+    def _clear_cache(self):
+        from django.core.cache import cache
+
+        cache.delete_many(["reviews:summary:all"])
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        from .stats import clear_rating_cache
+
+        clear_rating_cache(obj.centre_id)
 
 
 @admin.register(Enquiry)

@@ -1,4 +1,4 @@
-{% load static ui %}<!doctype html>
+{% load static ui humanize %}<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -177,6 +177,9 @@
       </p>
       {% endif %}
       <p>&copy; {% now "Y" %} {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}. All rights reserved.</p>
+      {% if visitor_count %}
+      <p class="flex items-center gap-1.5 text-slate-500">{% icon "groups" %} {{ visitor_count|intcomma }} visits to this site and counting.</p>
+      {% endif %}
     </div>
   </div>
 </footer>

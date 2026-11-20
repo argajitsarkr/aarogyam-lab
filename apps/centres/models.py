@@ -50,6 +50,10 @@ class Centre(TimeStampedModel):
     )
     photo = models.ImageField(upload_to="centres/", blank=True)
     map_url = models.URLField(blank=True, help_text="Google Maps link for the Directions button.")
+    google_review_url = models.URLField(
+        blank=True,
+        help_text="Your Google 'write a review' link. Shown as a 'Review us on Google' button. Blank hides it.",
+    )
 
     class Meta:
         ordering = ["-is_head_centre", "name"]

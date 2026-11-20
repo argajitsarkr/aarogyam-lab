@@ -272,3 +272,77 @@ def test_every_seeded_banner_links_somewhere_real():
     c = Client()
     for banner in Banner.objects.all():
         assert c.get(banner.link_url).status_code == 200, f"{banner.title} -> {banner.link_url}"
+
+
+# ---------------------------------------------------------------- reviews & QR
+
+@pytest.mark.django_db
+def test_qr_review_creates_a_published_review(client, published_centre):
+    from apps.public.models import Review
+
+    url = reverse("public:review") + f"?c={published_centre.short_code}"
+    resp = client.post(url, {"name": "Rupa", "rating": 5, "comment": "Quick and clean"})
+    assert resp.status_code == 302
+    review = Review.objects.get()
+    assert review.centre == published_centre
+    assert review.rating == 5
+    assert review.is_published is True
+
+
+@pytest.mark.django_db
+def test_review_for_unpublished_centre_has_no_centre(client, centres):
+    # ?c of a non-public centre is ignored rather than rated secretly.
+    from apps.public.models import Review
+
+    url = reverse("public:review") + f"?c={centres['RRM'].short_code}"
+    client.post(url, {"name": "X", "rating": 4})
+    assert Review.objects.get().centre is None
+
+
+@pytest.mark.django_db
+def test_review_waits_for_approval_when_toggle_is_on(client, published_centre):
+    from apps.core.models import SiteSettings
+    from apps.public.models import Review
+
+    settings = SiteSettings.load()
+    settings.reviews_need_approval = True
+    settings.save()
+    client.post(
+        reverse("public:review") + f"?c={published_centre.short_code}",
+        {"name": "Hidden", "rating": 5},
+    )
+    assert Review.objects.get().is_published is False
+
+
+@pytest.mark.django_db
+def test_a_rating_below_one_star_is_rejected(client, published_centre):
+    from apps.public.models import Review
+
+    resp = client.post(
+        reverse("public:review") + f"?c={published_centre.short_code}",
+        {"name": "NoStars", "rating": 0},
+    )
+    assert resp.status_code == 200  # re-rendered with the error
+    assert not Review.objects.exists()
+
+
+@pytest.mark.django_db
+def test_published_review_shows_on_home_and_counts_visits(client, published_centre):
+    from apps.public.models import DailyVisit, Review
+
+    Review.objects.create(centre=published_centre, name="Meera", rating=5, comment="Lovely staff")
+    body = client.get(reverse("public:home")).content.decode()
+    assert "Meera" in body
+    assert "What our patients say" in body
+    # The visit was counted.
+    assert DailyVisit.objects.exists()
+
+
+@pytest.mark.django_db
+def test_qr_sheet_requires_login_then_renders(client, employee, published_centre):
+    qr_url = reverse("enquiries:review_qr")
+    assert client.get(qr_url).status_code == 302  # login gate
+    client.force_login(employee("ARP"))
+    resp = client.get(qr_url)
+    assert resp.status_code == 200
+    assert "data:image/svg+xml" in resp.content.decode()

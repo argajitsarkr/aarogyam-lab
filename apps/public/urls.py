@@ -21,6 +21,10 @@ urlpatterns = [
     path("about/", views.AboutView.as_view(), name="about"),
     path("contact/", views.ContactView.as_view(), name="contact"),
 
+    # The QR code at each centre opens this with ?c=<short_code>. GET shows the
+    # star form, POST records the rating.
+    path("review/", views.ReviewCreateView.as_view(), name="review"),
+
     # The one endpoint every call-to-action posts to. HTMX swaps the form for a
     # thank-you panel; without JS it redirects to the same page with a message.
     path("enquiry/", views.EnquiryCreateView.as_view(), name="enquiry"),

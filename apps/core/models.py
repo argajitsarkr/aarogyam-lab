@@ -70,6 +70,10 @@ class SiteSettings(models.Model):
     medicine_discount_note = models.CharField(
         max_length=120, blank=True, help_text="e.g. 'Up to 20% off on medicines'. Blank hides the claim.",
     )
+    reviews_need_approval = models.BooleanField(
+        default=False, verbose_name="Reviews wait for staff approval",
+        help_text="Off: a scanned review shows at once. On: it stays hidden until staff approve it.",
+    )
 
     updated_at = models.DateTimeField(auto_now=True)
 

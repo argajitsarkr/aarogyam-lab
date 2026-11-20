@@ -6,6 +6,7 @@ staff pick up from /staff/enquiries/ and act on by phone, which is how the lab
 already works.
 """
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
@@ -238,3 +239,56 @@ class Banner(TimeStampedModel):
 
     def __str__(self):
         return self.title
+
+
+class ReviewQuerySet(models.QuerySet):
+    def published(self):
+        return self.filter(is_published=True)
+
+
+class Review(TimeStampedModel):
+    """A rating a customer leaves after a visit, usually by scanning the QR code
+    at the centre counter. These are the lab's own reviews, not Google's - they
+    are stored here, shown on the public site, and can be hidden by staff. They
+    cannot be pushed to Google; a 'Review us on Google' link grows that separately.
+    """
+
+    centre = models.ForeignKey(
+        "centres.Centre", null=True, blank=True, on_delete=models.CASCADE, related_name="reviews",
+        help_text="The centre being rated. Blank means the lab overall.",
+    )
+    name = models.CharField(max_length=80, help_text="The reviewer's name, as they entered it.")
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)], help_text="1 to 5 stars."
+    )
+    comment = models.TextField(max_length=500, blank=True)
+    # Instant-publish by default so the daily flow of ratings reaches the site
+    # without a bottleneck; staff can untick this to hide a bad one, and the
+    # SiteSettings.reviews_need_approval switch makes new reviews start hidden.
+    is_published = models.BooleanField(default=True, verbose_name="Shown on the public site")
+    client_ip = models.GenericIPAddressField(null=True, blank=True)
+
+    objects = ReviewQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        where = self.centre.short_code if self.centre else "lab"
+        return f"{self.name} - {self.rating}* ({where})"
+
+
+class DailyVisit(models.Model):
+    """One row per calendar day holding that day's unique-visitor count for the
+    public site. A visitor is counted once per day (deduped by IP in the cache),
+    so this is a real figure - the footer shows the running total, never an
+    invented one."""
+
+    date = models.DateField(unique=True)
+    count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.date}: {self.count}"

@@ -33,6 +33,13 @@
     {% if centre.hours_lines %}
       <p class="pub-micro mt-0.5 text-slate-500">{{ centre.hours_lines|first }}</p>
     {% endif %}
+    {% centre_rating centre as cr %}
+    {% if cr.count %}
+      <p class="mt-1 inline-flex items-center gap-1.5">
+        {% stars cr.avg "text-sm" %}
+        <span class="pub-micro text-slate-500">{{ cr.avg }} ({{ cr.count }})</span>
+      </p>
+    {% endif %}
 
     <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
       {% if centre.contact_phone %}

@@ -139,6 +139,36 @@ def icon(name, cls=""):
 
 
 @register.simple_tag
+def centre_rating(centre):
+    """The cached rating summary for one centre - {avg, count} - for the card."""
+    from apps.public.stats import rating_summary
+
+    return rating_summary(centre)
+
+
+@register.simple_tag
+def stars(value, size=""):
+    """Render a 1-5 rating as filled and empty Material Symbols stars. The number
+    is the real figure; the row carries an aria-label so a screen reader reads
+    "4.5 out of 5" instead of five "star" glyphs."""
+    from django.utils.safestring import mark_safe
+
+    value = float(value or 0)
+    glyphs = []
+    for i in range(1, 6):
+        filled = i <= round(value)
+        cls = "mi mi-fill text-amber-500" if filled else "mi text-slate-300"
+        if size:
+            cls = f"{cls} {size}"
+        glyphs.append(f'<span class="{cls}" aria-hidden="true" translate="no">star</span>')
+    label = f"{value:g} out of 5" if value else "Not yet rated"
+    return format_html(
+        '<span class="inline-flex items-center" role="img" aria-label="{}">{}</span>',
+        label, mark_safe("".join(glyphs)),
+    )
+
+
+@register.simple_tag
 def nav_item(url_name, icon_name, label, page_name="", match=""):
     """One tab in the public site's category ribbon.
 

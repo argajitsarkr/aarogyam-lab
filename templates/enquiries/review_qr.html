@@ -1,0 +1,38 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Review QR codes{% endblock %}
+{% block page_title %}QR codes for customer ratings{% endblock %}
+{% block page_subtitle %}Print one per centre and place it at the counter. A customer scans it, taps a star rating and it appears on that centre's public page.{% endblock %}
+
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center gap-3 print:hidden">
+  <button onclick="window.print()" class="btn">{% icon "print" %} Print this sheet</button>
+  <a href="{% url 'enquiries:reviews' %}" class="btn btn-sm">{% icon "star" %} See the ratings</a>
+</div>
+
+{% if cards %}
+<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+  {% for card in cards %}
+  <div class="card break-inside-avoid text-center">
+    <div class="flex items-center justify-center gap-2">
+      {% centre_badge card.centre %}
+      <h2 class="subsection-title">{{ card.centre.name }}</h2>
+    </div>
+    <img src="{{ card.qr }}" alt="QR code for {{ card.centre.name }}" class="mx-auto mt-3 h-48 w-48">
+    <p class="mt-3 text-sm font-semibold">Scan to rate us</p>
+    <p class="mt-1 break-all text-xs text-slate-500">{{ card.url }}</p>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="card text-sm text-slate-500">
+  No centre is published yet, so there is nothing to generate a code for. Publish a centre from
+  <a class="underline" href="/system-admin/centres/centre/">System admin - Centres</a> first.
+</p>
+{% endif %}
+
+{% if unpublished_centres %}
+<p class="mt-4 text-sm text-slate-500 print:hidden">
+  Not shown (centre is not public yet): {% for c in unpublished_centres %}{{ c.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+</p>
+{% endif %}
+{% endblock %}
