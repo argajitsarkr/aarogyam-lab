@@ -49,6 +49,17 @@ class EnquiryForm(forms.ModelForm):
         self.fields["prescription"].required = False
         self.fields["message"].required = False
 
+        # The centre select and the message box are rendered by Django, not by
+        # hand like name and phone, so without this they come out as the
+        # browser's raw grey widgets next to the styled inputs - which is what
+        # read as "messy". Give them the same shape as the hand-written fields.
+        field_class = (
+            "mt-1 w-full rounded-lg border-slate-300 shadow-sm "
+            "focus:border-teal-700 focus:ring-teal-700"
+        )
+        self.fields["centre"].widget.attrs["class"] = field_class
+        self.fields["message"].widget.attrs["class"] = field_class
+
     def clean_phone(self):
         # Visitors type spaces, +91 and dashes. Strip to the ten digits the
         # model validator wants rather than scolding them about format.
