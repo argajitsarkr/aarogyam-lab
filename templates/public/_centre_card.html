@@ -1,52 +1,47 @@
-{% load ui %}
+{% load static ui %}
 {% comment %}
-  A centre as a card. The photo is the strongest thing on this card - 1mg's
-  equivalent strip is almost entirely photography - so when there is no photo
-  the card shows a tinted block in the centre's own colour rather than a grey
-  placeholder, which reads as broken.
+  A centre as a compact card - a small square thumbnail beside the details,
+  rather than the tall photo banner it was before, which made three centres fill
+  the screen. The thumbnail is the centre's own photo; with none it falls back
+  to the Aarogyam mark on a tint of the centre's colour, so the row is still
+  branded rather than showing a grey placeholder.
 {% endcomment %}
-<article class="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 transition hover:shadow-md">
+<article class="flex gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-teal-700 hover:shadow-sm">
   {% if centre.photo %}
-    <img src="{{ centre.photo.url }}" alt="{{ centre.name }}" width="640" height="360" loading="lazy"
-         class="h-44 w-full object-cover">
+    <img src="{{ centre.photo.url }}" alt="{{ centre.name }}" width="160" height="160" loading="lazy"
+         class="h-20 w-20 shrink-0 rounded-lg object-cover">
   {% else %}
-    <div class="grid h-44 w-full place-items-center" style="background: {{ centre.colour }}1a">
-      <span class="mi text-5xl" aria-hidden="true" translate="no" style="color: {{ centre.colour }}">local_hospital</span>
+    <div class="grid h-20 w-20 shrink-0 place-items-center rounded-lg" style="background: {{ centre.colour }}14">
+      <img src="{% static 'img/aarogyam-mark.png' %}" alt="" class="h-12 w-12 object-contain">
     </div>
   {% endif %}
 
-  <div class="flex flex-1 flex-col p-4">
+  <div class="flex min-w-0 flex-1 flex-col">
     <div class="flex items-start justify-between gap-2">
-      <h3 class="pub-h3">
+      <h3 class="pub-action-lg leading-tight">
         <a href="{{ centre.get_absolute_url }}" class="hover:text-teal-700 hover:underline">{{ centre.name }}</a>
       </h3>
       {% centre_badge centre %}
     </div>
 
-    {% if centre.public_blurb %}<p class="pub-small mt-1">{{ centre.public_blurb }}</p>{% endif %}
-
-    <p class="pub-small mt-2 flex items-start gap-1.5 text-slate-600">
-      {% icon "location_on" %} <span>{{ centre.full_address }}</span>
-    </p>
+    <p class="pub-small mt-1 text-slate-600">{{ centre.full_address }}</p>
     {% if centre.hours_lines %}
-      <p class="pub-small mt-1 flex items-start gap-1.5 text-slate-600">
-        {% icon "schedule" %} <span>{{ centre.hours_lines|first }}</span>
-      </p>
+      <p class="pub-micro mt-0.5 text-slate-500">{{ centre.hours_lines|first }}</p>
     {% endif %}
 
-    <div class="mt-4 flex flex-wrap gap-2 pt-0">
+    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
       {% if centre.contact_phone %}
-      <a href="tel:{{ centre.contact_phone }}" class="pub-action inline-flex items-center gap-1.5 rounded-full bg-teal-700 px-4 py-2 text-white hover:bg-teal-800">
+      <a href="tel:{{ centre.contact_phone }}" class="pub-action inline-flex items-center gap-1 text-teal-700 hover:underline">
         {% icon "call" %} Call
       </a>
       {% endif %}
       {% if centre.map_url %}
-      <a href="{{ centre.map_url }}" rel="noopener nofollow" class="pub-action inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 hover:bg-slate-50">
+      <a href="{{ centre.map_url }}" rel="noopener nofollow" class="pub-action inline-flex items-center gap-1 text-teal-700 hover:underline">
         {% icon "directions" %} Directions
       </a>
       {% endif %}
-      <a href="{{ centre.get_absolute_url }}" class="pub-action inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 hover:bg-slate-50">
-        Details
+      <a href="{{ centre.get_absolute_url }}" class="pub-action inline-flex items-center gap-1 text-teal-700 hover:underline">
+        Details {% icon "arrow_forward" %}
       </a>
     </div>
   </div>
