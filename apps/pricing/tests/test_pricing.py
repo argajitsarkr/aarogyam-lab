@@ -23,7 +23,7 @@ def competitors(db):
 
 
 def test_seed_competitors(competitors):
-    assert {c.name for c in competitors} == {"Agilus Diagnostics", "Redcliffe Labs", "Dr Lal PathLabs",
+    assert {c.name for c in competitors} == {"Agilus Diagnostics", "Dr Lal PathLabs",
                                              "Metropolis Healthcare", "PathCare Labs"}
 
 
@@ -78,6 +78,7 @@ def test_package_totals(client, employee, competitors):
 
 
 def test_comparison_page_fast_for_500_tests_x_6_labs(client, employee, competitors):
+    Competitor.objects.create(name="Fifth Lab")
     Competitor.objects.create(name="Sixth Lab")
     comps = list(Competitor.objects.all())
     assert len(comps) == 6

@@ -31,6 +31,9 @@
 
 {% block body %}
 
+{% comment %} A one-time "hello" animation greets a new session, then fades out. {% endcomment %}
+{% include "public/_welcome.html" %}
+
 {% comment %} The rotating artwork leads the page; the hero with its form follows. {% endcomment %}
 {% include "public/_banners.html" %}
 
@@ -123,19 +126,20 @@
   <ul class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
     {% for concern in concerns %}
     <li>
-      <a href="{{ concern.get_absolute_url }}" class="flex h-full flex-col items-center gap-2 rounded-2xl border border-slate-200 p-4 text-center transition hover:border-teal-700 hover:bg-teal-50">
+      <a href="{{ concern.get_absolute_url }}" class="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 text-center transition hover:border-teal-700 hover:shadow-md">
         {% comment %}
-          A photo makes the tile, with the Material Symbols icon as the fallback
-          when a concern has no image yet - so the grid never shows a hole, and
-          a mix of the two still lines up because both are the same circle.
+          The image fills the whole card - a square at the top edge to edge -
+          with the name below it, rather than a small circle inside a padded
+          box. The Material Symbols icon is the fallback when a concern has no
+          image yet, on a tint of the same square, so a mix of the two lines up.
         {% endcomment %}
         {% if concern.image %}
           <img src="{{ concern.image.url }}" alt="" loading="lazy"
-               class="h-16 w-16 rounded-full object-cover">
+               class="aspect-square w-full object-cover">
         {% else %}
-          <span class="grid h-16 w-16 place-items-center rounded-full bg-teal-50 text-teal-800">{% icon concern.icon %}</span>
+          <span class="grid aspect-square w-full place-items-center bg-teal-50 text-teal-800">{% icon concern.icon "text-5xl" %}</span>
         {% endif %}
-        <span class="pub-action text-slate-800">{{ concern.name }}</span>
+        <span class="pub-action px-2 py-2.5 text-slate-800">{{ concern.name }}</span>
       </a>
     </li>
     {% endfor %}

@@ -1,0 +1,74 @@
+{% load static %}
+{% comment %}
+  A one-time welcome animation. It covers the page on the first visit of a
+  browser session, plays the Lottie "hello" greeting once, then fades out to
+  reveal the home page. Shown once per session (sessionStorage), so moving
+  around the site does not replay it.
+
+  It is hidden by default and revealed by the inline script below, which runs
+  before paint: a visitor with JavaScript off never sees it (so it can never
+  trap them behind a blank screen), and one with it on sees no flash of the
+  page underneath first. A safety timeout always dismisses it even if the
+  animation library fails to load.
+{% endcomment %}
+<div id="welcome-splash"
+     class="fixed inset-0 z-[100] grid place-items-center bg-white transition-opacity duration-500"
+     style="display: none;" aria-hidden="true">
+  <div id="welcome-anim" class="h-64 w-64 sm:h-80 sm:w-80"></div>
+</div>
+
+<script>
+  (function () {
+    var splash = document.getElementById('welcome-splash');
+    if (!splash) return;
+    var KEY = 'aarogyam:welcome-seen';
+    try {
+      if (sessionStorage.getItem(KEY)) { splash.remove(); return; }
+      sessionStorage.setItem(KEY, '1');
+    } catch (e) { /* private mode: just show it this once */ }
+
+    // Reveal synchronously so the page underneath never flashes first.
+    splash.style.display = 'grid';
+    document.documentElement.style.overflow = 'hidden';
+
+    function dismiss() {
+      if (!splash || splash.dataset.done) return;
+      splash.dataset.done = '1';
+      splash.style.opacity = '0';
+      document.documentElement.style.overflow = '';
+      setTimeout(function () { if (splash) splash.remove(); }, 550);
+    }
+
+    // Always clear the splash, even if the animation never loads or plays.
+    // The "hello" animation runs ~6s; this backstop sits just past it so the
+    // greeting finishes on its own, and still rescues a visitor if it stalls.
+    var safety = setTimeout(dismiss, 7000);
+
+    window.__welcomeInit = function (lottie) {
+      try {
+        var anim = lottie.loadAnimation({
+          container: document.getElementById('welcome-anim'),
+          renderer: 'svg',
+          loop: false,
+          autoplay: true,
+          path: '{% static "anim/hello.json" %}',
+        });
+        anim.addEventListener('complete', function () {
+          clearTimeout(safety);
+          setTimeout(dismiss, 400);
+        });
+      } catch (e) {
+        clearTimeout(safety);
+        dismiss();
+      }
+    };
+  })();
+</script>
+
+{% if USE_CDN_ASSETS %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js"
+          onload="window.__welcomeInit && window.lottie && window.__welcomeInit(window.lottie)"></script>
+{% else %}
+  <script src="{% static 'vendor/lottie_light.min.js' %}"
+          onload="window.__welcomeInit && window.lottie && window.__welcomeInit(window.lottie)"></script>
+{% endif %}

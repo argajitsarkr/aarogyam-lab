@@ -14,6 +14,7 @@ RUN npx tailwindcss -c tailwind.config.js -i static/src/app.css -o out/dist/app.
  && cp node_modules/alpinejs/dist/cdn.min.js out/vendor/alpine.min.js \
  && cp node_modules/chart.js/dist/chart.umd.js out/vendor/ \
  && cp node_modules/sortablejs/Sortable.min.js out/vendor/ \
+ && cp node_modules/lottie-web/build/player/lottie_light.min.js out/vendor/ \
  && cp -r node_modules/leaflet/dist/. out/vendor/leaflet/
 
 # ---------- Stage 2: Python app ----------
