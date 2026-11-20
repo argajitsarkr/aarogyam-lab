@@ -84,3 +84,15 @@ def test_queue_tabs(client, employee, centres):
     client.force_login(employee("ARP"))
     assert "Overdue Olu" in client.get(reverse("followups:list"), {"tab": "overdue", "view": "table"}).content.decode()
     assert "Overdue Olu" not in client.get(reverse("followups:list"), {"tab": "due_today", "view": "table"}).content.decode()
+
+
+def test_list_renders_in_kanban_and_calendar(client, employee, centres):
+    # The kanban/calendar context now comes from the shared KanbanCalendarMixin.
+    p = PatientFactory(registered_at_centre=centres["ARP"], full_name="Board Bina")
+    FollowUp.objects.create(patient=p, centre=centres["ARP"])
+    client.force_login(employee("ARP"))
+    kb = client.get(reverse("followups:list"), {"view": "kanban"})
+    assert kb.status_code == 200 and "kanban" in kb.context
+    assert "Board Bina" in kb.content.decode()
+    cal = client.get(reverse("followups:list"), {"view": "calendar"})
+    assert cal.status_code == 200 and "cal" in cal.context

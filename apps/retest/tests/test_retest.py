@@ -164,3 +164,15 @@ def test_unreported_tests_ignored(centres, hba1c):
     visit = VisitFactory(patient=p, visit_date=timezone.localdate() - dt.timedelta(days=100))
     VisitTestFactory(visit=visit, test=hba1c)  # still PENDING
     assert generate_candidates() == 0
+
+
+def test_queue_renders_in_kanban_and_calendar(centres, hba1c, staff, client):
+    p = PatientFactory(registered_at_centre=centres["ARP"], full_name="Board Raju")
+    reported_test(p, hba1c, days_ago=95)
+    assert generate_candidates() == 1
+    client.force_login(staff)
+    kb = client.get(reverse("retest:list"), {"view": "kanban"})
+    assert kb.status_code == 200 and "kanban" in kb.context
+    assert "Board Raju" in kb.content.decode()
+    cal = client.get(reverse("retest:list"), {"view": "calendar"})
+    assert cal.status_code == 200 and "cal" in cal.context

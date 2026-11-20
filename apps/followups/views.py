@@ -8,10 +8,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from apps.core.calendar_utils import CAL_MODES, build_calendar, date_range_for, parse_anchor
 from apps.core.assignment import pick_assignee
-from apps.core.mixins import ListPageMixin
-from apps.core.preferences import get_pref, set_pref
+from apps.core.mixins import KanbanCalendarMixin, ListPageMixin
 from apps.patients.models import Patient
 from apps.patients.services import check_patient_access
 
@@ -30,7 +28,7 @@ def _check_fu_access(user, fu):
     raise PermissionDenied("This follow-up belongs to another centre.")
 
 
-class FollowUpListView(ListPageMixin):
+class FollowUpListView(KanbanCalendarMixin, ListPageMixin):
     model = FollowUp
     page_key = "followups"
     url_name = "followups:list"
@@ -44,6 +42,9 @@ class FollowUpListView(ListPageMixin):
     default_sort = "due"
     columns = [("patient", "Patient"), ("centre", "Centre"), ("reason", "Reason"), ("due", "Due"),
                ("priority", "Priority"), ("assigned", "Assigned to"), ("status", "Status"), ("next", "Next action")]
+    status_enum = FollowUp.Status
+    kanban_columns = FollowUp.KANBAN_COLUMNS
+    calendar_pref_key = "cal:followups"
 
     def get_tab(self):
         tab = self.request.GET.get("tab")
@@ -68,25 +69,13 @@ class FollowUpListView(ListPageMixin):
         }[tab]
 
     def get_context_data(self, **kwargs):
+        # KanbanCalendarMixin adds the kanban/calendar context; this adds the tabs.
         ctx = super().get_context_data(**kwargs)
         qs = FollowUp.objects.for_scope(self.request.scope)
         ctx["tabs"] = TABS
         ctx["tab"] = self.get_tab()
         ctx["tab_counts"] = {"due_today": qs.due_today().count(), "overdue": qs.overdue().count(),
                              "upcoming": qs.upcoming(7).count()}
-        mode = self.get_view_mode()
-        items = list(ctx["object_list"]) if mode in ("kanban", "calendar") else None
-        if mode == "kanban":
-            ctx["kanban"] = [(s, FollowUp.Status(s).label, [i for i in items if i.status == s]) for s in FollowUp.KANBAN_COLUMNS]
-        elif mode == "calendar":
-            cal_mode = self.request.GET.get("cal") or get_pref(self.request.user, "cal:followups", "month")
-            if cal_mode not in CAL_MODES:
-                cal_mode = "month"
-            set_pref(self.request.user, "cal:followups", cal_mode)
-            anchor = parse_anchor(self.request.GET.get("d"))
-            start, end = date_range_for(cal_mode, anchor)
-            visible = [i for i in items if i.calendar_date and start <= i.calendar_date <= end]
-            ctx["cal"] = build_calendar(cal_mode, anchor, visible, "calendar_date")
         return ctx
 
 

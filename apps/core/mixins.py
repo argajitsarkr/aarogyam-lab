@@ -156,6 +156,50 @@ class ListPageMixin(LoginRequiredMixin, ScopedQuerysetMixin, ListView):
         return ctx
 
 
+class KanbanCalendarMixin:
+    """Kanban-column and calendar context for a ListPageMixin list page.
+
+    Both the re-test queue and the follow-up list are the same kind of board - a
+    status lifecycle shown as columns, and a due/appointment date shown on a
+    calendar - so the context that builds them lives here once. A view opts in by
+    setting `status_enum`, `kanban_columns` and `calendar_pref_key`; its items
+    need a `status` and a `calendar_date` (overridable via `calendar_date_attr`).
+    The model-specific part - which rows belong in each mode - stays in the
+    view's `get_base_queryset`.
+    """
+
+    status_enum = None
+    kanban_columns = ()
+    calendar_pref_key = None
+    calendar_date_attr = "calendar_date"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        mode = self.get_view_mode()
+        if mode == "kanban":
+            items = list(ctx["object_list"])
+            ctx["kanban"] = [
+                (s, self.status_enum(s).label, [i for i in items if i.status == s])
+                for s in self.kanban_columns
+            ]
+        elif mode == "calendar":
+            ctx["cal"] = self._calendar_context(list(ctx["object_list"]))
+        return ctx
+
+    def _calendar_context(self, items):
+        from .calendar_utils import CAL_MODES, build_calendar, date_range_for, parse_anchor
+
+        cal_mode = self.request.GET.get("cal") or get_pref(self.request.user, self.calendar_pref_key, "month")
+        if cal_mode not in CAL_MODES:
+            cal_mode = "month"
+        set_pref(self.request.user, self.calendar_pref_key, cal_mode)
+        anchor = parse_anchor(self.request.GET.get("d"))
+        start, end = date_range_for(cal_mode, anchor)
+        attr = self.calendar_date_attr
+        visible = [i for i in items if getattr(i, attr) and start <= getattr(i, attr) <= end]
+        return build_calendar(cal_mode, anchor, visible, attr)
+
+
 def _filter_qs(params):
     p = params.copy()
     for k in ("sort", "page_size"):

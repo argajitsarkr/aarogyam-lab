@@ -14,10 +14,8 @@ from django.views.decorators.http import require_POST
 
 from apps.accounts.models import User
 from apps.centres.models import Centre
-from apps.core.calendar_utils import CAL_MODES, build_calendar, date_range_for, parse_anchor
 from apps.core.filters import StyledFilterSet
-from apps.core.mixins import ListPageMixin, admin_required
-from apps.core.preferences import get_pref, set_pref
+from apps.core.mixins import KanbanCalendarMixin, ListPageMixin, admin_required
 from apps.patients.models import TestCatalog, VisitTest
 
 from .forms import CallOutcomeForm
@@ -108,7 +106,7 @@ class CandidateFilter(StyledFilterSet):
         return qs.filter(status=value)
 
 
-class CandidateListView(ListPageMixin):
+class CandidateListView(KanbanCalendarMixin, ListPageMixin):
     model = RetestCandidate
     page_key = "retest"
     url_name = "retest:list"
@@ -123,6 +121,9 @@ class CandidateListView(ListPageMixin):
     columns = [("patient", "Patient"), ("test", "Test"), ("flag", "Last flag"), ("due", "Due"),
                ("priority", "Priority"), ("centre", "Centre"), ("status", "Status"),
                ("attempts", "Attempts")]
+    status_enum = RetestCandidate.Status
+    kanban_columns = RetestCandidate.KANBAN_COLUMNS
+    calendar_pref_key = "cal:retest"
 
     def get_base_queryset(self):
         qs = (RetestCandidate.objects.for_scope(self.request.scope)
@@ -134,22 +135,6 @@ class CandidateListView(ListPageMixin):
         if not self.request.GET.get("status"):
             qs = qs.open()
         return qs
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        mode = self.get_view_mode()
-        if mode == "kanban":
-            items = list(ctx["object_list"])
-            ctx["kanban"] = [(s, RetestCandidate.Status(s).label, [i for i in items if i.status == s]) for s in RetestCandidate.KANBAN_COLUMNS]
-        elif mode == "calendar":
-            cal_mode = self.request.GET.get("cal") or get_pref(self.request.user, "cal:retest", "month")
-            cal_mode = cal_mode if cal_mode in CAL_MODES else "month"
-            set_pref(self.request.user, "cal:retest", cal_mode)
-            anchor = parse_anchor(self.request.GET.get("d"))
-            start, end = date_range_for(cal_mode, anchor)
-            items = [i for i in ctx["object_list"] if start <= i.calendar_date <= end]
-            ctx["cal"] = build_calendar(cal_mode, anchor, items, "calendar_date")
-        return ctx
 
 
 @require_POST
