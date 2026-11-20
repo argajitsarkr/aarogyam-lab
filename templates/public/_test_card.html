@@ -28,8 +28,13 @@
       <p class="pub-nav text-slate-500">Price by partner lab</p>
       <ul class="mt-1.5 divide-y divide-slate-100">
         {% for cp in test.competitor_prices.all|slice:":3" %}
-          <li class="flex items-baseline justify-between gap-3 py-1">
-            <span class="pub-small text-slate-700">{{ cp.competitor.name }}</span>
+          <li class="flex items-center justify-between gap-3 py-1">
+            <span class="inline-flex items-center gap-1.5 pub-small text-slate-700">
+              {% if cp.competitor.logo %}
+                <img src="{{ cp.competitor.logo.url }}" alt="" loading="lazy" class="h-4 w-4 shrink-0 rounded-sm object-contain">
+              {% endif %}
+              {{ cp.competitor.name }}
+            </span>
             <span class="font-semibold tabular-nums">₹{{ cp.price|floatformat:"-2"|intcomma }}</span>
           </li>
         {% endfor %}

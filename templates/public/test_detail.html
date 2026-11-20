@@ -58,7 +58,12 @@
             <tbody class="divide-y divide-slate-100">
               {% for cp in test.competitor_prices.all %}
               <tr>
-                <td class="px-4 py-3">{{ cp.competitor.name }}</td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-1.5">
+                    {% if cp.competitor.logo %}<img src="{{ cp.competitor.logo.url }}" alt="" loading="lazy" class="h-5 w-5 shrink-0 rounded-sm object-contain">{% endif %}
+                    {{ cp.competitor.name }}
+                  </span>
+                </td>
                 <td class="px-4 py-3 text-right font-semibold tabular-nums">₹{{ cp.price|floatformat:"-2"|intcomma }}</td>
                 <td class="pub-micro px-4 py-3 text-right">{{ cp.last_verified_on|date:"d M Y" }}</td>
               </tr>

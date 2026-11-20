@@ -5,7 +5,13 @@ from .models import Competitor, CompetitorPrice
 
 @admin.register(Competitor)
 class CompetitorAdmin(admin.ModelAdmin):
-    list_display = ("name", "display_order", "is_active")
+    list_display = ("name", "has_logo", "display_order", "is_active")
+    list_editable = ("display_order", "is_active")
+    fields = ("name", "logo", "website", "display_order", "is_active")
+
+    @admin.display(boolean=True, description="Logo")
+    def has_logo(self, obj):
+        return bool(obj.logo)
 
 
 @admin.register(CompetitorPrice)

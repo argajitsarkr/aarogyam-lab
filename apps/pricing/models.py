@@ -8,6 +8,7 @@ from apps.core.models import TimeStampedModel
 
 class Competitor(TimeStampedModel):
     name = models.CharField(max_length=120, unique=True)
+    logo = models.ImageField(upload_to="competitors/", blank=True, help_text="Square logo, shown on test cards.")
     website = models.URLField(blank=True)
     display_order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
