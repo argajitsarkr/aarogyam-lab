@@ -11,8 +11,13 @@
     <img src="{{ centre.photo.url }}" alt="{{ centre.name }}" width="160" height="160" loading="lazy"
          class="h-20 w-20 shrink-0 rounded-lg object-cover">
   {% else %}
-    <div class="grid h-20 w-20 shrink-0 place-items-center rounded-lg" style="background: {{ centre.colour }}14">
-      <img src="{% static 'img/aarogyam-mark.png' %}" alt="" class="h-12 w-12 object-contain">
+    {% comment %}
+      No photo: a plain placeholder - a location glyph in the centre's own
+      colour on a tint of it. Not the Aarogyam mark, which on another centre
+      (BeHealthy, Radharani) read as if it were that brand.
+    {% endcomment %}
+    <div class="grid h-20 w-20 shrink-0 place-items-center rounded-lg" style="background: {{ centre.colour }}14; color: {{ centre.colour }}">
+      <span class="mi text-3xl" aria-hidden="true" translate="no">location_on</span>
     </div>
   {% endif %}
 
