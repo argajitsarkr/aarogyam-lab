@@ -57,12 +57,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!pins.length) return;
 
   const map = L.map(el, { scrollWheelZoom: false }).setView([23.8315, 91.2868], 12);
-  // OpenStreetMap tiles - keyless, and the same source the staff map uses, so
-  // the public site takes on no new paid dependency. (CARTO's light basemap now
-  // needs an API key, so it is out.)
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  // Esri's light-grey basemap: keyless and, unlike OpenStreetMap's volunteer
+  // tile servers, it does not block a production site by referrer - OSM returns
+  // an "access blocked" tile for apps using its shared servers. The light base
+  // carries roads and water; the reference layer adds the place labels. Esri's
+  // grey canvas also sits more quietly under the brand colours than OSM did.
+  const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas';
+  L.tileLayer(esri + '/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 16, attribution: 'Tiles &copy; Esri',
+  }).addTo(map);
+  L.tileLayer(esri + '/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 16,
   }).addTo(map);
 
   // A teardrop pin in each centre's own colour - the retro palette the badges
