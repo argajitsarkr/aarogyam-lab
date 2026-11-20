@@ -1,14 +1,34 @@
 {% extends "public/base.html" %}{% load ui %}
 {% block title %}Our centres - {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }}{% endblock %}
-{% block meta_description %}Addresses, opening hours and phone numbers for every {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} centre in Tripura.{% endblock %}
+{% block meta_description %}Addresses, opening hours and phone numbers for every {{ site_settings.lab_display_name|default:"Aarogyam Pathology" }} centre in Agartala, Tripura - shown on a map.{% endblock %}
+
+{% block head %}{% include "_leaflet_assets.html" %}{% endblock %}
 
 {% block body %}
-{% include "public/_page_header.html" with header_title="Our centres" header_subtitle="Walk in during opening hours, or call the centre nearest you to arrange a home collection." %}
+{% include "public/_page_header.html" with header_title="Our centres" header_subtitle="Find the centre nearest you on the map, walk in during opening hours, or call to arrange a home collection." %}
 
 <section class="mx-auto max-w-7xl px-4 py-10">
   {% if centres %}
-    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      {% for c in centres %}{% include "public/_centre_card.html" with centre=c %}{% endfor %}
+    {% comment %}
+      List and map, as a locations page is usually built. On a phone the map
+      comes first (source order), then the cards; on a wide screen the list sits
+      on the left and the map is sticky on the right. The pins and the cards are
+      the same centres - clicking a card pans the map to it.
+    {% endcomment %}
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="lg:order-2">
+        <div id="centres-map"
+             class="h-80 w-full overflow-hidden rounded-2xl border border-slate-200 sm:h-[26rem] lg:sticky lg:top-24 lg:h-[36rem]"
+             role="img" aria-label="Map of our centres in Agartala"></div>
+      </div>
+
+      <ul class="space-y-4 lg:order-1">
+        {% for c in centres %}
+        <li data-centre-code="{{ c.short_code }}" class="scroll-mt-24">
+          {% include "public/_centre_card.html" with centre=c %}
+        </li>
+        {% endfor %}
+      </ul>
     </div>
   {% else %}
     {% comment %}
@@ -23,4 +43,63 @@
     {% include "public/_enquiry_form.html" with enquiry_heading="Want a home collection instead?" enquiry_cta="Request a call back" %}
   </div>
 </section>
+
+{{ map_data|json_script:"centres-map-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('centres-map');
+  const data = document.getElementById('centres-map-data');
+  if (!el || !data || typeof L === 'undefined') return;
+  const pins = (JSON.parse(data.textContent).centres) || [];
+  if (!pins.length) return;
+
+  const map = L.map(el, { scrollWheelZoom: false }).setView([23.8315, 91.2868], 12);
+  // OpenStreetMap tiles - keyless, and the same source the staff map uses, so
+  // the public site takes on no new paid dependency. (CARTO's light basemap now
+  // needs an API key, so it is out.)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+
+  // A teardrop pin in each centre's own colour - the retro palette the badges
+  // use - so a centre is the same colour on the map as on its card.
+  const pinSvg = (colour) =>
+    `<svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+       <path d="M15 0C6.7 0 0 6.7 0 15c0 10 15 25 15 25s15-15 15-25C30 6.7 23.3 0 15 0z" fill="${colour}"/>
+       <circle cx="15" cy="15" r="6" fill="#fff"/>
+     </svg>`;
+
+  const markers = {};
+  const bounds = [];
+  pins.forEach((p) => {
+    const icon = L.divIcon({
+      html: pinSvg(p.colour), className: '', iconSize: [30, 40], iconAnchor: [15, 40], popupAnchor: [0, -36],
+    });
+    const popup =
+      `<strong>${p.name}</strong><br>${p.address}` +
+      (p.phone ? `<br><a href="tel:${p.phone}">${p.phone}</a>` : '') +
+      `<br><a href="${p.url}">View centre</a>`;
+    markers[p.code] = L.marker([p.lat, p.lng], { icon, title: p.name }).bindPopup(popup).addTo(map);
+    bounds.push([p.lat, p.lng]);
+  });
+  if (bounds.length > 1) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
+  else map.setView(bounds[0], 14);
+
+  // Click a card (anywhere but a real link) to pan the map to that centre.
+  document.querySelectorAll('[data-centre-code]').forEach((li) => {
+    li.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;
+      const m = markers[li.dataset.centreCode];
+      if (!m) return;
+      map.setView(m.getLatLng(), 15, { animate: true });
+      m.openPopup();
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+});
+</script>
 {% endblock %}

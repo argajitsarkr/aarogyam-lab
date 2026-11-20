@@ -80,6 +80,28 @@ class CentreListView(PublicPageMixin, ListView):
     def get_queryset(self):
         return Centre.objects.filter(is_active=True, is_public=True).prefetch_related("doctors")
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        # Only centres with coordinates go on the map; one without is still in
+        # the list, it just has no pin. The template reads this through
+        # json_script, so nothing here is interpolated into markup.
+        pins = [
+            {
+                "code": c.short_code,
+                "name": c.name,
+                "lat": float(c.latitude),
+                "lng": float(c.longitude),
+                "colour": c.colour,
+                "address": c.full_address,
+                "url": c.get_absolute_url(),
+                "phone": c.contact_phone,
+            }
+            for c in ctx["centres"]
+            if c.latitude is not None and c.longitude is not None
+        ]
+        ctx["map_data"] = {"centres": pins}
+        return ctx
+
 
 class CentreDetailView(PublicPageMixin, DetailView):
     template_name = "public/centre_detail.html"
