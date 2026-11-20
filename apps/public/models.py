@@ -68,6 +68,10 @@ class HealthConcern(TimeStampedModel):
     name = models.CharField(max_length=80, unique=True)
     slug = models.SlugField(max_length=90, unique=True, blank=True)
     icon = models.CharField(max_length=40, default="science", help_text="Material Symbols ligature name")
+    image = models.ImageField(
+        upload_to="concerns/", blank=True,
+        help_text="A square photo for the tile. With none, the Material Symbols icon above is used instead.",
+    )
     blurb = models.CharField(max_length=200, blank=True)
     tests = models.ManyToManyField("patients.TestCatalog", blank=True, related_name="health_concerns")
     display_order = models.PositiveSmallIntegerField(default=0)

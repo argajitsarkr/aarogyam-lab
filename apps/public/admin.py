@@ -51,12 +51,17 @@ class DoctorAdmin(admin.ModelAdmin):
 
 @admin.register(HealthConcern)
 class HealthConcernAdmin(admin.ModelAdmin):
-    list_display = ("name", "icon", "test_count", "display_order", "is_active")
+    list_display = ("name", "icon", "has_image", "test_count", "display_order", "is_active")
     list_editable = ("display_order", "is_active")
     list_filter = ("is_active",)
     search_fields = ("name", "blurb")
     filter_horizontal = ("tests",)
     prepopulated_fields = {"slug": ("name",)}
+    fields = ("name", "slug", "icon", "image", "blurb", "tests", "display_order", "is_active")
+
+    @admin.display(description="Photo?", boolean=True)
+    def has_image(self, obj):
+        return bool(obj.image)
 
     @admin.display(description="tests")
     def test_count(self, obj):

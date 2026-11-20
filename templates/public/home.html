@@ -123,7 +123,17 @@
     {% for concern in concerns %}
     <li>
       <a href="{{ concern.get_absolute_url }}" class="flex h-full flex-col items-center gap-2 rounded-2xl border border-slate-200 p-4 text-center transition hover:border-teal-700 hover:bg-teal-50">
-        <span class="grid h-12 w-12 place-items-center rounded-full bg-teal-50 text-teal-800">{% icon concern.icon %}</span>
+        {% comment %}
+          A photo makes the tile, with the Material Symbols icon as the fallback
+          when a concern has no image yet - so the grid never shows a hole, and
+          a mix of the two still lines up because both are the same circle.
+        {% endcomment %}
+        {% if concern.image %}
+          <img src="{{ concern.image.url }}" alt="" loading="lazy"
+               class="h-16 w-16 rounded-full object-cover">
+        {% else %}
+          <span class="grid h-16 w-16 place-items-center rounded-full bg-teal-50 text-teal-800">{% icon concern.icon %}</span>
+        {% endif %}
         <span class="pub-action text-slate-800">{{ concern.name }}</span>
       </a>
     </li>
